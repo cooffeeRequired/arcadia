@@ -1,0 +1,6 @@
+tools/
+var/
+.vscode/
+README.docker.md
+README.md
+.gitignore

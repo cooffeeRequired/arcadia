@@ -1,0 +1,373 @@
+/* Moderní Tracy Debugger - Custom styly */
+
+/* ===== ZÁKLADNÍ MODERNIZACE ===== */
+
+/* Moderní Tracy bar */
+#tracy-debug-bar {
+    backdrop-filter: blur(10px);
+    background: rgba(15, 23, 42, 0.95) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Moderní panely */
+#tracy-debug-bar .tracy-panel {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    margin: 4px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(5px);
+}
+
+#tracy-debug-bar .tracy-panel:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Moderní taby */
+#tracy-debug-bar .tracy-panel a {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#tracy-debug-bar .tracy-panel a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white !important;
+    transform: scale(1.05);
+}
+
+/* ===== CUSTOM PANELY S MODERNÍMI GRADIENTY ===== */
+
+/* Database Panel - Moderní modrý gradient */
+#tracy-debug-panel-DatabasePanel .tracy-inner {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+#tracy-debug-panel-DatabasePanel .tracy-inner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    animation: shimmer 3s infinite;
+}
+
+/* Views Panel - Moderní růžový gradient */
+#tracy-debug-panel-ViewPanel .tracy-inner {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(240, 147, 251, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+#tracy-debug-panel-ViewPanel .tracy-inner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    animation: shimmer 3s infinite 0.5s;
+}
+
+/* Cache Panel - Moderní cyan gradient */
+#tracy-debug-panel-CachePanel .tracy-inner {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(79, 172, 254, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+#tracy-debug-panel-CachePanel .tracy-inner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    animation: shimmer 3s infinite 1s;
+}
+
+/* Performance Panel - Moderní zelený gradient */
+#tracy-debug-panel-PerformancePanel .tracy-inner {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(67, 233, 123, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+#tracy-debug-panel-PerformancePanel .tracy-inner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    animation: shimmer 3s infinite 1.5s;
+}
+
+/* Arcadia Panel - Moderní fialový gradient */
+#tracy-debug-panel-ArcadiaPanel .tracy-inner {
+    background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(161, 140, 209, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+#tracy-debug-panel-ArcadiaPanel .tracy-inner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    animation: shimmer 3s infinite 2s;
+}
+
+/* ===== MODERNÍ TABULKY ===== */
+
+.tracy-sortable {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 15px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.tracy-sortable th {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.tracy-sortable td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 13px;
+    transition: background 0.2s ease;
+}
+
+.tracy-sortable tr:hover td {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.01);
+}
+
+/* ===== MODERNÍ NADPISY ===== */
+
+.tracy-inner h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.tracy-inner h1::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 2px;
+}
+
+.tracy-inner h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 25px 0 15px 0;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* ===== MODERNÍ PARAGRAFY ===== */
+
+.tracy-inner p {
+    margin: 10px 0;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.tracy-inner p strong {
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* ===== MODERNÍ PRE ELEMENTY ===== */
+
+.tracy-inner pre {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 8px 0;
+    font-size: 12px;
+    line-height: 1.4;
+    overflow-x: auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ===== ANIMACE ===== */
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Animace pro panely */
+#tracy-debug-panel-DatabasePanel,
+#tracy-debug-panel-ViewPanel,
+#tracy-debug-panel-CachePanel,
+#tracy-debug-panel-PerformancePanel,
+#tracy-debug-panel-ArcadiaPanel {
+    animation: slideIn 0.5s ease-out;
+}
+
+/* ===== MODERNÍ SCROLLBAR ===== */
+
+.tracy-inner::-webkit-scrollbar {
+    width: 8px;
+}
+
+.tracy-inner::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.tracy-inner::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.tracy-inner::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* ===== RESPONZIVNÍ DESIGN ===== */
+
+@media (max-width: 768px) {
+    .tracy-sortable {
+        font-size: 12px;
+    }
+    
+    .tracy-sortable th,
+    .tracy-sortable td {
+        padding: 8px 12px;
+    }
+    
+    .tracy-inner h1 {
+        font-size: 20px;
+    }
+    
+    .tracy-inner h2 {
+        font-size: 16px;
+    }
+}
+
+/* ===== MODERNÍ LABELY ===== */
+
+.tracy-label {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-left: 8px;
+    font-weight: 400;
+}
+
+/* ===== GLASSMORPHISM EFEKTY ===== */
+
+.tracy-inner {
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ===== HOVER EFEKTY ===== */
+
+#tracy-debug-bar .tracy-panel:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== MODERNÍ FOCUS STYLY ===== */
+
+#tracy-debug-bar .tracy-panel a:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+    border-radius: 8px;
+}
+
+/* ===== PULSING ANIMATION PRO AKTIVNÍ PANELY ===== */
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+        box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+    }
+}
+
+.tracy-inner:hover {
+    animation: pulse 2s infinite;
+} 

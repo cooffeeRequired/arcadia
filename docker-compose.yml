@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  # PHP Service
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: arcadia-app
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - arcadia-network
+      - shared
+
+  # Nginx Service
+  webserver:
+    image: nginx:alpine
+    container_name: arcadia-webserver
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - arcadia-network
+      - shared
+
+# Networks
+networks:
+  arcadia-network:
+    driver: bridge
+  shared:
+    external: true
+
+# Volumes
+volumes:
+  dbdata:
+    driver: local

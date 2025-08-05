@@ -1,0 +1,6 @@
+INSERT INTO customers (name, email, phone, company, category, address, zip_code, city, country, status, notes, created_at, updated_at) VALUES
+('Jan Novák', 'jan.novak@email.cz', '+420 123 456 789', 'Novák s.r.o.', 'company', 'Václavská 1', '11000', 'Praha', 'Česká republika', 'active', 'Důležitý klient', NOW(), NOW()),
+('Marie Svobodová', 'marie.svobodova@email.cz', '+420 987 654 321', NULL, 'person', 'Nerudova 15', '11800', 'Praha', 'Česká republika', 'active', 'Zájem o nové produkty', NOW(), NOW()),
+('Petr Černý', 'petr.cerny@firma.cz', '+420 555 123 456', 'Černý a spol.', 'company', 'Národní 25', '11000', 'Praha', 'Česká republika', 'active', 'Potenciální partner', NOW(), NOW()),
+('Anna Dvořáková', 'anna.dvorakova@email.cz', '+420 777 888 999', NULL, 'person', 'Karlova 8', '12000', 'Praha', 'Česká republika', 'prospect', 'Nový lead', NOW(), NOW()),
+('Tech Solutions s.r.o.', 'info@techsolutions.cz', '+420 222 333 444', 'Tech Solutions s.r.o.', 'company', 'Dlouhá 45', '11000', 'Praha', 'Česká republika', 'active', 'IT společnost', NOW(), NOW()); 

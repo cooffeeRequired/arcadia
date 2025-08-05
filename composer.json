@@ -1,0 +1,25 @@
+{
+  "name": "coffeerquired/arcadia-crm",
+  "description": "A CRM system for managing customer relationships.",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/",
+      "Core\\": "core/"
+    }
+  },
+      "require": {
+      "doctrine/orm": "^2.16",
+      "symfony/var-dumper": "^6.0",
+      "symfony/cache": "^7.3",
+      "predis/predis": "^3.1",
+      "illuminate/view": "^10.0",
+      "illuminate/support": "^10.0",
+      "tracy/tracy": "^2.10",
+      "cboden/ratchet": "^0.4.4",
+      "endroid/qr-code": "^4.8",
+      "dompdf/dompdf": "^2.0",
+        "ext-pdo": "*",
+        "ext-zend-opcache": "*"
+      }
+}

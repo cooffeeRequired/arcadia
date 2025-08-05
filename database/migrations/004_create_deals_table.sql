@@ -1,0 +1,21 @@
+CREATE TABLE deals (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    value DECIMAL(10,2) NULL,
+    stage VARCHAR(50) NOT NULL DEFAULT 'prospecting',
+    probability DECIMAL(3,2) NOT NULL DEFAULT 0.00,
+    expected_close_date DATE NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'active',
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+    INDEX idx_customer_id (customer_id),
+    INDEX idx_title (title),
+    INDEX idx_stage (stage),
+    INDEX idx_status (status),
+    INDEX idx_value (value),
+    INDEX idx_expected_close_date (expected_close_date),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci; 
