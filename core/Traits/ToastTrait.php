@@ -1,54 +1,78 @@
 <?php
 
-namespace Core\Notification;
+namespace Core\Traits;
 
-class Toast
+trait ToastTrait
 {
     protected static array $toasts = [];
     protected static bool $initialized = false;
-    protected static string $position = 'bottom-right'; // bottom-right, top-right, top-left, bottom-left, center
+    protected static string $position = 'bottom-right';
     protected static string $outlineClass = '';
     protected static string $contentClass = '';
 
-    public static function success(string $message, int $duration = 5000, array $options = []): void
+    /**
+     * Přidá success toast notifikaci
+     */
+    public static function toastSuccess(string $message, int $duration = 5000, array $options = []): void
     {
-        self::add('success', $message, $duration, $options);
+        self::addToast('success', $message, $duration, $options);
     }
 
-    public static function error(string $message, int $duration = 5000, array $options = []): void
+    /**
+     * Přidá error toast notifikaci
+     */
+    public static function toastError(string $message, int $duration = 5000, array $options = []): void
     {
-        self::add('error', $message, $duration, $options);
+        self::addToast('error', $message, $duration, $options);
     }
 
-    public static function warning(string $message, int $duration = 5000, array $options = []): void
+    /**
+     * Přidá warning toast notifikaci
+     */
+    public static function toastWarning(string $message, int $duration = 5000, array $options = []): void
     {
-        self::add('warning', $message, $duration, $options);
+        self::addToast('warning', $message, $duration, $options);
     }
 
-    public static function info(string $message, int $duration = 5000, array $options = []): void
+    /**
+     * Přidá info toast notifikaci
+     */
+    public static function toastInfo(string $message, int $duration = 5000, array $options = []): void
     {
-        self::add('info', $message, $duration, $options);
+        self::addToast('info', $message, $duration, $options);
     }
 
-    public static function setPosition(string $position): void
+    /**
+     * Nastaví pozici toast notifikací
+     */
+    public static function setToastPosition(string $position): void
     {
         self::$position = $position;
     }
 
-    public static function setOutlineClass(string $class): void
+    /**
+     * Nastaví outline třídu pro toast
+     */
+    public static function setToastOutlineClass(string $class): void
     {
         self::$outlineClass = $class;
     }
 
-    public static function setContentClass(string $class): void
+    /**
+     * Nastaví content třídu pro toast
+     */
+    public static function setToastContentClass(string $class): void
     {
         self::$contentClass = $class;
     }
 
-    protected static function add(string $type, string $message, int $duration, array $options = []): void
+    /**
+     * Přidá toast notifikaci
+     */
+    protected static function addToast(string $type, string $message, int $duration, array $options = []): void
     {
         if (!self::$initialized) {
-            self::init();
+            self::initToast();
         }
 
         $toast = [
@@ -65,42 +89,55 @@ class Toast
         self::$toasts[] = $toast;
     }
 
-    protected static function init(): void
+    /**
+     * Inicializuje toast systém
+     */
+    protected static function initToast(): void
     {
         self::$initialized = true;
         
-        // Přidáme JavaScript pro toast notifikace do hlavičky
         if (!isset($_SESSION['_toast_js_added'])) {
             $_SESSION['_toast_js_added'] = true;
         }
     }
 
-    public static function getAll(): array
+    /**
+     * Získá všechny toast notifikace
+     */
+    public static function getAllToasts(): array
     {
         $toasts = self::$toasts;
-        self::$toasts = []; // Vyčistíme po načtení
+        self::$toasts = [];
         return $toasts;
     }
 
+    /**
+     * Zkontroluje, zda existují toast notifikace
+     */
     public static function hasToasts(): bool
     {
         return !empty(self::$toasts);
     }
 
-    public static function clear(): void
+    /**
+     * Vyčistí všechny toast notifikace
+     */
+    public static function clearToasts(): void
     {
         self::$toasts = [];
     }
 
-    public static function render(): string
+    /**
+     * Vyrenderuje toast notifikace
+     */
+    public static function renderToasts(): string
     {
-        $toasts = self::getAll();
+        $toasts = self::getAllToasts();
         
         if (empty($toasts)) {
             return '';
         }
 
-        // Determine container position based on the position setting
         $containerStyle = 'position: fixed; z-index: 9999;';
         $containerStyle .= match (self::$position) {
             'top-right' => ' top: 1rem; right: 1rem;',
@@ -112,22 +149,24 @@ class Toast
 
         $html = '<div id="toast-container" style="' . $containerStyle . '">';
         
-        // Directly render each toast
         foreach ($toasts as $toast) {
             $html .= self::renderToastTemplate($toast['type'], $toast['message'], $toast['id'], $toast['position']);
         }
         
         $html .= '</div>';
         
-        // Store toast data for JavaScript
         $toastsJson = json_encode($toasts, JSON_HEX_APOS | JSON_HEX_QUOT);
         $html .= '<script>window.initialToasts = ' . $toastsJson . ';</script>';
+        
+        // Debug informace
+        $html .= '<!-- Debug: Toast count = ' . count($toasts) . ' -->';
         
         return $html;
     }
 
-
-
+    /**
+     * Získá název toast notifikace podle typu
+     */
     protected static function getToastTitle(string $type): string
     {
         return match ($type) {
@@ -139,6 +178,9 @@ class Toast
         };
     }
 
+    /**
+     * Vyrenderuje template pro toast notifikaci
+     */
     protected static function renderToastTemplate(string $type, string $message, string $id, string $position = 'bottom-right'): string
     {
         $borderClass = '';
@@ -175,26 +217,7 @@ class Toast
                 </svg>';
                 break;
         }
-        
-        // Determine initial transform direction based on position
-        $initialTransform = '';
-        switch ($position) {
-            case 'bottom-right':
-            case 'top-right':
-                $initialTransform = 'translateX(100%)'; // Slide from right
-                break;
-            case 'bottom-left':
-            case 'top-left':
-                $initialTransform = 'translateX(-100%)'; // Slide from left
-                break;
-            case 'center':
-                $initialTransform = 'scale(0.8) translateY(-20px)'; // Zoom and slide from top
-                break;
-            default:
-                $initialTransform = 'translateX(100%)'; // Default: slide from right
-        }
-        
-        // Add data attribute for position to be used by JavaScript
+
         return '
         <div id="' . $id . '" class="bg-white shadow-lg rounded-lg pointer-events-auto ' . $borderClass . '" 
              style="margin-bottom: 0.5rem; visibility: hidden; opacity: 0; max-width: 450px; width: 100%;" 
@@ -221,77 +244,92 @@ class Toast
         </div>';
     }
 
-
-
-    public static function renderScript(): string
+    /**
+     * Vyrenderuje JavaScript pro toast notifikace
+     */
+    public static function renderToastScript(): string
     {
         return "
-        <script src='https://code.jquery.com/jquery-3.7.1.min.js'></script>
         <script>
-        $(document).ready(function() {
-            // Initialize toasts
-            if (window.initialToasts && window.initialToasts.length > 0) {
-                // Show toasts with animation
-                window.initialToasts.forEach(function(toast, index) {
-                    var toastElement = $('#' + toast.id);
-                    var position = toastElement.data('position') || 'bottom-right';
-                    
-                    // Show with animation after delay
-                    setTimeout(function() {
-                        // Set initial state based on position
-                        var initialTransform, finalTransform;
-                        var animationProps = { opacity: 1 };
-                        var animationOptions = { duration: 400, easing: 'easeOutCubic' };
+        // Fallback pro jQuery
+        if (typeof jQuery === 'undefined') {
+            var script = document.createElement('script');
+            script.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
+            script.onload = function() {
+                initToastNotifications();
+            };
+            document.head.appendChild(script);
+        } else {
+            initToastNotifications();
+        }
+        
+        function initToastNotifications() {
+            $(document).ready(function() {
+                console.log('Toast notifications initializing...');
+                console.log('Initial toasts:', window.initialToasts);
+                
+                if (window.initialToasts && window.initialToasts.length > 0) {
+                    window.initialToasts.forEach(function(toast, index) {
+                        var toastElement = $('#' + toast.id);
+                        console.log('Processing toast:', toast.id, toastElement.length);
                         
-                        // Configure animation based on position
-                        if (position.includes('right')) {
-                            initialTransform = 'translateX(100%)';
-                            finalTransform = 'translateX(0)';
-                            animationProps.right = 0;
-                        } else if (position.includes('left')) {
-                            initialTransform = 'translateX(-100%)';
-                            finalTransform = 'translateX(0)';
-                            animationProps.left = 0;
-                        } else if (position === 'center') {
-                            initialTransform = 'scale(0.8) translateY(-20px)';
-                            finalTransform = 'scale(1) translateY(0)';
+                        if (toastElement.length === 0) {
+                            console.warn('Toast element not found:', toast.id);
+                            return;
                         }
                         
-                        // Set initial state
-                        toastElement.css({
-                            'visibility': 'visible',
-                            'transform': initialTransform,
-                            'opacity': '0'
-                        });
+                        var position = toastElement.data('position') || 'bottom-right';
                         
-                        // Start animation
                         setTimeout(function() {
-                            toastElement.css('transition', 'all 0.4s cubic-bezier(0.215, 0.61, 0.355, 1)');
+                            var initialTransform, finalTransform;
+                            var animationProps = { opacity: 1 };
+                            var animationOptions = { duration: 400, easing: 'easeOutCubic' };
+                            
+                            if (position.includes('right')) {
+                                initialTransform = 'translateX(100%)';
+                                finalTransform = 'translateX(0)';
+                                animationProps.right = 0;
+                            } else if (position.includes('left')) {
+                                initialTransform = 'translateX(-100%)';
+                                finalTransform = 'translateX(0)';
+                                animationProps.left = 0;
+                            } else if (position === 'center') {
+                                initialTransform = 'scale(0.8) translateY(-20px)';
+                                finalTransform = 'scale(1) translateY(0)';
+                            }
+                            
                             toastElement.css({
-                                'transform': finalTransform,
-                                'opacity': '1'
+                                'visibility': 'visible',
+                                'transform': initialTransform,
+                                'opacity': '0'
                             });
-                        }, 50);
-                    }, index * 200);
-                    
-                    // Auto-close
-                    setTimeout(function() {
-                        removeToast(toast.id);
-                    }, toast.duration + (index * 200));
-                    
-                    // Add click handler for close button
-                    toastElement.find('.toast-close').on('click', function() {
-                        removeToast(toast.id);
+                            
+                            setTimeout(function() {
+                                toastElement.css('transition', 'all 0.4s cubic-bezier(0.215, 0.61, 0.355, 1)');
+                                toastElement.css({
+                                    'transform': finalTransform,
+                                    'opacity': '1'
+                                });
+                            }, 50);
+                        }, index * 200);
+                        
+                        setTimeout(function() {
+                            removeToast(toast.id);
+                        }, toast.duration + (index * 200));
+                        
+                        toastElement.find('.toast-close').on('click', function() {
+                            removeToast(toast.id);
+                        });
                     });
-                });
-            }
+                } else {
+                    console.log('No toast notifications to show');
+                }
+            });
             
-            // Function to remove toast
             window.removeToast = function(id) {
                 var toast = $('#' + id);
                 var position = toast.data('position') || 'bottom-right';
                 
-                // Configure exit animation based on position
                 var exitTransform;
                 if (position.includes('right')) {
                     exitTransform = 'translateX(100%)';
@@ -301,20 +339,17 @@ class Toast
                     exitTransform = 'scale(0.8) translateY(-20px)';
                 }
                 
-                // Apply exit animation
                 toast.css('transition', 'all 0.3s cubic-bezier(0.55, 0.055, 0.675, 0.19)');
                 toast.css({
                     'transform': exitTransform,
                     'opacity': '0'
                 });
                 
-                // Remove element after animation completes
                 setTimeout(function() {
                     toast.remove();
                 }, 300);
             };
             
-            // Add easing function if not available
             if (!$.easing.easeOutCubic) {
                 $.extend($.easing, {
                     easeOutCubic: function(x) {
@@ -322,7 +357,7 @@ class Toast
                     }
                 });
             }
-        });
+        }
         </script>";
     }
 } 

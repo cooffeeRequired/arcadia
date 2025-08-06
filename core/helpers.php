@@ -7,6 +7,7 @@
 use Core\Facades\Container;
 use Core\Notification\Toast;
 use Core\Routing\Request;
+use Random\RandomException;
 use Symfony\Component\VarDumper\VarDumper;
 
 if (!function_exists('request')) {
@@ -559,7 +560,8 @@ if (!function_exists('extract_log_level')) {
 if (!function_exists('resources')) {
     /**
      * Získá cestu k resources
-     * 
+     *
+     * @param string $path
      * @return string
      */
     function resources(string $path = ''): string
@@ -678,145 +680,63 @@ if (!function_exists('check_database_integrity')) {
     }
 }
 
-// -----------------------------
-// Toast notifikace helper funkce
-// -----------------------------
-
-if (!function_exists('toast')) {
+if (!function_exists('csrf_field')) {
     /**
-     * Zobrazí toast notifikaci
-     * 
-     * @param string $type
-     * @param string $message
-     * @param int $duration
-     * @param array $options
-     * @return void
-     */
-    function toast(string $type, string $message, int $duration = 5000, array $options = []): void
-    {
-        Toast::$type($message, $duration, $options);
-    }
-}
-
-if (!function_exists('toast_success')) {
-    /**
-     * Zobrazí úspěšnou toast notifikaci
-     * 
-     * @param string $message
-     * @param int $duration
-     * @param array $options
-     * @return void
-     */
-    function toast_success(string $message, int $duration = 5000, array $options = []): void
-    {
-        Toast::success($message, $duration, $options);
-    }
-}
-
-if (!function_exists('toast_error')) {
-    /**
-     * Zobrazí chybovou toast notifikaci
-     * 
-     * @param string $message
-     * @param int $duration
-     * @param array $options
-     * @return void
-     */
-    function toast_error(string $message, int $duration = 5000, array $options = []): void
-    {
-        Toast::error($message, $duration, $options);
-    }
-}
-
-if (!function_exists('toast_warning')) {
-    /**
-     * Zobrazí varovnou toast notifikaci
-     * 
-     * @param string $message
-     * @param int $duration
-     * @param array $options
-     * @return void
-     */
-    function toast_warning(string $message, int $duration = 5000, array $options = []): void
-    {
-        Toast::warning($message, $duration, $options);
-    }
-}
-
-if (!function_exists('toast_info')) {
-    /**
-     * Zobrazí informační toast notifikaci
-     * 
-     * @param string $message
-     * @param int $duration
-     * @param array $options
-     * @return void
-     */
-    function toast_info(string $message, int $duration = 5000, array $options = []): void
-    {
-        Toast::info($message, $duration, $options);
-    }
-}
-
-if (!function_exists('render_toasts')) {
-    /**
-     * Vykreslí všechny toast notifikace
-     * 
+     * Generuje CSRF token field pro formuláře
+     *
      * @return string
+     * @throws RandomException
      */
-    function render_toasts(): string
+    function csrf_field(): string
     {
-        return Toast::render();
+        $token = $_SESSION['csrf_token'] ?? null;
+        
+        if (!$token) {
+            $token = bin2hex(random_bytes(32));
+            $_SESSION['csrf_token'] = $token;
+        }
+        
+        return '<input type="hidden" name="_token" value="' . e($token) . '">';
     }
 }
 
-if (!function_exists('render_toast_script')) {
+if (!function_exists('csrf_token')) {
     /**
-     * Vykreslí JavaScript pro toast notifikace
-     * 
+     * Získá CSRF token
+     *
      * @return string
+     * @throws RandomException
      */
-    function render_toast_script(): string
+    function csrf_token(): string
     {
-        return Toast::renderScript();
+        $token = $_SESSION['csrf_token'] ?? null;
+        
+        if (!$token) {
+            $token = bin2hex(random_bytes(32));
+            $_SESSION['csrf_token'] = $token;
+        }
+        
+        return $token;
     }
 }
 
-if (!function_exists('toast_set_position')) {
+if (!function_exists('verify_csrf_token')) {
     /**
-     * Nastaví výchozí pozici pro toast notifikace
+     * Ověří CSRF token
      * 
-     * @param string $position
-     * @return void
+     * @param string $token
+     * @return bool
      */
-    function toast_set_position(string $position): void
+    function verify_csrf_token(string $token): bool
     {
-        Toast::setPosition($position);
+        $sessionToken = $_SESSION['csrf_token'] ?? null;
+        
+        if (!$sessionToken) {
+            return false;
+        }
+        
+        return hash_equals($sessionToken, $token);
     }
 }
 
-if (!function_exists('toast_set_outline_class')) {
-    /**
-     * Nastaví výchozí outline CSS třídu pro toast notifikace
-     * 
-     * @param string $class
-     * @return void
-     */
-    function toast_set_outline_class(string $class): void
-    {
-        Toast::setOutlineClass($class);
-    }
-}
-
-if (!function_exists('toast_set_content_class')) {
-    /**
-     * Nastaví výchozí content CSS třídu pro toast notifikace
-     * 
-     * @param string $class
-     * @return void
-     */
-    function toast_set_content_class(string $class): void
-    {
-        Toast::setContentClass($class);
-    }
-} 
+require_once APP_ROOT . '/core/helpers/notification.php';

@@ -78,4 +78,10 @@ class View
         self::init();
         return self::$factory->share($key, $value);
     }
+
+    public static function getFactory(): Factory
+    {
+        self::init();
+        return self::$factory;
+    }
 }

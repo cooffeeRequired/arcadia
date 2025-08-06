@@ -117,7 +117,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function header(string $key, string $default = null): mixed
+    public function header(string $key, ?string $default = null): mixed
     {
         $headerKey = 'HTTP_' . strtoupper(str_replace('-', '_', $key));
         return $this->server[$headerKey] ?? $default;

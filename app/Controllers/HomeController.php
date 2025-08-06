@@ -79,13 +79,6 @@ class HomeController
             'contacts' => $contacts,
             'deals' => $deals
         ];
-
-        toast_success('Úspěšná operace!', 25000);
-        toast_error('Kritická chyba!', 25000);
-        toast_warning('Pozor!', 25000);
-        toast_info('Informace Lorem ipsum je označení pro standardní pseudolatinský text užívaný v grafickém designu a navrhování jako', 500000);
-
-
         return $this->view('home', $data);
     }
 } 

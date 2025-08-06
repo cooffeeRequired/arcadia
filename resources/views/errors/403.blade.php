@@ -1,26 +1,26 @@
 @extends('layouts.errors')
 
-@section('title', '404 - Stránka nenalezena')
+@section('title', '403 - Přístup zamítnut')
 
-@section('error-code', '404')
-@section('error-title', 'Stránka nenalezena')
-@section('error-message', 'Omlouváme se, ale požadovaná stránka nebyla nalezena. Možná byla přesunuta nebo smazána.')
+@section('error-code', '403')
+@section('error-title', 'Přístup zamítnut')
+@section('error-message', 'Nemáte oprávnění k přístupu k této stránce. Zkontrolujte prosím své přihlašovací údaje.')
 
 @section('error-icon')
     <svg class="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
     </svg>
 @endsection
 
 @section('error-actions')
-    <button onclick="history.back()" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+    <a href="/login" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
         <span class="absolute left-0 inset-y-0 flex items-center pl-3">
             <svg class="h-5 w-5 text-blue-500 group-hover:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
             </svg>
         </span>
-        Zpět na předchozí stránku
-    </button>
+        Přihlásit se
+    </a>
     
     <a href="/" class="w-full flex justify-center py-3 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
         <span class="absolute left-0 inset-y-0 flex items-center pl-3">
@@ -34,6 +34,6 @@
 
 @section('error-help')
     <p class="text-sm text-gray-500">
-        Zkontrolujte prosím URL adresu nebo použijte navigaci vlevo.
+        Pokud si myslíte, že jste oprávněni k přístupu, kontaktujte správce systému.
     </p>
 @endsection 

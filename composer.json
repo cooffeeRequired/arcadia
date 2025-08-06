@@ -15,11 +15,13 @@
       "predis/predis": "^3.1",
       "illuminate/view": "^10.0",
       "illuminate/support": "^10.0",
+      "illuminate/translation": "^10.0",
       "tracy/tracy": "^2.10",
       "cboden/ratchet": "^0.4.4",
       "endroid/qr-code": "^4.8",
       "dompdf/dompdf": "^2.0",
         "ext-pdo": "*",
-        "ext-zend-opcache": "*"
+        "ext-zend-opcache": "*",
+    "illuminate/validation": "^10.48"
       }
 }

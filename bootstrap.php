@@ -3,13 +3,18 @@
 use Core\Database\DatabaseLogger;
 use Core\Facades\Container;
 use Core\Logging\Tracy;
+use Core\Notification\Notification;
 use Core\Render\Renderer;
+use Core\Render\View;
 use Core\State\DBSessionHandler;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\ORMSetup;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
+use Symfony\Component\VarDumper\Cloner\VarCloner;
+use Symfony\Component\VarDumper\Dumper\HtmlDumper;
+use Symfony\Component\VarDumper\VarDumper;
 
 const APP_ROOT = __DIR__;
 
@@ -19,9 +24,9 @@ define("APP_CONFIGURATION", require_once __DIR__ . '/config/config.php');
 
 // Inicializace Symfony Var Dumper pro lepší výstup
 if (class_exists('Symfony\Component\VarDumper\VarDumper')) {
-    \Symfony\Component\VarDumper\VarDumper::setHandler(function ($var) {
-        $cloner = new \Symfony\Component\VarDumper\Cloner\VarCloner();
-        $dumper = new \Symfony\Component\VarDumper\Dumper\HtmlDumper();
+    VarDumper::setHandler(function ($var) {
+        $cloner = new VarCloner();
+        $dumper = new HtmlDumper();
         $dumper->setTheme('light');
         $dumper->dump($cloner->cloneVar($var));
     });
@@ -72,6 +77,10 @@ try {
     $renderer->handle(); // Inicializace s Request objektem
 
     Container::set(Renderer::class, $renderer, ['app.renderer']);
+
+    // Registrace View Factory pro Laravel komponenty
+    View::init();
+    Notification::init();
 
 } catch (ORMException|\Doctrine\DBAL\Exception $e) {
 

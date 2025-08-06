@@ -5,6 +5,7 @@ use App\Controllers\AuthController;
 use App\Controllers\ContactController;
 use App\Controllers\CustomerController;
 use App\Controllers\DealController;
+use App\Controllers\ErrorController;
 use App\Controllers\HomeController;
 use App\Controllers\InvoiceController;
 use App\Controllers\ReportController;
@@ -84,6 +85,11 @@ $router->post('/settings/check-integrity', [SettingsController::class, 'checkInt
 
 // API routes
 $router->get('/api/check-updates', [ApiController::class, 'checkUpdates']);
+
+// Chybové stránky
+$router->notFound([ErrorController::class, 'notFound']);
+$router->serverError([ErrorController::class, 'serverError']);
+$router->error(403, [ErrorController::class, 'forbidden']);
 
 // Spuštění aplikace
 $router->dispatch($_SERVER['REQUEST_URI']);

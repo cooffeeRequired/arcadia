@@ -128,8 +128,8 @@
     <!-- Overlay for mobile -->
     <div id="sidebar-overlay" class="fixed inset-0 z-30 bg-gray-600 bg-opacity-75 lg:hidden hidden"></div>
 
-    <!-- Toast Notifications -->
-    {!! render_toasts() !!}
+    <!-- Notification System -->
+    {!! render_notifications() !!}
 
     <!-- Main Content -->
     <div class="lg:pl-64">
@@ -141,8 +141,8 @@
     @stack('scripts')
     @yield('scripts')
 
-    <!-- Toast JavaScript -->
-    {!! render_toast_script() !!}
+    <!-- Notification JavaScript -->
+    {!! render_notification_scripts() !!}
 
     <!-- Sidebar JavaScript -->
     <script>

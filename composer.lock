@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "be95616c71442189b8e988c59d7fa2de",
+    "content-hash": "645e2f06f2a37a5417c33b6a0ef1efc9",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -59,6 +59,66 @@
                 "source": "https://github.com/Bacon/BaconQrCode/tree/2.0.8"
             },
             "time": "2022-12-07T17:46:57+00:00"
+        },
+        {
+            "name": "brick/math",
+            "version": "0.12.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/brick/math.git",
+                "reference": "866551da34e9a618e64a819ee1e01c20d8a588ba"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/brick/math/zipball/866551da34e9a618e64a819ee1e01c20d8a588ba",
+                "reference": "866551da34e9a618e64a819ee1e01c20d8a588ba",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "php-coveralls/php-coveralls": "^2.2",
+                "phpunit/phpunit": "^10.1",
+                "vimeo/psalm": "6.8.8"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Brick\\Math\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Arbitrary-precision arithmetic library",
+            "keywords": [
+                "Arbitrary-precision",
+                "BigInteger",
+                "BigRational",
+                "arithmetic",
+                "bigdecimal",
+                "bignum",
+                "bignumber",
+                "brick",
+                "decimal",
+                "integer",
+                "math",
+                "mathematics",
+                "rational"
+            ],
+            "support": {
+                "issues": "https://github.com/brick/math/issues",
+                "source": "https://github.com/brick/math/tree/0.12.3"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/BenMorel",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-02-28T13:11:00+00:00"
         },
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -1264,6 +1324,73 @@
             "time": "2024-04-29T13:06:17+00:00"
         },
         {
+            "name": "egulias/email-validator",
+            "version": "4.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/egulias/EmailValidator.git",
+                "reference": "d42c8731f0624ad6bdc8d3e5e9a4524f68801cfa"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/egulias/EmailValidator/zipball/d42c8731f0624ad6bdc8d3e5e9a4524f68801cfa",
+                "reference": "d42c8731f0624ad6bdc8d3e5e9a4524f68801cfa",
+                "shasum": ""
+            },
+            "require": {
+                "doctrine/lexer": "^2.0 || ^3.0",
+                "php": ">=8.1",
+                "symfony/polyfill-intl-idn": "^1.26"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^10.2",
+                "vimeo/psalm": "^5.12"
+            },
+            "suggest": {
+                "ext-intl": "PHP Internationalization Libraries are required to use the SpoofChecking validation"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "4.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Egulias\\EmailValidator\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Eduardo Gulias Davis"
+                }
+            ],
+            "description": "A library for validating emails against several RFCs",
+            "homepage": "https://github.com/egulias/EmailValidator",
+            "keywords": [
+                "email",
+                "emailvalidation",
+                "emailvalidator",
+                "validation",
+                "validator"
+            ],
+            "support": {
+                "issues": "https://github.com/egulias/EmailValidator/issues",
+                "source": "https://github.com/egulias/EmailValidator/tree/4.0.4"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/egulias",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-03-06T22:45:56+00:00"
+        },
+        {
             "name": "endroid/qr-code",
             "version": "4.8.5",
             "source": {
@@ -2042,6 +2169,118 @@
             "time": "2024-12-10T14:47:55+00:00"
         },
         {
+            "name": "illuminate/translation",
+            "version": "v10.48.28",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/illuminate/translation.git",
+                "reference": "4da8ed16d6ea6008acf43c7375a9b2073fb10e0b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/illuminate/translation/zipball/4da8ed16d6ea6008acf43c7375a9b2073fb10e0b",
+                "reference": "4da8ed16d6ea6008acf43c7375a9b2073fb10e0b",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/collections": "^10.0",
+                "illuminate/contracts": "^10.0",
+                "illuminate/filesystem": "^10.0",
+                "illuminate/macroable": "^10.0",
+                "illuminate/support": "^10.0",
+                "php": "^8.1"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "10.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Illuminate\\Translation\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Taylor Otwell",
+                    "email": "taylor@laravel.com"
+                }
+            ],
+            "description": "The Illuminate Translation package.",
+            "homepage": "https://laravel.com",
+            "support": {
+                "issues": "https://github.com/laravel/framework/issues",
+                "source": "https://github.com/laravel/framework"
+            },
+            "time": "2024-01-30T15:55:48+00:00"
+        },
+        {
+            "name": "illuminate/validation",
+            "version": "v10.48.28",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/illuminate/validation.git",
+                "reference": "99c9b328a60209e574705df18b6fc67f50f9332e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/illuminate/validation/zipball/99c9b328a60209e574705df18b6fc67f50f9332e",
+                "reference": "99c9b328a60209e574705df18b6fc67f50f9332e",
+                "shasum": ""
+            },
+            "require": {
+                "brick/math": "^0.9.3|^0.10.2|^0.11|^0.12",
+                "egulias/email-validator": "^3.2.5|^4.0",
+                "ext-filter": "*",
+                "ext-mbstring": "*",
+                "illuminate/collections": "^10.0",
+                "illuminate/container": "^10.0",
+                "illuminate/contracts": "^10.0",
+                "illuminate/macroable": "^10.0",
+                "illuminate/support": "^10.0",
+                "illuminate/translation": "^10.0",
+                "php": "^8.1",
+                "symfony/http-foundation": "^6.4",
+                "symfony/mime": "^6.2"
+            },
+            "suggest": {
+                "illuminate/database": "Required to use the database presence verifier (^10.0)."
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "10.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Illuminate\\Validation\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Taylor Otwell",
+                    "email": "taylor@laravel.com"
+                }
+            ],
+            "description": "The Illuminate Validation package.",
+            "homepage": "https://laravel.com",
+            "support": {
+                "issues": "https://github.com/laravel/framework/issues",
+                "source": "https://github.com/laravel/framework"
+            },
+            "time": "2025-01-06T15:06:44+00:00"
+        },
+        {
             "name": "illuminate/view",
             "version": "v10.48.28",
             "source": {
@@ -2365,12 +2604,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/predis/predis.git",
-                "reference": "c1845d96ccbceb1269387d1c294fd7e4876f6307"
+                "reference": "9e9deec4dfd3ebf65d32eb368f498c646ba2ecd8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/predis/predis/zipball/c1845d96ccbceb1269387d1c294fd7e4876f6307",
-                "reference": "c1845d96ccbceb1269387d1c294fd7e4876f6307",
+                "url": "https://api.github.com/repos/predis/predis/zipball/9e9deec4dfd3ebf65d32eb368f498c646ba2ecd8",
+                "reference": "9e9deec4dfd3ebf65d32eb368f498c646ba2ecd8",
                 "shasum": ""
             },
             "require": {
@@ -2420,7 +2659,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-08-03T19:20:07+00:00"
+            "time": "2025-08-06T06:41:24+00:00"
         },
         {
             "name": "psr/cache",
@@ -3892,6 +4131,95 @@
             "time": "2025-07-10T08:14:14+00:00"
         },
         {
+            "name": "symfony/mime",
+            "version": "v6.4.24",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/mime.git",
+                "reference": "664d5e844a2de5e11c8255d0aef6bc15a9660ac7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/mime/zipball/664d5e844a2de5e11c8255d0aef6bc15a9660ac7",
+                "reference": "664d5e844a2de5e11c8255d0aef6bc15a9660ac7",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1",
+                "symfony/deprecation-contracts": "^2.5|^3",
+                "symfony/polyfill-intl-idn": "^1.10",
+                "symfony/polyfill-mbstring": "^1.0"
+            },
+            "conflict": {
+                "egulias/email-validator": "~3.0.0",
+                "phpdocumentor/reflection-docblock": "<3.2.2",
+                "phpdocumentor/type-resolver": "<1.4.0",
+                "symfony/mailer": "<5.4",
+                "symfony/serializer": "<6.4.3|>7.0,<7.0.3"
+            },
+            "require-dev": {
+                "egulias/email-validator": "^2.1.10|^3.1|^4",
+                "league/html-to-markdown": "^5.0",
+                "phpdocumentor/reflection-docblock": "^3.0|^4.0|^5.0",
+                "symfony/dependency-injection": "^5.4|^6.0|^7.0",
+                "symfony/process": "^5.4|^6.4|^7.0",
+                "symfony/property-access": "^5.4|^6.0|^7.0",
+                "symfony/property-info": "^5.4|^6.0|^7.0",
+                "symfony/serializer": "^6.4.3|^7.0.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Mime\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Allows manipulating MIME messages",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "mime",
+                "mime-type"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/mime/tree/v6.4.24"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2025-07-15T12:02:45+00:00"
+        },
+        {
             "name": "symfony/polyfill-ctype",
             "version": "v1.32.0",
             "source": {
@@ -4047,6 +4375,89 @@
                 }
             ],
             "time": "2024-09-09T11:45:10+00:00"
+        },
+        {
+            "name": "symfony/polyfill-intl-idn",
+            "version": "v1.32.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-intl-idn.git",
+                "reference": "9614ac4d8061dc257ecc64cba1b140873dce8ad3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-intl-idn/zipball/9614ac4d8061dc257ecc64cba1b140873dce8ad3",
+                "reference": "9614ac4d8061dc257ecc64cba1b140873dce8ad3",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2",
+                "symfony/polyfill-intl-normalizer": "^1.10"
+            },
+            "suggest": {
+                "ext-intl": "For best performance"
+            },
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Intl\\Idn\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Laurent Bassin",
+                    "email": "laurent@bassin.info"
+                },
+                {
+                    "name": "Trevor Rowbotham",
+                    "email": "trevor.rowbotham@pm.me"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill for intl's idn_to_ascii and idn_to_utf8 functions",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "idn",
+                "intl",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-intl-idn/tree/v1.32.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2024-09-10T14:38:51+00:00"
         },
         {
             "name": "symfony/polyfill-intl-normalizer",
@@ -5271,7 +5682,8 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "ext-pdo": "*"
+        "ext-pdo": "*",
+        "ext-zend-opcache": "*"
     },
     "platform-dev": {},
     "plugin-api-version": "2.6.0"

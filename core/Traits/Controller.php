@@ -43,6 +43,16 @@ trait Controller
     }
 
     /**
+     * Render a view with data and automatically output it
+     */
+    protected function renderView(string $view, array $data = []): void
+    {
+        $this->initRenderer();
+        $content = $this->renderer->view($view, $data);
+        $this->renderer->render($content);
+    }
+
+    /**
      * Render HTML content
      */
     protected function html(string $html): string
