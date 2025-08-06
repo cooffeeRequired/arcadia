@@ -80,11 +80,10 @@ class HomeController
             'deals' => $deals
         ];
 
-        // Test toast notifikací - všechny v pravém dolním rohu
-        toast_success('Úspěšná operace!', 5000);
-        toast_error('Kritická chyba!', 8000);
-        toast_warning('Pozor!', 5000);
-        toast_info('Informace', 5000);
+        toast_success('Úspěšná operace!', 25000);
+        toast_error('Kritická chyba!', 25000);
+        toast_warning('Pozor!', 25000);
+        toast_info('Informace Lorem ipsum je označení pro standardní pseudolatinský text užívaný v grafickém designu a navrhování jako', 500000);
 
 
         return $this->view('home', $data);

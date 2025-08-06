@@ -556,6 +556,19 @@ if (!function_exists('extract_log_level')) {
     }
 }
 
+if (!function_exists('resources')) {
+    /**
+     * Získá cestu k resources
+     * 
+     * @return string
+     */
+    function resources(string $path = ''): string
+    {
+        return APP_ROOT . '/resources/' . $path;    
+    }
+
+}
+
 if (!function_exists('check_database_integrity')) {
     /**
      * Zkontroluje integritu databáze

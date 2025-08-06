@@ -33,7 +33,7 @@ COPY . /var/www
 # Install dependencies
 RUN composer install
 RUN npm install
-RUN npm run build
+RUN chown -R $(whoami):$(whoami) .
 
 # Run migrations and seed data
 #RUN php database/migrate.php

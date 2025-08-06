@@ -9,7 +9,10 @@ services:
     container_name: arcadia-app
     restart: unless-stopped
     volumes:
-      - ./:/var/www
+      - type: bind
+        source: .
+        target: /var/www
+        consistency: delegated # nebo cached – vhodné pro macOS
       - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
     networks:
       - arcadia-network
@@ -23,7 +26,10 @@ services:
     ports:
       - "3000:80"
     volumes:
-      - ./:/var/www
+      - type: bind
+        source: .
+        target: /var/www
+        consistency: delegated # nebo cached – vhodné pro macOS
       - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
     networks:
       - arcadia-network

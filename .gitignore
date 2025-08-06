@@ -5,3 +5,5 @@ node_modules
 var/cache
 var/log
 tools/
+cache/
+cache/*

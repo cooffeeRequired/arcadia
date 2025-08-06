@@ -11,8 +11,8 @@ class ApiController
         // Kontrola změn v klíčových souborech
         $files = [
             __DIR__ . '/../../resources/views/**/*.blade.php',
-            __DIR__ . '/../../resources/css/app.css',
-            __DIR__ . '/../../public/css/app.css',
+            __DIR__ . '/../../resources/css/_app.css',
+            __DIR__ . '/../../public/css/_app.css',
             __DIR__ . '/../../app/Controllers/*.php',
             __DIR__ . '/../../core/*.php'
         ];

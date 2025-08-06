@@ -3,20 +3,18 @@
   "version": "1.0.0",
   "description": "Arcadia CRM System",
   "scripts": {
-    "dev": "npx tailwindcss -i ./resources/css/app.css -o ./public/css/app.css --watch",
-    "build": "npx tailwindcss -i ./resources/css/app.css -o ./public/css/app.css --minify",
-    "watch": "npx tailwindcss -i ./resources/css/app.css -o ./public/css/app.css --watch",
+    "dev": "postcss public/assets/app.css -o ./public/css/app.css --watch",
+    "watch": "npx @tailwindcss/cli -i resources/css/_app.css -o resources/assets/app.css --watch",
     "start": "concurrently \"npm run dev\" \"docker/php -S localhost:8000 -t public\" \"php tools/websocket-server.php\""
   },
   "devDependencies": {
-    "@tailwindcss/forms": "^0.5.7",
-    "@tailwindcss/typography": "^0.5.10",
-    "autoprefixer": "^10.4.16",
-    "concurrently": "^8.2.2",
-    "postcss": "^8.4.32",
-    "tailwindcss": "^3.4.0"
+    "concurrently": "^8.2.2"
   },
   "dependencies": {
-    "alpinejs": "^3.14.9"
+    "@tailwindcss/cli": "^4.1.11",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/postcss": "^4.1.11",
+    "@tailwindcss/typography": "^0.5.16",
+    "tailwindcss": "^4.1.11"
   }
 }

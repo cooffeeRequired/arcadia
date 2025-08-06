@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $__env->yieldContent('title', 'Arcadia CRM'); ?></title>
-    <link href="/css/app.css" rel="stylesheet">
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="<?php echo e(asset('app.css')); ?>" rel="stylesheet">
     <?php echo $__env->yieldContent('styles'); ?>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -24,7 +23,7 @@
         <div class="flex items-center justify-center h-16 px-4 border-b border-gray-200">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
-                    <svg class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="h-8 w-8 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                 </div>
@@ -149,6 +148,24 @@
 
     <!-- Sidebar JavaScript -->
     <script>
+        // Auto-refresh při změnách (pouze ve vývojovém režimu)
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            let lastModified = Date.now();
+            try {
+                const ws = new WebSocket('ws://localhost:8080');
+                ws.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'file-changed') {
+                        console.log('Soubor změněn:', data.file);
+                        window.location.reload();
+                    }
+                };
+            } catch (e) {
+                // WebSocket není dostupný, pokračuj s polling
+            }
+        }
+
+
         // Mobile menu toggle
         const mobileMenuButton = document.getElementById('mobile-menu-button');
         const sidebar = document.getElementById('sidebar');
