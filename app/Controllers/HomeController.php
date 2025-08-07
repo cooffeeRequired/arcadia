@@ -67,18 +67,71 @@ class HomeController
         $contacts = $this->em->getRepository(Contact::class)->findBy([], ['contact_date' => 'DESC'], 10);
         $deals = $this->em->getRepository(Deal::class)->findBy([], ['created_at' => 'DESC'], 10);
 
+        // Bulk actions pro každý typ
+        $bulkActions = [
+            'customers' => [
+                ['url' => '/customers/bulk-delete', 'label' => 'Smazat vybrané'],
+                ['url' => '/customers/export', 'label' => 'Exportovat'],
+                ['url' => '/customers/merge', 'label' => 'Sloučit duplicity']
+            ],
+            'contacts' => [
+                ['url' => '/contacts/bulk-delete', 'label' => 'Smazat vybrané'],
+                ['url' => '/contacts/export', 'label' => 'Exportovat'],
+                ['url' => '/contacts/status', 'label' => 'Změnit stav']
+            ],
+            'deals' => [
+                ['url' => '/deals/bulk-delete', 'label' => 'Smazat vybrané'],
+                ['url' => '/deals/export', 'label' => 'Exportovat'],
+                ['url' => '/deals/status', 'label' => 'Změnit stav']
+            ]
+        ];
+
+        // Item actions pro každý typ
+        $itemActions = [
+            'customers' => [
+                'edit' => ['url' => '/customers/{id}/edit', 'label' => 'Upravit'],
+                'delete' => ['url' => '/customers/{id}/delete', 'label' => 'Smazat'],
+                'view' => ['url' => '/customers/{id}', 'label' => 'Zobrazit']
+            ],
+            'contacts' => [
+                'edit' => ['url' => '/contacts/{id}/edit', 'label' => 'Upravit'],
+                'delete' => ['url' => '/contacts/{id}/delete', 'label' => 'Smazat'],
+                'view' => ['url' => '/contacts/{id}', 'label' => 'Zobrazit']
+            ],
+            'deals' => [
+                'edit' => ['url' => '/deals/{id}/edit', 'label' => 'Upravit'],
+                'delete' => ['url' => '/deals/{id}/delete', 'label' => 'Smazat'],
+                'view' => ['url' => '/deals/{id}', 'label' => 'Zobrazit']
+            ]
+        ];
+
+        // Získání aktivit
+        $recentActivities = $this->em->getRepository(\App\Entities\Activity::class)
+            ->createQueryBuilder('a')
+            ->leftJoin('a.customer', 'c')
+            ->leftJoin('a.deal', 'd')
+            ->leftJoin('a.contact', 'co')
+            ->orderBy('a.created_at', 'DESC')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult();
+
         $data = [
             'customersCount' => $customersCount,
             'contactsCount' => $contactsCount,
             'dealsCount' => $dealsCount,
+            'totalValue' => $totalDealValue,
             'totalDealValue' => $totalDealValue,
             'recentContacts' => $recentContacts,
             'recentDeals' => $recentDeals,
             'activeDeals' => $activeDeals,
             'customers' => $customers,
             'contacts' => $contacts,
-            'deals' => $deals
+            'deals' => $deals,
+            'bulkActions' => $bulkActions,
+            'itemActions' => $itemActions,
+            'recentActivities' => $recentActivities
         ];
         return $this->view('home', $data);
     }
-} 
+}

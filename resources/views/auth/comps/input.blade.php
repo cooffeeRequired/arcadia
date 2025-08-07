@@ -9,11 +9,11 @@
     $autocomplete = $autocomplete ?? null;
     $class = $class ?? '';
     $error = $error ?? null;
-    
+
     $inputId = $name . '_' . uniqid();
     $hasError = $error || (isset($errors) && $errors->has($name));
     $validationState = $hasError ? 'error' : ((!empty($_POST[$name])) ? 'success' : 'neutral');
-    
+
     $baseClasses = 'block w-full px-4 py-3 text-gray-900 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200';
 
 $inputClasses = match ($validationState) {
@@ -21,11 +21,11 @@ $inputClasses = match ($validationState) {
     'success' => $baseClasses . ' border-green-500 bg-green-50',
     default => $baseClasses . ' border-gray-300 bg-white hover:border-gray-400',
 };
-    
+
     if ($disabled) {
         $inputClasses .= ' bg-gray-100 cursor-not-allowed';
     }
-    
+
     $inputClasses .= ' ' . $class;
 @endphp
 
@@ -49,7 +49,7 @@ $inputClasses = match ($validationState) {
             @if($required) required @endif
             @if($disabled) disabled @endif
             @if($autocomplete) autocomplete="{{ $autocomplete }}" @endif
-            class="{{ $inputClasses }}"
+            class="{{ $inputClasses ?? '' }}"
             {{ $attributes }}
         />
 

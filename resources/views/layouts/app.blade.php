@@ -5,12 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Arcadia CRM')</title>
     <link href="{{ asset('app.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    @hmrClient
+    @hmr('resources/js/app.js')
     @yield('styles')
 </head>
 <body class="bg-gray-50 min-h-screen">
     <!-- Mobile menu button -->
-    <div class="lg:hidden fixed top-4 left-4 z-50">
-        <button id="mobile-menu-button" class="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
+    <div class="lg:hidden fixed top-4 left-4 z-[9999]">
+        <button id="mobile-menu-button" class="p-3 rounded-lg bg-white shadow-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 ease-in-out border border-gray-200">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
@@ -18,7 +21,7 @@
     </div>
 
     <!-- Sidebar -->
-    <div id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+    <div id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-xl transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
         <!-- Logo -->
         <div class="flex items-center justify-center h-16 px-4 border-b border-gray-200">
             <div class="flex items-center">
@@ -111,7 +114,7 @@
                             <p class="text-xs text-gray-500">{{ $_SESSION['user_email'] ?? '' }}</p>
                         </div>
                     </div>
-                    <a href="/logout" class="text-gray-400 hover:text-gray-600" title="Odhlásit se">
+                    <a href="/logout" class="text-gray-400 hover:text-gray-600 transition-colors duration-200" title="Odhlásit se">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
@@ -119,78 +122,33 @@
                 </div>
             @else
                 <div class="text-center">
-                    <a href="/login" class="text-blue-600 hover:text-blue-500 text-sm font-medium">Přihlásit se</a>
+                    <a href="/login" class="text-blue-600 hover:text-blue-500 text-sm font-medium transition-colors duration-200">Přihlásit se</a>
                 </div>
             @endif
         </div>
     </div>
 
-    <!-- Overlay for mobile -->
-    <div id="sidebar-overlay" class="fixed inset-0 z-30 bg-gray-600 bg-opacity-75 lg:hidden hidden"></div>
+    <!-- Blur overlay for mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 z-30 bg-transparent backdrop-blur-sm lg:hidden hidden transition-all duration-300 ease-in-out"></div>
 
     <!-- Notification System -->
     {!! render_notifications() !!}
 
     <!-- Main Content -->
-    <div class="lg:pl-64">
-        <main class="py-6 px-4 sm:px-6 lg:px-8">
+    <div id="main-content" class="lg:pl-64 transition-all duration-300 ease-in-out">
+        <main class="py-6 px-4 sm:px-6 lg:px-8 min-h-screen">
             @yield('content')
         </main>
     </div>
 
     @stack('scripts')
     @yield('scripts')
-
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.min.js" integrity="sha256-AlTido85uXPlSyyaZNsjJXeCs07eSv3r43kyCVc8ChI=" crossorigin="anonymous"></script>
+    <?php if (getenv('APP_ENV') !== 'development'): ?>
+        <script src="{{ asset('js/main.js') }}"></script>
+    <?php endif; ?>
     <!-- Notification JavaScript -->
     {!! render_notification_scripts() !!}
-
-    <!-- Sidebar JavaScript -->
-    <script>
-        // Auto-refresh při změnách (pouze ve vývojovém režimu)
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            let lastModified = Date.now();
-            try {
-                const ws = new WebSocket('ws://localhost:8080');
-                ws.onmessage = function(event) {
-                    const data = JSON.parse(event.data);
-                    if (data.type === 'file-changed') {
-                        console.log('Soubor změněn:', data.file);
-                        window.location.reload();
-                    }
-                };
-            } catch (e) {
-                // WebSocket není dostupný, pokračuj s polling
-            }
-        }
-
-
-        // Mobile menu toggle
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebar-overlay');
-
-        function toggleSidebar() {
-            const isOpen = !sidebar.classList.contains('-translate-x-full');
-            
-            if (isOpen) {
-                sidebar.classList.add('-translate-x-full');
-                sidebarOverlay.classList.add('hidden');
-            } else {
-                sidebar.classList.remove('-translate-x-full');
-                sidebarOverlay.classList.remove('hidden');
-            }
-        }
-
-        mobileMenuButton.addEventListener('click', toggleSidebar);
-        sidebarOverlay.addEventListener('click', toggleSidebar);
-
-        // Close sidebar on window resize if screen becomes large
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 1024) {
-                sidebar.classList.remove('-translate-x-full');
-                sidebarOverlay.classList.add('hidden');
-            }
-        });
-    </script>
 </body>
-</html> 
+</html>

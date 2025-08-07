@@ -1,0 +1,14 @@
+{
+    "typeAcquisition": {
+        "include": [
+            "jquery"
+        ]
+    },
+    "compilerOptions": {
+          "experimentalDecorators": true
+    },
+    "exclude": [
+        "node_modules",
+        "resources/views/**.blade.php",
+    ],
+}

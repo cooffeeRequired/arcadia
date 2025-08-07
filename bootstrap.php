@@ -58,7 +58,6 @@ $config->setResultCache($cache);
 
 // Cache lifetime se nastavuje při vytváření query nebo result cache
 
-
 try {
     $conn = require __DIR__ . '/config/doctrine.php';
     $connection = DriverManager::getConnection($conn, $config);

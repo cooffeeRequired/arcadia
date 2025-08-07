@@ -3,11 +3,12 @@
 namespace App\Entities;
 
 use Doctrine\ORM\Mapping as ORM;
+use JsonSerializable;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'invoices')]
 #[ORM\HasLifecycleCallbacks]
-class Invoice
+class Invoice implements JsonSerializable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -135,9 +136,30 @@ class Invoice
         foreach ($this->items as $item) {
             $subtotal += $item->getQuantity() * $item->getUnitPrice();
         }
-        
+
         $this->subtotal = $subtotal;
         $this->tax_amount = $subtotal * ($this->tax_rate / 100);
         $this->total = $subtotal + $this->tax_amount;
     }
-} 
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'invoice_number' => $this->getInvoiceNumber(),
+            'customer' => $this->getCustomer()->getId(),
+            'issue_date' => $this->getIssueDate()->format('Y-m-d'),
+            'due_date' => $this->getDueDate()->format('Y-m-d'),
+            'subtotal' => $this->getSubtotal(),
+            'tax_rate' => $this->getTaxRate(),
+            'tax_amount' => $this->getTaxAmount(),
+            'total' => $this->getTotal(),
+            'currency' => $this->getCurrency(),
+            'notes' => $this->getNotes(),
+            'status' => $this->getStatus(),
+            'created_at' => $this->getCreatedAt()->format('c'),
+            'updated_at' => $this->getUpdatedAt()->format('c'),
+            'items' => array_map(fn($item) => $item->jsonSerialize(), $this->getItems()->toArray())
+        ];
+    }
+}

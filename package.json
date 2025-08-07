@@ -2,19 +2,22 @@
   "name": "arcadia-crm",
   "version": "1.0.0",
   "description": "Arcadia CRM System",
+  "type": "module",
   "scripts": {
-    "dev": "postcss public/assets/app.css -o ./public/css/app.css --watch",
-    "watch": "npx @tailwindcss/cli -i resources/css/_app.css -o resources/assets/app.css --watch",
-    "start": "concurrently \"npm run dev\" \"docker/php -S localhost:8000 -t public\" \"php tools/websocket-server.php\""
+    "dev": "concurrently \"vite\" \"php -S localhost:8000 -t public\" \"npm run styles:watch\"",
+    "dev-": "node start.js",
+    "styles:watch": "npx @tailwindcss/cli -i resources/css/_app.css -o resources/assets/app.css --watch --optimize -m"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "vite": "^4.5.1"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.1.11",
-    "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/postcss": "^4.1.11",
     "@tailwindcss/typography": "^0.5.16",
+    "boxen": "^8.0.1",
+    "chalk": "^5.5.0",
     "tailwindcss": "^4.1.11"
   }
 }

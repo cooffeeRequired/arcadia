@@ -4,10 +4,11 @@ namespace App\Entities;
 
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
+use JsonSerializable;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'contacts')]
-class Contact
+class Contact implements JsonSerializable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -70,4 +71,19 @@ class Contact
     {
         $this->updated_at = new DateTime();
     }
-} 
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'customer' => $this->getCustomer()->getId(),
+            'type' => $this->getType(),
+            'subject' => $this->getSubject(),
+            'description' => $this->getDescription(),
+            'contact_date' => $this->getContactDate()->format('c'),
+            'status' => $this->getStatus(),
+            'created_at' => $this->getCreatedAt()->format('c'),
+            'updated_at' => $this->getUpdatedAt()->format('c'),
+        ];
+    }
+}

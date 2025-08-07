@@ -2,301 +2,405 @@
 
 @section('title', 'Domů - Arcadia')
 
+@section('styles')
+<link href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet">
+<script src="//unpkg.com/alpinejs" defer></script>
+@endsection
+
 @section('content')
-<div class="bg-white overflow-hidden shadow rounded-lg">
-    <div class="px-4 py-5 sm:p-6">
+<div class="min-h-screen bg-gray-50">
+    <!-- Header Section -->
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8 rounded-lg shadow-lg mb-8">
         <div class="text-center">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">
+            <h2 class="text-4xl font-extrabold mb-4">
                 Vítejte v Arcadia
             </h2>
-            <p class="text-lg text-gray-600 mb-8">
-                Kompletní systém pro správu vztahů se zákazníky
+            <p class="text-xl opacity-90">
+                Inteligentní CRM systém pro moderní business
             </p>
+        </div>
 
-            <!-- Statistiky -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-blue-50 p-6 rounded-lg">
-                    <div class="text-2xl font-bold text-blue-600">{{ $customersCount ?? 0 }}</div>
-                    <div class="text-sm text-blue-500">Zákazníků</div>
-                </div>
-                <div class="bg-green-50 p-6 rounded-lg">
-                    <div class="text-2xl font-bold text-green-600">{{ $contactsCount ?? 0 }}</div>
-                    <div class="text-sm text-green-500">Kontaktů</div>
-                </div>
-                <div class="bg-purple-50 p-6 rounded-lg">
-                    <div class="text-2xl font-bold text-purple-600">{{ $dealsCount ?? 0 }}</div>
-                    <div class="text-sm text-purple-500">Obchodů</div>
-                </div>
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
+            <div class="bg-white/10 backdrop-blur-md p-6 rounded-xl">
+                <div class="text-3xl font-bold">{{ $customersCount ?? 0 }}</div>
+                <div class="text-sm opacity-75">Zákazníků</div>
             </div>
-
-            <!-- Akční tlačítka -->
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/customers" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Správa zákazníků
-                </a>
-                <a href="/contacts" class="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Správa kontaktů
-                </a>
-                <a href="/deals" class="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Správa obchodů
-                </a>
+            <div class="bg-white/10 backdrop-blur-md p-6 rounded-xl">
+                <div class="text-3xl font-bold">{{ $contactsCount ?? 0 }}</div>
+                <div class="text-sm opacity-75">Kontaktů</div>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md p-6 rounded-xl">
+                <div class="text-3xl font-bold">{{ $dealsCount ?? 0 }}</div>
+                <div class="text-sm opacity-75">Obchodů</div>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md p-6 rounded-xl">
+                <div class="text-3xl font-bold">{{ number_format($totalValue ?? 0, 0, ',', ' ') }} Kč</div>
+                <div class="text-sm opacity-75">Celková hodnota</div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Quick Access -->
-<div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Zákazníci -->
-    <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Rychlý přístup - Zákazníci</h3>
-                <div class="flex items-center space-x-2">
-                    <button onclick="selectAll('customers')" class="text-sm text-blue-600 hover:text-blue-500">Vybrat vše</button>
-                    <button onclick="bulkDelete('customers')" class="text-sm text-red-600 hover:text-red-500">Smazat vybrané</button>
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 px-4">
+        <!-- Charts Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6" id="charts-widget">
+            <h3 class="text-xl font-semibold mb-6">Analytický přehled</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <canvas id="dealsChart"></canvas>
+                </div>
+                <div>
+                    <canvas id="contactsChart"></canvas>
                 </div>
             </div>
-            <div class="space-y-2 max-h-64 overflow-y-auto">
-                @if(isset($customers) && count($customers) > 0)
-                    @foreach($customers as $customer)
-                    <div class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
-                        <input type="checkbox" class="customer-checkbox" value="{{ $customer->getId() }}" onchange="updateBulkActions()">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-gray-900">{{ $customer->getName() }}</p>
-                            <p class="text-sm text-gray-500">{{ $customer->getEmail() }}</p>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="bg-white rounded-lg shadow-lg p-6" id="activities-widget">
+            <h3 class="text-xl font-semibold mb-6">Poslední aktivity</h3>
+            <div class="space-y-4 max-h-[400px] overflow-y-auto">
+                @if(isset($recentActivities) && count($recentActivities) > 0)
+                    @foreach($recentActivities as $activity)
+                    <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center
+                                @if($activity->getType() === 'contact')
+                                    bg-blue-100 text-blue-600
+                                @elseif($activity->getType() === 'deal')
+                                    bg-green-100 text-green-600
+                                @else
+                                    bg-purple-100 text-purple-600
+                                @endif">
+                                <i class="fas
+                                    @if($activity->getType()  === 'contact')
+                                        fa-comment
+                                    @elseif($activity->getType()  === 'deal')
+                                        fa-handshake
+                                    @else
+                                        fa-user
+                                    @endif">
+                                </i>
+                            </div>
                         </div>
-                        <a href="/customers/{{ $customer->getId() }}" class="text-blue-600 hover:text-blue-500">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
-                        </a>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm font-semibold">{{ $activity->getTitle() }}</p>
+                                <p class="text-xs text-gray-500">{{ $activity->getCreatedAt()->diffForHumans() }}</p>
+                            </div>
+                            <p class="text-xs text-gray-600 mt-1">
+                                @if($activity->getCustomer())
+                                    <a href="/customers/{{ $activity->getCustomer()->getId() }}" class="hover:text-blue-600">
+                                        {{ $activity->getCustomer()->getName() }}
+                                    </a>
+                                @endif
+                                @if($activity->getDeal())
+                                    @if($activity->getCustomer()) - @endif
+                                    <a href="/deals/{{ $activity->getDeal()->getId() }}" class="hover:text-blue-600">
+                                        {{ $activity->getDeal()->getTitle() }}
+                                    </a>
+                                @endif
+                            </p>
+                            @if($activity->getDescription())
+                                <p class="text-xs text-gray-500 mt-1">{{ $activity->getDescription() }}</p>
+                            @endif
+                        </div>
+                        <div class="hidden group-hover:flex items-center space-x-2">
+                            @if($activity->getType() === 'contact' && $activity->getContact())
+                                <a href="/contacts/{{ $activity->getContact()->getId() }}"
+                                   class="text-sm text-gray-500 hover:text-blue-600"
+                                   title="Zobrazit detail">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            @elseif($activity->getType() === 'deal' && $activity->getDeal())
+                                <a href="/deals/{{ $activity->getDeal()->getId() }}"
+                                   class="text-sm text-gray-500 hover:text-blue-600"
+                                   title="Zobrazit detail">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            @endif
+                        </div>
                     </div>
                     @endforeach
                 @else
-                    <p class="text-gray-500 text-center py-4">Žádní zákazníci</p>
+                    <p class="text-gray-500 text-center">Žádné nedávné aktivity</p>
                 @endif
             </div>
         </div>
     </div>
 
-    <!-- Kontakty -->
-    <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Rychlý přístup - Kontakty</h3>
-                <div class="flex items-center space-x-2">
-                    <button onclick="selectAll('contacts')" class="text-sm text-blue-600 hover:text-blue-500">Vybrat vše</button>
-                    <button onclick="bulkDelete('contacts')" class="text-sm text-red-600 hover:text-red-500">Smazat vybrané</button>
-                </div>
-            </div>
-            <div class="space-y-2 max-h-64 overflow-y-auto">
-                @if(isset($contacts) && count($contacts) > 0)
-                    @foreach($contacts as $contact)
-                    <div class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
-                        <input type="checkbox" class="contact-checkbox" value="{{ $contact->getId() }}" onchange="updateBulkActions()">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-gray-900">{{ $contact->getSubject() }}</p>
-                            <p class="text-sm text-gray-500">{{ $contact->getContactDate()->format('d.m.Y H:i') }}</p>
+    <!-- Quick Access Panels -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 px-4" id="quick-access">
+        @foreach(['customers', 'contacts', 'deals'] as $type)
+        <div class="bg-white rounded-lg shadow-lg" id="{{ $type }}-widget">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold">{{ ucfirst($type) }}</h3>
+                    <div class="flex items-center space-x-2">
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            <!-- Bulk Actions Dropdown -->
+                            <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50">
+                                <div class="py-1">
+                                    @if(isset($bulkActions) && isset($bulkActions[$type]))
+                                        @foreach($bulkActions[$type] as $action)
+                                        <a href="{{ $action['url'] }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            {{ $action['label'] }}
+                                        </a>
+                                        @endforeach
+                                    @else
+                                        <div class="px-4 py-2 text-sm text-gray-500">Žádné akce</div>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
-                        <a href="/contacts/{{ $contact->getId() }}" class="text-blue-600 hover:text-blue-500">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
-                        </a>
-                    </div>
-                    @endforeach
-                @else
-                    <p class="text-gray-500 text-center py-4">Žádné kontakty</p>
-                @endif
-            </div>
-        </div>
-    </div>
-
-    <!-- Obchody -->
-    <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Rychlý přístup - Obchody</h3>
-                <div class="flex items-center space-x-2">
-                    <button onclick="selectAll('deals')" class="text-sm text-blue-600 hover:text-blue-500">Vybrat vše</button>
-                    <button onclick="bulkDelete('deals')" class="text-sm text-red-600 hover:text-red-500">Smazat vybrané</button>
-                </div>
-            </div>
-            <div class="space-y-2 max-h-64 overflow-y-auto">
-                @if(isset($deals) && count($deals) > 0)
-                    @foreach($deals as $deal)
-                    <div class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
-                        <input type="checkbox" class="deal-checkbox" value="{{ $deal->getId() }}" onchange="updateBulkActions()">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-gray-900">{{ $deal->getTitle() }}</p>
-                            <p class="text-sm text-gray-500">{{ $deal->getValue() ? number_format($deal->getValue(), 0, ',', ' ') . ' Kč' : 'Neuvedeno' }}</p>
-                        </div>
-                        <a href="/deals/{{ $deal->getId() }}" class="text-blue-600 hover:text-blue-500">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
-                        </a>
-                    </div>
-                    @endforeach
-                @else
-                    <p class="text-gray-500 text-center py-4">Žádné obchody</p>
-                @endif
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Poslední aktivity -->
-<div class="mt-8 bg-white shadow rounded-lg">
-    <div class="px-4 py-5 sm:p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Poslední aktivity</h3>
-        <div class="space-y-4">
-            @if(isset($recentContacts) && count($recentContacts) > 0)
-                @foreach($recentContacts as $contact)
-                <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span class="text-blue-600 text-sm font-medium">{{ substr($contact->getType(), 0, 1) }}</span>
-                        </div>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-900">{{ $contact->getSubject() }}</p>
-                        <p class="text-sm text-gray-500">{{ $contact->getContactDate()->format('d.m.Y H:i') }}</p>
+                        <button class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
                 </div>
-                @endforeach
-            @elseif(isset($recentDeals) && count($recentDeals) > 0)
-                @foreach($recentDeals as $deal)
-                <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <span class="text-green-600 text-sm font-medium">{{ substr($deal->getTitle(), 0, 1) }}</span>
-                        </div>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-900">{{ $deal->getTitle() }}</p>
-                        <p class="text-sm text-gray-500">{{ $deal->getCreatedAt()->format('d.m.Y H:i') }}</p>
-                    </div>
+                <div class="space-y-3 max-h-[300px] overflow-y-auto">
+                    <!-- Dynamic content for each type -->
                 </div>
-                @endforeach
-            @else
-                <p class="text-gray-500 text-center py-4">Zatím žádné aktivity</p>
-            @endif
-        </div>
-    </div>
-</div>
-
-<!-- Bulk Delete Modal -->
-<div id="bulkDeleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3 text-center">
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-            </div>
-            <h3 class="text-lg leading-6 font-medium text-gray-900 mt-4">Potvrdit smazání</h3>
-            <div class="mt-2 px-7 py-3">
-                <p class="text-sm text-gray-500">
-                    Opravdu chcete smazat vybrané položky? Tato akce je nevratná.
-                </p>
-            </div>
-            <div class="items-center px-4 py-3">
-                <button id="confirmBulkDelete" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-24 mr-2 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
-                    Smazat
-                </button>
-                <button onclick="closeBulkDeleteModal()" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-24 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
-                    Zrušit
-                </button>
             </div>
         </div>
+        @endforeach
     </div>
 </div>
 
 @endsection
 
 @section('scripts')
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-let currentBulkType = '';
-let selectedIds = [];
-
-function selectAll(type) {
-    const checkboxes = document.querySelectorAll('.' + type + '-checkbox');
-    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = !allChecked;
+$(document).ready(function() {
+    // Make widgets draggable
+    $("#quick-access > div").draggable({
+        handle: "h3",
+        containment: "parent",
+        snap: true,
+        snapMode: "outer",
+        stack: "#quick-access div"
     });
 
-    updateBulkActions();
-}
+    // Prepare data from deals
+    const dealsData = @json($activeDeals ?? []);
+    const contactsData = @json($recentContacts ?? []);
 
-function updateBulkActions() {
-    const customerCheckboxes = document.querySelectorAll('.customer-checkbox:checked');
-    const contactCheckboxes = document.querySelectorAll('.contact-checkbox:checked');
-    const dealCheckboxes = document.querySelectorAll('.deal-checkbox:checked');
+    // Process deals data for chart
+    const dealsByMonth = dealsData.reduce((acc, deal) => {
+        const date = new Date(deal.created_at);
+        const month = date.toLocaleString('cs-CZ', { month: 'short' });
+        acc[month] = (acc[month] || 0) + (deal.value * deal.probability);
+        return acc;
+    }, {});
 
-    selectedIds = {
-        customers: Array.from(customerCheckboxes).map(cb => cb.value),
-        contacts: Array.from(contactCheckboxes).map(cb => cb.value),
-        deals: Array.from(dealCheckboxes).map(cb => cb.value)
+    // Process contacts data for chart
+    const contactsByType = contactsData.reduce((acc, contact) => {
+        acc[contact.type] = (acc[contact.type] || 0) + 1;
+        return acc;
+    }, {});
+
+    // Deals Chart
+    const dealsCtx = document.getElementById('dealsChart').getContext('2d');
+    new Chart(dealsCtx, {
+        type: 'line',
+        data: {
+            labels: Object.keys(dealsByMonth),
+            datasets: [{
+                label: 'Hodnota obchodů (Kč)',
+                data: Object.values(dealsByMonth),
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+                title: {
+                    display: true,
+                    text: 'Vývoj hodnoty obchodů'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return new Intl.NumberFormat('cs-CZ', {
+                                style: 'currency',
+                                currency: 'CZK',
+                                maximumFractionDigits: 0
+                            }).format(value);
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Contacts Chart
+    const contactsCtx = document.getElementById('contactsChart').getContext('2d');
+    const contactTypes = {
+        'email': 'E-mail',
+        'phone': 'Telefon',
+        'meeting': 'Osobní schůzka'
     };
-}
 
-function bulkDelete(type) {
-    const ids = selectedIds[type] || [];
-    if (ids.length === 0) {
-        alert('Vyberte alespoň jednu položku ke smazání.');
-        return;
-    }
-
-    currentBulkType = type;
-    document.getElementById('bulkDeleteModal').classList.remove('hidden');
-}
-
-function closeBulkDeleteModal() {
-    document.getElementById('bulkDeleteModal').classList.add('hidden');
-}
-
-function confirmBulkDelete() {
-    const ids = selectedIds[currentBulkType] || [];
-    if (ids.length === 0) return;
-
-    // Vytvoření formuláře pro POST request
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/' + currentBulkType + '/bulk-delete';
-
-    // Přidání CSRF tokenu (pokud existuje)
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    if (csrfToken) {
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = '_token';
-        csrfInput.value = csrfToken;
-        form.appendChild(csrfInput);
-    }
-
-    // Přidání ID položek
-    ids.forEach(id => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'ids[]';
-        input.value = id;
-        form.appendChild(input);
+    new Chart(contactsCtx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(contactsByType).map(type => contactTypes[type] || type),
+            datasets: [{
+                data: Object.values(contactsByType),
+                backgroundColor: [
+                    'rgb(59, 130, 246)',  // modrá
+                    'rgb(16, 185, 129)',  // zelená
+                    'rgb(139, 92, 246)'   // fialová
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+                title: {
+                    display: true,
+                    text: 'Rozložení typů kontaktů'
+                }
+            }
+        }
     });
 
-    document.body.appendChild(form);
-    form.submit();
-}
+    // Quick access panels data loading
+    const loadPanelData = (type, data) => {
+        const $panel = $(`#${type}-widget .space-y-3`);
+        $panel.empty();
 
-// Event listeners
-document.getElementById('confirmBulkDelete').addEventListener('click', confirmBulkDelete);
+        const itemActions = @json($itemActions ?? []);
 
-// Inicializace
-document.addEventListener('DOMContentLoaded', function() {
-    updateBulkActions();
+        data.forEach(item => {
+            let html = '';
+            switch(type) {
+                case 'customers':
+                    html = `
+                        <div class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 group">
+                            <div class="flex-1">
+                                <p class="font-medium">${item.name}</p>
+                                <p class="text-sm text-gray-500">${item.company || 'Soukromá osoba'}</p>
+                            </div>
+                            <div class="hidden group-hover:flex items-center space-x-2">
+                                ${itemActions[type] ? Object.entries(itemActions[type]).map(([action, config]) => `
+                                    <a href="${config.url.replace('{id}', item.id)}"
+                                       class="text-sm text-gray-500 hover:text-blue-600"
+                                       title="${config.label}">
+                                        <i class="fas fa-${action === 'edit' ? 'pen' : action === 'delete' ? 'trash' : 'eye'}"></i>
+                                    </a>
+                                `).join('') : ''}
+                            </div>
+                        </div>`;
+                    break;
+                case 'contacts':
+                    html = `
+                        <div class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 group">
+                            <div class="flex-1">
+                                <p class="font-medium">${item.subject}</p>
+                                <p class="text-sm text-gray-500">
+                                    ${new Date(item.contact_date).toLocaleDateString('cs-CZ')}
+                                    ${item.customer ? `- ${item.customer.name}` : ''}
+                                </p>
+                            </div>
+                            <div class="hidden group-hover:flex items-center space-x-2">
+                                ${itemActions[type] ? Object.entries(itemActions[type]).map(([action, config]) => `
+                                    <a href="${config.url.replace('{id}', item.id)}"
+                                       class="text-sm text-gray-500 hover:text-blue-600"
+                                       title="${config.label}">
+                                        <i class="fas fa-${action === 'edit' ? 'pen' : action === 'delete' ? 'trash' : 'eye'}"></i>
+                                    </a>
+                                `).join('') : ''}
+                            </div>
+                        </div>`;
+                    break;
+                case 'deals':
+                    html = `
+                        <div class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 group">
+                            <div class="flex-1">
+                                <p class="font-medium">${item.title}</p>
+                                <div class="flex items-center space-x-2 text-sm text-gray-500">
+                                    <span>${new Intl.NumberFormat('cs-CZ', {
+                                        style: 'currency',
+                                        currency: 'CZK',
+                                        maximumFractionDigits: 0
+                                    }).format(item.value)}</span>
+                                    ${item.customer ? `<span>- ${item.customer.name}</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="hidden group-hover:flex items-center space-x-2">
+                                ${itemActions[type] ? Object.entries(itemActions[type]).map(([action, config]) => `
+                                    <a href="${config.url.replace('{id}', item.id)}"
+                                       class="text-sm text-gray-500 hover:text-blue-600"
+                                       title="${config.label}">
+                                        <i class="fas fa-${action === 'edit' ? 'pen' : action === 'delete' ? 'trash' : 'eye'}"></i>
+                                    </a>
+                                `).join('') : ''}
+                            </div>
+                        </div>`;
+                    break;
+            }
+            $panel.append(html);
+        });
+    };
+
+    // Load initial data
+    loadPanelData('customers', @json($customers ?? []));
+    loadPanelData('contacts', @json($contacts ?? []));
+    loadPanelData('deals', @json($deals ?? []));
+
+    // Save and load widget positions
+    function saveWidgetPositions() {
+        const positions = {};
+        $("#quick-access > div").each(function() {
+            const id = $(this).attr('id');
+            const position = $(this).position();
+            positions[id] = {
+                top: position.top,
+                left: position.left
+            };
+        });
+        localStorage.setItem('widgetPositions', JSON.stringify(positions));
+    }
+
+    function loadWidgetPositions() {
+        const positions = JSON.parse(localStorage.getItem('widgetPositions'));
+        if (positions) {
+            Object.keys(positions).forEach(id => {
+                $(`#${id}`).css({
+                    position: 'absolute',
+                    top: positions[id].top,
+                    left: positions[id].left
+                });
+            });
+        }
+    }
+
+    // Event listeners
+    $("#quick-access > div").on('dragstop', saveWidgetPositions);
+
+    // Initialize positions
+    loadWidgetPositions();
 });
 </script>
 @endsection

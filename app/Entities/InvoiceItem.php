@@ -3,10 +3,11 @@
 namespace App\Entities;
 
 use Doctrine\ORM\Mapping as ORM;
+use JsonSerializable;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'invoice_items')]
-class InvoiceItem
+class InvoiceItem implements JsonSerializable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -57,4 +58,17 @@ class InvoiceItem
         $this->total = $this->quantity * $this->unit_price;
         return $this->total;
     }
-} 
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'invoice' => $this->getInvoice()->getId(),
+            'description' => $this->getDescription(),
+            'quantity' => $this->getQuantity(),
+            'unit_price' => $this->getUnitPrice(),
+            'total' => $this->getTotal(),
+            'unit' => $this->getUnit()
+        ];
+    }
+}

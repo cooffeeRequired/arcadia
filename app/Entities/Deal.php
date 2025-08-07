@@ -3,10 +3,11 @@
 namespace App\Entities;
 
 use Doctrine\ORM\Mapping as ORM;
+use JsonSerializable;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'deals')]
-class Deal
+class Deal implements JsonSerializable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -78,4 +79,21 @@ class Deal
     {
         $this->updated_at = new \DateTime();
     }
-} 
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'customer' => $this->getCustomer()->getId(),
+            'title' => $this->getTitle(),
+            'description' => $this->getDescription(),
+            'value' => $this->getValue(),
+            'stage' => $this->getStage(),
+            'probability' => $this->getProbability(),
+            'expected_close_date' => $this->getExpectedCloseDate()?->format('Y-m-d'),
+            'status' => $this->getStatus(),
+            'created_at' => $this->getCreatedAt()->format('c'),
+            'updated_at' => $this->getUpdatedAt()->format('c')
+        ];
+    }
+}

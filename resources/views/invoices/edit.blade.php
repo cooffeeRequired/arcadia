@@ -12,7 +12,7 @@
         <div class="px-4 py-5 sm:p-6">
             <h3 class="text-lg leading-6 font-medium text-gray-900">Upravit fakturu {{ $invoice->getInvoiceNumber() }}</h3>
             <p class="mt-1 max-w-2xl text-sm text-gray-500">Upravte údaje faktury.</p>
-            
+
             <form method="POST" action="/invoices/{{ $invoice->getId() }}" class="mt-6 space-y-6">
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <div>
@@ -40,7 +40,7 @@
 
                     <div>
                         <label for="issue_date" class="block text-sm font-medium text-gray-700">Datum vystavení</label>
-                        <input type="date" name="issue_date" id="issue_date" value="{{ $invoice->getIssueDate()->format('Y-m-d') }}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        <input type="date" name="issue_date" id="issue_date" value="{{ $invoice->getIssueDate()->format('Y-m-d') }}" class="form-input">
                     </div>
 
                     <div>
@@ -128,13 +128,13 @@
 
 @push('scripts')
 <script>
-let itemIndex = {{ count($invoice->getItems()) }};
+let itemIndex = Number("{{ count($invoice->getItems()) }}");
 
 document.getElementById('add-item').addEventListener('click', function() {
     const container = document.getElementById('invoice-items');
     const newItem = document.createElement('div');
     newItem.className = 'invoice-item border border-gray-200 rounded-lg p-4 mb-4';
-    
+
     newItem.innerHTML = `
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-5">
             <div class="sm:col-span-2">
@@ -163,10 +163,10 @@ document.getElementById('add-item').addEventListener('click', function() {
             </button>
         </div>
     `;
-    
+
     container.appendChild(newItem);
     itemIndex++;
-    
+
     // Přidání event listeneru pro odstranění
     newItem.querySelector('.remove-item').addEventListener('click', function() {
         container.removeChild(newItem);
@@ -181,4 +181,4 @@ document.querySelectorAll('.remove-item').forEach(function(button) {
 });
 </script>
 @endpush
-@endsection 
+@endsection
