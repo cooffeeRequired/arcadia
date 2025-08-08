@@ -752,4 +752,17 @@ if (!function_exists('verify_csrf_token')) {
     }
 }
 
+if (!function_exists('method_field')) {
+    /**
+     * Generuje hidden input pro HTTP metodu
+     *
+     * @param string $method
+     * @return string
+     */
+    function method_field(string $method): string
+    {
+        return '<input type="hidden" name="_method" value="' . e(strtoupper($method)) . '">';
+    }
+}
+
 require_once APP_ROOT . '/core/helpers/notification.php';

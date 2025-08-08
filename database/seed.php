@@ -34,6 +34,16 @@ try {
         }
     }
 
+    // Spuštění entity seederu
+    $entitySeederFile = __DIR__ . '/seeds/entity_seeder.php';
+    if (file_exists($entitySeederFile)) {
+        echo "Spouštím entity seeder...\n";
+        require_once $entitySeederFile;
+        echo "✓ Entity seeder dokončen\n";
+    } else {
+        echo "✗ Entity seeder soubor nebyl nalezen\n";
+    }
+
     echo "\nVšechna seed data byla úspěšně načtena!\n";
 
 } catch (Exception $e) {

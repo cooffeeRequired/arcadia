@@ -5,11 +5,13 @@ use App\Controllers\AuthController;
 use App\Controllers\ContactController;
 use App\Controllers\CustomerController;
 use App\Controllers\DealController;
+use App\Controllers\EmailController;
 use App\Controllers\ErrorController;
 use App\Controllers\HomeController;
 use App\Controllers\InvoiceController;
 use App\Controllers\ReportController;
 use App\Controllers\SettingsController;
+use App\Controllers\WorkflowController;
 use Core\Routing\Router;
 
 $router = new Router();
@@ -82,6 +84,30 @@ $router->post('/settings/optimize-opcache', [SettingsController::class, 'optimiz
 $router->post('/settings/create-backup', [SettingsController::class, 'createBackup']);
 $router->get('/settings/logs', [SettingsController::class, 'systemLogs']);
 $router->post('/settings/check-integrity', [SettingsController::class, 'checkIntegrity']);
+
+// Workflow
+$router->get('/workflows', [WorkflowController::class, 'index']);
+$router->get('/workflows/create', [WorkflowController::class, 'create']);
+$router->post('/workflows', [WorkflowController::class, 'store']);
+$router->get('/workflows/{id}', [WorkflowController::class, 'show']);
+$router->get('/workflows/{id}/edit', [WorkflowController::class, 'edit']);
+$router->post('/workflows/{id}', [WorkflowController::class, 'update']);
+$router->post('/workflows/{id}/delete', [WorkflowController::class, 'delete']);
+$router->post('/workflows/{id}/toggle', [WorkflowController::class, 'toggle']);
+$router->get('/workflows/{id}/test', [WorkflowController::class, 'test']);
+
+// E-maily
+$router->get('/emails', [EmailController::class, 'index']);
+$router->get('/emails/create', [EmailController::class, 'create']);
+$router->post('/emails', [EmailController::class, 'store']);
+$router->get('/emails/{id}', [EmailController::class, 'show']);
+$router->get('/emails/{id}/edit', [EmailController::class, 'edit']);
+$router->post('/emails/{id}', [EmailController::class, 'update']);
+$router->post('/emails/{id}/delete', [EmailController::class, 'delete']);
+$router->post('/emails/{id}/send', [EmailController::class, 'send']);
+$router->get('/emails/templates', [EmailController::class, 'templates']);
+$router->get('/emails/signatures', [EmailController::class, 'signatures']);
+$router->get('/emails/servers', [EmailController::class, 'servers']);
 
 // API routes
 $router->get('/api/check-updates', [ApiController::class, 'checkUpdates']);

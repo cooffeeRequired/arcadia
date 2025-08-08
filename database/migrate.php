@@ -10,17 +10,35 @@ try {
     $em = Container::get('doctrine.em');
     $connection = $em->getConnection();
 
-    // Seznam migračních souborů
-    $migrations = [
-      // '001_create_users_table.sql',
-      // '002_create_customers_table.sql',
-      // '003_create_contacts_table.sql',
-      // '004_create_deals_table.sql',
-        '005_create_activities_table.sql'
-    ];
+    // Automatické načtení všech migračních souborů
+    $migrationsDir = __DIR__ . '/migrations';
+    $migrations = [];
+
+    if (is_dir($migrationsDir)) {
+        $files = scandir($migrationsDir);
+        foreach ($files as $file) {
+            if (pathinfo($file, PATHINFO_EXTENSION) === 'sql') {
+                $migrations[] = $file;
+            }
+        }
+
+        // Seřazení migrací podle názvu (pro správné pořadí)
+        sort($migrations);
+    }
+
+    if (empty($migrations)) {
+        echo "Žádné migrační soubory nebyly nalezeny v složce migrations.\n";
+        exit(0);
+    }
+
+    echo "Nalezeno " . count($migrations) . " migračních souborů:\n";
+    foreach ($migrations as $migration) {
+        echo "  - {$migration}\n";
+    }
+    echo "\n";
 
     foreach ($migrations as $migration) {
-        $file = __DIR__ . '/migrations/' . $migration;
+        $file = $migrationsDir . '/' . $migration;
 
         if (file_exists($file)) {
             echo "Spouštím migraci: {$migration}\n";
@@ -28,7 +46,13 @@ try {
             $sql = file_get_contents($file);
             $connection->executeStatement($sql);
 
-            echo "✓ Migrace {$migration} dokončena\n";
+            // Přejmenování souboru na .success po úspěšném spuštění
+            $successFile = $file . '.success';
+            if (rename($file, $successFile)) {
+                echo "✓ Migrace {$migration} dokončena a označena jako úspěšná\n";
+            } else {
+                echo "✓ Migrace {$migration} dokončena, ale nepodařilo se označit jako úspěšnou\n";
+            }
         } else {
             echo "✗ Soubor {$migration} nebyl nalezen\n";
         }

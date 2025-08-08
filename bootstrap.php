@@ -82,7 +82,7 @@ try {
     Notification::init();
 
 } catch (ORMException|\Doctrine\DBAL\Exception $e) {
-
+    echo $e->getMessage();
 }
 
 function boot(): void

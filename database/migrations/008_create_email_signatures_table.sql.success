@@ -1,0 +1,13 @@
+CREATE TABLE email_signatures (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    user_id INT NOT NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    INDEX idx_user_id (user_id),
+    INDEX idx_is_default (is_default),
+    INDEX idx_created_at (created_at),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

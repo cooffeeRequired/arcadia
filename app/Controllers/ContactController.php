@@ -30,7 +30,7 @@ class ContactController
            ->orderBy('c.contact_date', 'DESC');
 
         $contacts = $qb->getQuery()->getResult();
-        
+
         $pagination = (object) [
             'from' => 1,
             'to' => count($contacts),
@@ -51,7 +51,7 @@ class ContactController
         \Core\Routing\Middleware::auth();
 
         $contact = $this->em->getRepository(Contact::class)->find($id);
-        
+
         if (!$contact) {
             http_response_code(404);
             return View::render('errors.404');
@@ -81,7 +81,7 @@ class ContactController
         \Core\Routing\Middleware::auth();
 
         $customer = $this->em->getRepository(Customer::class)->find($_POST['customer_id'] ?? 0);
-        
+
         if (!$customer) {
             http_response_code(400);
             return View::render('errors.400');
@@ -108,7 +108,7 @@ class ContactController
         \Core\Routing\Middleware::auth();
 
         $contact = $this->em->getRepository(Contact::class)->find($id);
-        
+
         if (!$contact) {
             http_response_code(404);
             return View::render('errors.404');
@@ -128,7 +128,7 @@ class ContactController
         \Core\Routing\Middleware::auth();
 
         $contact = $this->em->getRepository(Contact::class)->find($id);
-        
+
         if (!$contact) {
             http_response_code(404);
             return View::render('errors.404');
@@ -157,7 +157,7 @@ class ContactController
         \Core\Routing\Middleware::auth();
 
         $contact = $this->em->getRepository(Contact::class)->find($id);
-        
+
         if (!$contact) {
             http_response_code(404);
             return View::render('errors.404');
@@ -176,7 +176,7 @@ class ContactController
         \Core\Routing\Middleware::auth();
 
         $ids = $_POST['ids'] ?? [];
-        
+
         if (empty($ids)) {
             $_SESSION['error'] = 'Nebyly vybrány žádné položky ke smazání.';
             header('Location: /');
@@ -198,4 +198,4 @@ class ContactController
         header('Location: /');
         exit;
     }
-} 
+}
