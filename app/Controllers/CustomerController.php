@@ -21,11 +21,11 @@ class CustomerController
     public function index()
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         // Získání zákazníků z databáze
         $customers = $this->em->getRepository(Customer::class)->findAll();
-        
+
         // Simulace paginace (v reálné aplikaci by byla implementována)
         $pagination = (object) [
             'from' => 1,
@@ -44,11 +44,11 @@ class CustomerController
     public function show($id)
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         // Získání zákazníka z databáze
         $customer = $this->em->getRepository(Customer::class)->find($id);
-        
+
         if (!$customer) {
             http_response_code(404);
             return View::render('errors.404');
@@ -78,7 +78,7 @@ class CustomerController
     public function create()
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         return View::render('customers.create');
     }
@@ -86,7 +86,7 @@ class CustomerController
     public function store()
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         // Zde by byla validace a uložení nového zákazníka
         $customer = new Customer();
@@ -112,11 +112,11 @@ class CustomerController
     public function edit($id)
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         // Získání zákazníka z databáze
         $customer = $this->em->getRepository(Customer::class)->find($id);
-        
+
         if (!$customer) {
             http_response_code(404);
             return View::render('errors.404');
@@ -130,11 +130,11 @@ class CustomerController
     public function update($id)
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         // Získání zákazníka z databáze
         $customer = $this->em->getRepository(Customer::class)->find($id);
-        
+
         if (!$customer) {
             http_response_code(404);
             return View::render('errors.404');
@@ -162,11 +162,11 @@ class CustomerController
     public function delete($id)
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         // Získání zákazníka z databáze
         $customer = $this->em->getRepository(Customer::class)->find($id);
-        
+
         if (!$customer) {
             http_response_code(404);
             return View::render('errors.404');
@@ -182,10 +182,10 @@ class CustomerController
     public function bulkDelete()
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         $ids = $_POST['ids'] ?? [];
-        
+
         if (empty($ids)) {
             $_SESSION['error'] = 'Nebyly vybrány žádné položky ke smazání.';
             header('Location: /');
@@ -207,4 +207,4 @@ class CustomerController
         header('Location: /');
         exit;
     }
-} 
+}

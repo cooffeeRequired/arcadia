@@ -25,7 +25,7 @@ class EmailController
     public function index()
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         // Získání e-mailů z databáze
         $emails = $this->em->getRepository(Email::class)->findBy(
@@ -52,7 +52,7 @@ class EmailController
     public function create()
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         // Získání dostupných šablon
         $templates = $this->em->getRepository(EmailTemplate::class)->findBy(
@@ -80,7 +80,7 @@ class EmailController
     public function store()
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         $user = $this->em->getRepository(User::class)->find($_SESSION['user_id']);
 
@@ -137,7 +137,7 @@ class EmailController
     public function show($id)
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         // Získání e-mailu z databáze
         $email = $this->em->getRepository(Email::class)->find($id);
@@ -155,7 +155,7 @@ class EmailController
     public function edit($id)
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         // Získání e-mailu z databáze
         $email = $this->em->getRepository(Email::class)->find($id);
@@ -185,7 +185,7 @@ class EmailController
     public function update($id)
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         // Získání e-mailu z databáze
         $email = $this->em->getRepository(Email::class)->find($id);
@@ -228,7 +228,7 @@ class EmailController
     public function delete($id)
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         // Získání e-mailu z databáze
         $email = $this->em->getRepository(Email::class)->find($id);
@@ -248,7 +248,7 @@ class EmailController
     public function send($id)
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         // Získání e-mailu z databáze
         $email = $this->em->getRepository(Email::class)->find($id);
@@ -272,7 +272,7 @@ class EmailController
     public function templates()
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         // Získání šablon z databáze
         $templates = $this->em->getRepository(EmailTemplate::class)->findBy(
@@ -288,7 +288,7 @@ class EmailController
     public function signatures()
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         // Získání podpisů z databáze
         $signatures = $this->em->getRepository(EmailSignature::class)->findBy(
@@ -304,7 +304,7 @@ class EmailController
     public function servers()
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         // Získání serverů z databáze
         $servers = $this->em->getRepository(EmailSignature::class)->findAll();

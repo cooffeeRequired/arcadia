@@ -22,6 +22,15 @@ if (!function_exists('request')) {
     }
 }
 
+
+function debug_log($message): void
+{
+    $logFile = APP_ROOT . '/log/debug.log';
+    $timestamp = date('Y-m-d H:i:s');
+    file_put_contents($logFile, "[$timestamp] $message\n", FILE_APPEND);
+}
+
+
 if (!function_exists('e')) {
     /**
      * Escape HTML string
@@ -86,6 +95,29 @@ if (!function_exists('old')) {
     function old(string $key, mixed $default = ''): mixed
     {
         return $_SESSION['old'][$key] ?? $default;
+    }
+}
+
+if (!function_exists('session')) {
+    /**
+     * Získá nebo nastaví session hodnotu
+     *
+     * @param string|null $key
+     * @param mixed|null $value
+     * @return mixed
+     */
+    function session(?string $key = null, mixed $value = null): mixed
+    {
+        if ($key === null) {
+            return $_SESSION;
+        }
+
+        if ($value === null) {
+            return $_SESSION[$key] ?? null;
+        }
+
+        $_SESSION[$key] = $value;
+        return $value;
     }
 }
 
@@ -589,6 +621,7 @@ if (!function_exists('check_database_integrity')) {
      * Zkontroluje integritu databáze
      *
      * @return array
+     * @noinspection D
      */
     function check_database_integrity(): array
     {

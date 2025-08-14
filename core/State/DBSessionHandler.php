@@ -30,6 +30,7 @@ class DBSessionHandler implements SessionHandlerInterface
         $stmt = $this->pdo->prepare("SELECT data FROM sessions WHERE id = :id LIMIT 1");
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
+
         return $row ? $row['data'] : '';
     }
 

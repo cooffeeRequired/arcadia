@@ -27,34 +27,14 @@ class View
       $dispatcher = new Dispatcher();
       self::$resolver = new EngineResolver();
       self::$resolver->register('php', fn() => new PhpEngine($filesystem));
-      self::$compiler = new BladeCompiler(
-        $filesystem,
-        APP_ROOT . '/cache/views'
-      );
+      self::$compiler = new BladeCompiler($filesystem, APP_ROOT . '/cache/views');
+			self::$resolver->register('blade', fn() => new CompilerEngine(self::$compiler));
+      self::$finder = new FileViewFinder($filesystem, [APP_ROOT . '/resources/views']);
 
-      self::$resolver->register('blade', function () {
-        return new CompilerEngine(self::$compiler);
-      });
 
-      self::$finder = new FileViewFinder($filesystem, [
-        APP_ROOT . '/resources/views'
-      ]);
-
-      echo
-
-        self::$compiler->directive('hmr', fn($expression)
-          => "<script type='module' src='<?=\"http://localhost:5173/\" . trim($expression, \"'\");?>'></script>");
-
-          self::$compiler->directive('hmrClient', fn()
-  => "<?php if (true): ?>
-        <script type=\"module\" src=\"http://localhost:5173/@vite/client\"></script>
-      <?php endif; ?>");
-
-      self::$factory = new Factory(
-        self::$resolver,
-        self::$finder,
-        $dispatcher
-      );
+	    self::$compiler->directive('hmr', fn($expression) => "<script type='module' src='<?=\"http://localhost:5173/\" . trim($expression, \"'\");?>'></script>");
+	    self::$compiler->directive('hmrClient', fn() => "<script type='module' src='http://localhost:5173/@vite/client'></script>");
+      self::$factory = new Factory(self::$resolver, self::$finder, $dispatcher);
     }
   }
 

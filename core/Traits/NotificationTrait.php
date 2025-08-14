@@ -50,15 +50,15 @@ trait NotificationTrait
     /**
      * Přidá success notifikaci (toast i flash)
      */
-    public static function success(string $message, array $options = ['type' => 'toast']): void
+    public static function success(string $message, array $options = ['type' => 'flash']): void
     {
         $toastOptions = $options['toast'] ?? [];
         $flashOptions = $options['flash'] ?? [];
-        
+
         if (!isset($options['type']) || $options['type'] === 'toast' || $options['type'] === 'both') {
             self::toastSuccess($message, $options['duration'] ?? 5000, $toastOptions);
         }
-        
+
         if (!isset($options['type']) || $options['type'] === 'flash' || $options['type'] === 'both') {
             self::flashSuccess($message, $flashOptions);
         }
@@ -67,15 +67,15 @@ trait NotificationTrait
     /**
      * Přidá error notifikaci (toast i flash)
      */
-    public static function error(string $message, array $options = []): void
+    public static function error(string $message, array $options = ['type' => 'flash']): void
     {
         $toastOptions = $options['toast'] ?? [];
         $flashOptions = $options['flash'] ?? [];
-        
+
         if (!isset($options['type']) || $options['type'] === 'toast' || $options['type'] === 'both') {
             self::toastError($message, $options['duration'] ?? 5000, $toastOptions);
         }
-        
+
         if (!isset($options['type']) || $options['type'] === 'flash' || $options['type'] === 'both') {
             self::flashError($message, $flashOptions);
         }
@@ -84,15 +84,15 @@ trait NotificationTrait
     /**
      * Přidá warning notifikaci (toast i flash)
      */
-    public static function warning(string $message, array $options = []): void
+    public static function warning(string $message, array $options = ['type' => 'flash']): void
     {
         $toastOptions = $options['toast'] ?? [];
         $flashOptions = $options['flash'] ?? [];
-        
+
         if (!isset($options['type']) || $options['type'] === 'toast' || $options['type'] === 'both') {
             self::toastWarning($message, $options['duration'] ?? 5000, $toastOptions);
         }
-        
+
         if (!isset($options['type']) || $options['type'] === 'flash' || $options['type'] === 'both') {
             self::flashWarning($message, $flashOptions);
         }
@@ -101,15 +101,15 @@ trait NotificationTrait
     /**
      * Přidá info notifikaci (toast i flash)
      */
-    public static function info(string $message, array $options = []): void
+    public static function info(string $message, array $options = ['type' => 'flash']): void
     {
         $toastOptions = $options['toast'] ?? [];
         $flashOptions = $options['flash'] ?? [];
-        
+
         if (!isset($options['type']) || $options['type'] === 'toast' || $options['type'] === 'both') {
             self::toastInfo($message, $options['duration'] ?? 5000, $toastOptions);
         }
-        
+
         if (!isset($options['type']) || $options['type'] === 'flash' || $options['type'] === 'both') {
             self::flashInfo($message, $flashOptions);
         }
@@ -138,17 +138,17 @@ trait NotificationTrait
     public static function renderAll(): string
     {
         $html = '';
-        
+
         // Render toast notifikace
         if (self::hasToasts()) {
             $html .= self::renderToasts();
         }
-        
+
         // Render flash notifikace
         if (self::hasFlash()) {
             $html .= self::renderFlash();
         }
-        
+
         return $html;
     }
 
@@ -158,17 +158,17 @@ trait NotificationTrait
     public static function renderAllScripts(): string
     {
         $html = '';
-        
+
         // Render toast script
         if (self::hasToasts()) {
             $html .= self::renderToastScript();
         }
-        
+
         // Render flash script
         if (self::hasFlash()) {
             $html .= self::renderFlashScript();
         }
-        
+
         return $html;
     }
 
@@ -186,7 +186,7 @@ trait NotificationTrait
     public static function updateNotificationSettings(array $settings): void
     {
         self::$notificationSettings = array_merge(self::$notificationSettings, $settings);
-        
+
         // Aplikujeme nová nastavení
         if (isset($settings['toast'])) {
             if (isset($settings['toast']['position'])) {
@@ -229,17 +229,17 @@ trait NotificationTrait
     /**
      * Přidá custom notifikaci
      */
-    public static function custom(string $type, string $message, array $options = []): void
+    public static function custom(string $type, string $message, array $options = ['type' => 'flash']): void
     {
         $toastOptions = $options['toast'] ?? [];
         $flashOptions = $options['flash'] ?? [];
-        
+
         if (!isset($options['type']) || $options['type'] === 'toast' || $options['type'] === 'both') {
             self::addToast($type, $message, $options['duration'] ?? 5000, $toastOptions);
         }
-        
+
         if (!isset($options['type']) || $options['type'] === 'flash' || $options['type'] === 'both') {
             self::addFlash($type, $message, $flashOptions);
         }
     }
-} 
+}

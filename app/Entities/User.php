@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection ALL */
 
 namespace App\Entities;
 
@@ -12,7 +12,7 @@ class User implements JsonSerializable
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private int $id;
+    protected int $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     private string $name;
@@ -87,5 +87,13 @@ class User implements JsonSerializable
             'created_at' => $this->getCreatedAt()->format('c'),
             'updated_at' => $this->getUpdatedAt()->format('c')
         ];
+    }
+
+    public function only(array $columns): array
+    {
+        return array_intersect_key(
+            $this->jsonSerialize(),
+            array_flip($columns)
+        );
     }
 }

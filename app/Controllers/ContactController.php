@@ -5,24 +5,24 @@ namespace App\Controllers;
 use App\Entities\Contact;
 use App\Entities\Customer;
 use Core\Facades\Container;
+use Core\Render\BaseController;
 use Core\Render\View;
+use Core\Traits\NotificationTrait;
+use Core\Traits\Validation;
+use DateTime;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Exception\NotSupported;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
+use JetBrains\PhpStorm\NoReturn;
 
-class ContactController
+class ContactController extends BaseController
 {
-    private EntityManager $em;
+    use Validation, NotificationTrait;
 
-    public function __construct()
+
+    public function index(): void
     {
-        $this->em = Container::get('doctrine.em');
-    }
-
-    public function index()
-    {
-        // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
-
-        // Získání kontaktů z databáze s join na zákazníky
         $qb = $this->em->createQueryBuilder();
         $qb->select('c', 'cu')
            ->from(Contact::class, 'c')
@@ -39,122 +39,101 @@ class ContactController
             'lastPage' => 1
         ];
 
-        return View::render('contacts.index', [
+        $this->renderView('contacts.index', [
             'contacts' => $contacts,
             'pagination' => $pagination
         ]);
     }
 
-    public function show($id)
+    /**
+     * @throws NotSupported
+     */
+    public function show($id): void
     {
-        // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
-
         $contact = $this->em->getRepository(Contact::class)->find($id);
 
         if (!$contact) {
-            http_response_code(404);
-            return View::render('errors.404');
+            $this->status(404)->view('errors.404');
         }
-
-        return View::render('contacts.show', [
-            'contact' => $contact
-        ]);
+        $this->renderView('contacts.show', ['contact' => $contact]);
     }
 
-    public function create()
+    /**
+     * @throws NotSupported
+     */
+    public function create(): void
     {
-        // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
-
-        // Získání všech zákazníků pro select
         $customers = $this->em->getRepository(Customer::class)->findAll();
-
-        return View::render('contacts.create', [
-            'customers' => $customers
-        ]);
+        $this->renderView('contacts.create', ['customers' => $customers]);
     }
 
-    public function store()
+    /**
+     * @throws NotSupported
+     * @throws \DateMalformedStringException
+     * @throws ORMException
+     */
+    #[NoReturn]
+    public function store(): void
     {
-        // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
-
         $customer = $this->em->getRepository(Customer::class)->find($_POST['customer_id'] ?? 0);
 
         if (!$customer) {
-            http_response_code(400);
-            return View::render('errors.400');
+            $this->status(404)->view('errors.404');
         }
 
         $contact = new Contact();
         $contact->setCustomer($customer);
-        $contact->setType($_POST['type'] ?? '');
-        $contact->setSubject($_POST['subject'] ?? '');
-        $contact->setDescription($_POST['description'] ?? null);
-        $contact->setContactDate(new \DateTime($_POST['contact_date'] ?? 'now'));
-        $contact->setStatus($_POST['status'] ?? 'completed');
+        $contact->setType($this->input('type', ''));
+        $contact->setSubject($this->input('subject', ''));
+        $contact->setDescription($this->input('description', null));
+        $contact->setContactDate(new DateTime($this->input('contact_date', 'now')));
+        $contact->setStatus($this->input('status', 'completed'));
 
         $this->em->persist($contact);
         $this->em->flush();
+        $this->redirect('/contacts/' . $contact->getId());
 
-        header('Location: /contacts/' . $contact->getId());
-        exit;
-    }
-
-    public function edit($id)
+    public function edit($id): void
     {
-        // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
-
         $contact = $this->em->getRepository(Contact::class)->find($id);
 
         if (!$contact) {
-            http_response_code(404);
-            return View::render('errors.404');
+            $this->status(404)->view('errors.404');
         }
 
         $customers = $this->em->getRepository(Customer::class)->findAll();
-
-        return View::render('contacts.edit', [
-            'contact' => $contact,
-            'customers' => $customers
-        ]);
+        $this->renderView('contacts.edit', ['contact' => $contact, 'customers' => $customers]);
     }
 
-    public function update($id)
+    public #[NoReturn]
+    function update($id): void
     {
-        // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
-
         $contact = $this->em->getRepository(Contact::class)->find($id);
 
         if (!$contact) {
-            http_response_code(404);
-            return View::render('errors.404');
+            $this->status(404)->view('errors.404');
         }
 
-        $customer = $this->em->getRepository(Customer::class)->find($_POST['customer_id'] ?? 0);
+        $customer = $this->em->getRepository(Customer::class)->find($this->input('customer_id', 0));
         if ($customer) {
             $contact->setCustomer($customer);
         }
 
-        $contact->setType($_POST['type'] ?? '');
-        $contact->setSubject($_POST['subject'] ?? '');
-        $contact->setDescription($_POST['description'] ?? null);
-        $contact->setContactDate(new \DateTime($_POST['contact_date'] ?? 'now'));
-        $contact->setStatus($_POST['status'] ?? 'completed');
+        $contact->setType($this->input('type', ''));
+        $contact->setSubject($this->input('subject', ''));
+        $contact->setDescription($this->input('description', null));
+        $contact->setContactDate(new DateTime($this->input('contact_date', 'now')));
+        $contact->setStatus($this->input('status', 'completed'));
 
         $this->em->flush();
 
-        header('Location: /contacts/' . $contact->getId());
-        exit;
+        $this->redirect('/contacts/' . $contact->getId());
     }
 
     public function delete($id)
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         $contact = $this->em->getRepository(Contact::class)->find($id);
 
@@ -173,7 +152,7 @@ class ContactController
     public function bulkDelete()
     {
         // Kontrola přihlášení
-        \Core\Routing\Middleware::auth();
+
 
         $ids = $_POST['ids'] ?? [];
 

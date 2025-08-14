@@ -2,34 +2,27 @@
 
 namespace App\Controllers;
 
+use App\Entities\Activity;
 use App\Entities\Contact;
 use App\Entities\Customer;
 use App\Entities\Deal;
 use Core\Facades\Container;
+use Core\Render\BaseController;
 use Core\Render\View;
-use Core\Routing\Middleware;
-use Core\Traits\Controller;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Exception\NotSupported;
+use JetBrains\PhpStorm\NoReturn;
 
-class HomeController
+class HomeController extends BaseController
 {
-    use Controller;
-
-    private EntityManager $em;
-
-    public function __construct()
-    {
-        $this->em = Container::get('doctrine.em');
-    }
 
     /**
      * @throws NotSupported
      */
     public function index(): string
     {
-        $this->middleware('auth');
-        // Získání statistik z databáze
+        debug_log("HomeController::index() started");
+
         $customersCount = $this->em->getRepository(Customer::class)->count([]);
         $contactsCount = $this->em->getRepository(Contact::class)->count([]);
         $dealsCount = $this->em->getRepository(Deal::class)->count([]);
@@ -106,7 +99,7 @@ class HomeController
         ];
 
         // Získání aktivit
-        $recentActivities = $this->em->getRepository(\App\Entities\Activity::class)
+        $recentActivities = $this->em->getRepository(Activity::class)
             ->createQueryBuilder('a')
             ->leftJoin('a.customer', 'c')
             ->leftJoin('a.deal', 'd')
@@ -132,6 +125,25 @@ class HomeController
             'itemActions' => $itemActions,
             'recentActivities' => $recentActivities
         ];
+        debug_log("HomeController::index() - about to render view");
         return $this->view('home', $data);
+    }
+
+
+    /**
+     * Demonstruje použití nových externích session metod
+     */
+    #[NoReturn]
+    public function testExternalSession(): void
+    {
+        $request = $this->getRequest();
+
+        // Nastav JSON header
+        header('Content-Type: application/json');
+        header('Cache-Control: no-cache, must-revalidate');
+
+        // Vrať JSON
+        echo json_encode($request->getExternalSession(true), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        exit;
     }
 }

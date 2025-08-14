@@ -1,20 +1,21 @@
 <?php
 
+error_reporting(E_ALL);
+
+use Core\Authorization\Session;
 use Core\Database\DatabaseLogger;
 use Core\Facades\Container;
 use Core\Logging\Tracy;
 use Core\Notification\Notification;
 use Core\Render\Renderer;
 use Core\Render\View;
-use Core\State\DBSessionHandler;
+
+use Dba\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\ORMSetup;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
-use Symfony\Component\VarDumper\Cloner\VarCloner;
-use Symfony\Component\VarDumper\Dumper\HtmlDumper;
-use Symfony\Component\VarDumper\VarDumper;
 
 const APP_ROOT = __DIR__;
 
@@ -22,24 +23,26 @@ require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/core/helpers.php';
 define("APP_CONFIGURATION", require_once __DIR__ . '/config/config.php');
 
-// Inicializace Symfony Var Dumper pro lepší výstup
-if (class_exists('Symfony\Component\VarDumper\VarDumper')) {
-    VarDumper::setHandler(function ($var) {
-        $cloner = new VarCloner();
-        $dumper = new HtmlDumper();
-        $dumper->setTheme('light');
-        $dumper->dump($cloner->cloneVar($var));
-    });
-}
-
 Tracy::init();
 
-$redis = new Predis\Client('tcp://127.0.0.1:6379');
+$redis = new Predis\Client('tcp://127.0.0.1:6379', [
+    'cluster' => 'redis',
+    'parameters' => [
+        'database' => 2  // Použij cluster 2
+    ]
+]);
+
+// Inicializace klasických souborových session
+Session::init();
+
+// Vytvoř Session instanci s Redis podporou
+$session = new Session($redis, null, 'arcadia');
 $cache = new RedisAdapter($redis);
 
 // Registrace cache služeb do containeru
 Container::set('redis', $redis);
 Container::set('cache', $cache);
+Container::set('session', $session);
 
 $config = ORMSetup::createAttributeMetadataConfiguration(
     paths: [APP_ROOT . "/app/Entities"],
@@ -66,26 +69,26 @@ try {
      * @var PDO $pdo
      */
     $pdo = $em->getConnection()->getNativeConnection();
-    $handler = new DBSessionHandler($pdo);
-    session_set_save_handler($handler, true);
-    session_start();
-
-    Container::set(EntityManager::class, $em, ['doctrine.em']);
 
     $renderer = new Renderer();
-    $renderer->handle(); // Inicializace s Request objektem
-
+    Container::set(Connection::class, $connection, ['doctrine.connection']);
+    Container::set(EntityManager::class, $em, ['doctrine.em']);
     Container::set(Renderer::class, $renderer, ['app.renderer']);
 
-    // Registrace View Factory pro Laravel komponenty
     View::init();
     Notification::init();
 
 } catch (ORMException|\Doctrine\DBAL\Exception $e) {
-    echo $e->getMessage();
+    $html = View::render('errors.generic', [
+        'code' => $e->getCode(),
+        'message' => $e->getMessage(),
+        'title' => 'Nestala chyba'
+    ]);
+    echo $html;
 }
 
 function boot(): void
 {
     require_once __DIR__ . '/app/router.php';
+
 }

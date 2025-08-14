@@ -6,26 +6,26 @@ use Core\Traits\NotificationTrait;
 
 /**
  * Moderní Notification systém s podporou Toast a Flash notifikací
- * 
+ *
  * Použití:
- * 
+ *
  * // Inicializace
  * Notification::init();
- * 
+ *
  * // Základní použití
  * Notification::success('Operace byla úspěšná!');
  * Notification::error('Nastala chyba!');
  * Notification::warning('Pozor na toto!');
  * Notification::info('Informace pro vás');
- * 
+ *
  * // Pouze toast
  * Notification::toast('Toast zpráva');
  * Notification::toastSuccess('Úspěch!');
- * 
+ *
  * // Pouze flash
  * Notification::flash('Flash zpráva');
  * Notification::flashError('Chyba!');
- * 
+ *
  * // Pokročilé nastavení
  * Notification::success('Zpráva', [
  *     'type' => 'toast', // 'toast', 'flash', 'both'
@@ -33,7 +33,7 @@ use Core\Traits\NotificationTrait;
  *     'toast' => ['position' => 'top-right'],
  *     'flash' => ['position' => 'bottom-center', 'autoHide' => false]
  * ]);
- * 
+ *
  * // Render v šabloně
  * echo Notification::render();
  * echo Notification::renderAll();
@@ -64,7 +64,7 @@ class Notification
     /**
      * Rychlá metoda pro success notifikaci
      */
-    public static function ok(string $message, array $options = []): void
+    public static function ok(string $message, array $options = ['type' => 'flash']): void
     {
         self::success($message, $options);
     }
@@ -72,7 +72,7 @@ class Notification
     /**
      * Rychlá metoda pro error notifikaci
      */
-    public static function fail(string $message, array $options = []): void
+    public static function fail(string $message, array $options = ['type' => 'flash']): void
     {
         self::error($message, $options);
     }
@@ -80,7 +80,7 @@ class Notification
     /**
      * Rychlá metoda pro warning notifikaci
      */
-    public static function warn(string $message, array $options = []): void
+    public static function warn(string $message, array $options = ['type' => 'flash']): void
     {
         self::warning($message, $options);
     }
@@ -88,7 +88,7 @@ class Notification
     /**
      * Přidá notifikaci s custom typem
      */
-    public static function add(string $type, string $message, array $options = []): void
+    public static function add(string $type, string $message, array $options = ['type' => 'flash']): void
     {
         self::custom($type, $message, $options);
     }
@@ -355,4 +355,4 @@ class Notification
     {
         return self::getAllFlash();
     }
-} 
+}

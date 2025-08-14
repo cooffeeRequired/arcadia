@@ -3,7 +3,8 @@ vendor
 .idea
 node_modules
 var/cache
-var/log
+log
 tools/
 cache/
 cache/*
+/storage/

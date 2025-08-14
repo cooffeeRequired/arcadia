@@ -101,7 +101,7 @@ class HomeController
             'title' => 'Domů',
             'users' => $users
         ];
-        
+
         return View::render('home', $data);
     }
 }
@@ -116,7 +116,7 @@ class HomeController
 @section('content')
     <div class="card">
         <h1 class="text-2xl font-bold">{{ $title }}</h1>
-        
+
         @foreach($users as $user)
             <div class="p-4">{{ $user->name }}</div>
         @endforeach
@@ -173,7 +173,7 @@ Tracy debugger je automaticky aktivní ve vývojovém režimu s custom panely:
 
 - **💾 DB** - Databázové dotazy a statistiky
 - **📄 Views** - Rendered šablony a časy
-- **⚡ Cache** - Cache hit/miss statistiky  
+- **⚡ Cache** - Cache hit/miss statistiky
 - **🚀 Perf** - Výkonnostní metriky
 
 ### Vytváření šablon
@@ -203,4 +203,4 @@ Tracy debugger je automaticky aktivní ve vývojovém režimu s custom panely:
 
 3. Zajistěte, aby adresář `var/cache/views` byl zapisovatelný
 
-4. Nastavte správné oprávnění pro `public/css/app.css` 
+4. Nastavte správné oprávnění pro `public/css/app.css`

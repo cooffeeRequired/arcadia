@@ -117,17 +117,20 @@
 
         <!-- User Profile -->
         <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
-            @if(isset($_SESSION['user_id']))
+            @php
+                $user = session('user');
+            @endphp
+            @if($user && isset($user['id']))
                 <div class="flex items-center justify-between">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
                             <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                                <span class="text-sm font-medium text-white">{{ substr($_SESSION['user_name'] ?? 'U', 0, 1) }}</span>
+                                <span class="text-sm font-medium text-white">{{ substr($user['name'] ?? 'U', 0, 1) }}</span>
                             </div>
                         </div>
                         <div class="ml-3">
-                            <p class="text-sm font-medium text-gray-700">{{ $_SESSION['user_name'] ?? 'Uživatel' }}</p>
-                            <p class="text-xs text-gray-500">{{ $_SESSION['user_email'] ?? '' }}</p>
+                            <p class="text-sm font-medium text-gray-700">{{ $user['name'] ?? 'Uživatel' }}</p>
+                            <p class="text-xs text-gray-500">{{ $user['email'] ?? '' }}</p>
                         </div>
                     </div>
                     <a href="/logout" class="text-gray-400 hover:text-gray-600 transition-colors duration-200" title="Odhlásit se">

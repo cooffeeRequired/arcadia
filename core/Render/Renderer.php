@@ -2,7 +2,7 @@
 
 namespace Core\Render;
 
-use Core\Facades\Container;
+use Core\Authorization\Session;
 use Core\Routing\Middleware;
 use Core\Routing\Request;
 use Doctrine\ORM\EntityManager;
@@ -10,11 +10,18 @@ use JetBrains\PhpStorm\NoReturn;
 
 class Renderer
 {
-    private array $headers = [];
-    private array $renderedViews = []; // Pro logování rendered šablon
-    private ?Request $request;
-    private int $statusCode = 200;
+    public array $renderedViews = [] {
+        get {
+            return $this->renderedViews;
+        }
+        set {
+            $this->renderedViews[] = $value;
+        }
+    }
 
+    protected ?Request $request {
+        get => request();
+    }
     protected EntityManager $em;
 
     private static ?Renderer $instance = null;
@@ -26,18 +33,6 @@ class Renderer
         }
     }
 
-    public function handle(?Request $request = null): void
-    {
-        $this->request = $request ?? Request::getInstance();
-        $this->em = Container::get('doctrine.em');
-        $this->init();
-    }
-
-    private function init(): void
-    {
-        // Inicializujeme View systém
-        View::init();
-    }
 
     /**
      * Set HTTP header
@@ -47,7 +42,7 @@ class Renderer
      */
     public function header(string $header): self
     {
-        $this->headers[] = $header;
+        header($header);
         return $this;
     }
 
@@ -76,7 +71,7 @@ class Renderer
         $end = microtime(true);
 
         // Log rendered view
-        $this->renderedViews[] = [
+        $this->renderedViews = [
             'name' => $view,
             'time' => ($end - $start) * 1000, // v ms
             'size' => strlen($output),
@@ -154,38 +149,7 @@ class Renderer
      */
     public function render(string $content): void
     {
-        // Set status code
-        http_response_code($this->statusCode);
-
-        // Send headers
-        foreach ($this->headers as $header) {
-            header($header);
-        }
-
-        // Output content
         echo $content;
-    }
-
-    /**
-     * Get all rendered views
-     *
-     * @return array Rendered views
-     */
-    public function getRenderedViews(): array
-    {
-        return $this->renderedViews;
-    }
-
-    /**
-     * Set HTTP status code
-     *
-     * @param int $code HTTP status code
-     * @return $this
-     */
-    public function status(int $code): self
-    {
-        $this->statusCode = $code;
-        return $this;
     }
 
     public function session(?string $key, mixed $value = null)
@@ -198,6 +162,12 @@ class Renderer
         return $this;
     }
 
+
+    public function getSession(): Session
+    {
+        return $this->getRequest()->getSession();
+    }
+
     /**
      * Get the current request object
      *
@@ -205,9 +175,6 @@ class Renderer
      */
     public function getRequest(): Request
     {
-        if ($this->request === null) {
-            $this->handle();
-        }
         return $this->request;
     }
 
@@ -218,13 +185,13 @@ class Renderer
      * @param int $code HTTP status code
      * @return void
      */
-    #[NoReturn] public function redirect(string $url, int $code = 302): void
+    #[NoReturn] public function redirect(string $url, int $code = 301): void
     {
-        $this->status($code);
+        $this->statusCode($code);
         $this->header("Location: $url");
-        $this->render('');
-        exit;
     }
+
+
 
     /**
      * Apply middleware to the current request
@@ -262,15 +229,6 @@ class Renderer
         return $this->middleware('guest');
     }
 
-    /**
-     * Apply admin middleware
-     *
-     * @return $this
-     */
-    public function admin(): self
-    {
-        return $this->middleware('admin');
-    }
 
     /**
      * Get a query parameter from the request
@@ -324,5 +282,10 @@ class Renderer
     public function isGet(): bool
     {
         return $this->getRequest()->isGet();
+    }
+
+    private function statusCode(int $code): void
+    {
+        http_response_code($code);
     }
 }

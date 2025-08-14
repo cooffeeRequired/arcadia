@@ -78,7 +78,71 @@ trait FlashTrait
             'duration' => $options['duration'] ?? 5000
         ];
 
+        // Uloží flash zprávu do session
+        if (!isset($_SESSION['_flash_messages'])) {
+            $_SESSION['_flash_messages'] = [];
+        }
+        $_SESSION['_flash_messages'][] = $flash;
+
+
+        // Také přidá do statické proměnné pro aktuální request
         self::$flashMessages[] = $flash;
+    }
+
+    /**
+     * Získá URL s flash ID pro redirect
+     */
+    public static function getRedirectUrl(string $url): string
+    {
+        // Zkontroluj, zda existují flash zprávy v session
+        if (!isset($_SESSION['_flash_messages']) || empty($_SESSION['_flash_messages'])) {
+            return $url;
+        }
+
+        // Uloží flash zprávy do dočasného úložiště
+        $flashId = uniqid('flash_redirect_');
+        $tempDir = sys_get_temp_dir() . '/arcadia_flash';
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
+        $filename = $tempDir . '/' . $flashId . '.json';
+        $data = [
+            'flash' => $_SESSION['_flash_messages'],
+            'created' => time(),
+            'expires' => time() + 300 // 5 minut
+        ];
+
+        file_put_contents($filename, json_encode($data));
+
+        // Přidá flash ID do URL
+        $separator = strpos($url, '?') !== false ? '&' : '?';
+        return $url . $separator . 'flash_id=' . $flashId;
+    }
+
+    /**
+     * Načte flash zprávy z URL parametru
+     */
+    protected static function loadFlashFromUrl(): void
+    {
+        $flashId = $_GET['flash_id'] ?? null;
+        if (!$flashId) {
+            return;
+        }
+
+        $tempDir = sys_get_temp_dir() . '/arcadia_flash';
+        $filename = $tempDir . '/' . $flashId . '.json';
+
+        if (file_exists($filename)) {
+            $data = json_decode(file_get_contents($filename), true);
+
+            if ($data && isset($data['flash']) && $data['expires'] > time()) {
+                self::$flashMessages = array_merge(self::$flashMessages, $data['flash']);
+            }
+
+            // Smaže soubor
+            unlink($filename);
+        }
     }
 
     /**
@@ -87,7 +151,19 @@ trait FlashTrait
     protected static function initFlash(): void
     {
         self::$flashInitialized = true;
-        
+
+
+
+        // Načte flash zprávy ze session
+        if (isset($_SESSION['_flash_messages']) && is_array($_SESSION['_flash_messages'])) {
+            self::$flashMessages = array_merge(self::$flashMessages, $_SESSION['_flash_messages']);
+            // Vyčistí session flash zprávy po načtení
+            unset($_SESSION['_flash_messages']);
+        }
+
+        // Načte flash z URL parametrů
+        self::loadFlashFromUrl();
+
         if (!isset($_SESSION['_flash_js_added'])) {
             $_SESSION['_flash_js_added'] = true;
         }
@@ -98,6 +174,10 @@ trait FlashTrait
      */
     public static function getAllFlash(): array
     {
+        if (!self::$flashInitialized) {
+            self::initFlash();
+        }
+
         $flash = self::$flashMessages;
         self::$flashMessages = [];
         return $flash;
@@ -108,6 +188,10 @@ trait FlashTrait
      */
     public static function hasFlash(): bool
     {
+        if (!self::$flashInitialized) {
+            self::initFlash();
+        }
+
         return !empty(self::$flashMessages);
     }
 
@@ -117,6 +201,9 @@ trait FlashTrait
     public static function clearFlash(): void
     {
         self::$flashMessages = [];
+        if (isset($_SESSION['_flash_messages'])) {
+            unset($_SESSION['_flash_messages']);
+        }
     }
 
     /**
@@ -125,7 +212,7 @@ trait FlashTrait
     public static function renderFlash(): string
     {
         $flash = self::getAllFlash();
-        
+
         if (empty($flash)) {
             return '';
         }
@@ -141,19 +228,19 @@ trait FlashTrait
         };
 
         $html = '<div id="flash-container" style="' . $containerStyle . '">';
-        
+
         foreach ($flash as $flashMessage) {
             $html .= self::renderFlashTemplate($flashMessage);
         }
-        
+
         $html .= '</div>';
-        
+
         $flashJson = json_encode($flash, JSON_HEX_APOS | JSON_HEX_QUOT);
         $html .= '<script>window.initialFlash = ' . $flashJson . ';</script>';
-        
+
         // Debug informace
         $html .= '<!-- Debug: Flash count = ' . count($flash) . ' -->';
-        
+
         return $html;
     }
 
@@ -188,7 +275,7 @@ trait FlashTrait
         $iconColor = '';
         $icon = '';
         $bgColor = '';
-        
+
         switch ($type) {
             case 'success':
                 $borderClass = 'border-green-500';
@@ -236,10 +323,10 @@ trait FlashTrait
         }
 
         return '
-        <div id="' . $id . '" class="' . $bgColor . ' border-l-4 ' . $borderClass . ' p-4 mb-4 shadow-lg rounded-lg pointer-events-auto" 
-             style="visibility: hidden; opacity: 0; transform: translateY(-20px);" 
-             data-position="' . $position . '" 
-             data-auto-hide="' . ($autoHide ? 'true' : 'false') . '" 
+        <div id="' . $id . '" class="' . $bgColor . ' border-l-4 ' . $borderClass . ' p-4 mb-4 shadow-lg rounded-lg pointer-events-auto"
+             style="visibility: hidden; opacity: 0; transform: translateY(-20px);"
+             data-position="' . $position . '"
+             data-auto-hide="' . ($autoHide ? 'true' : 'false') . '"
              data-duration="' . $duration . '">
             <div class="flex items-start">
                 <div class="flex-shrink-0">
@@ -273,7 +360,7 @@ trait FlashTrait
         } else {
             initFlashNotifications();
         }
-        
+
         function initFlashNotifications() {
             $(document).ready(function() {
                 if (window.initialFlash && window.initialFlash.length > 0) {
@@ -282,17 +369,17 @@ trait FlashTrait
                         if (flashElement.length === 0) {
                             return;
                         }
-                        
+
                         const position = flashElement.data('position') || 'top-center';
                         const autoHide = flash.autoHide || false;
                         const duration = parseInt(flashElement.data('duration')) || 5000;
-                        
+
                         setTimeout(function() {
                             flashElement.css({
                                 'visibility': 'visible',
                                 'transition': 'all 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'
                             });
-                            
+
                             setTimeout(function() {
                                 flashElement.css({
                                     'opacity': '1',
@@ -300,13 +387,13 @@ trait FlashTrait
                                 });
                             }, 50);
                         }, index * 150);
-                        
+
                         if (autoHide) {
                             setTimeout(function() {
                                 removeFlash(flash.id);
                             }, duration + (index * 150));
                         }
-                        
+
                         flashElement.find('.flash-close').on('click', function() {
                             removeFlash(flash.id);
                         });
@@ -315,18 +402,18 @@ trait FlashTrait
                     console.log('No flash notifications to show');
                 }
             });
-            
+
             const removeFlash = function(id) {
                 const flash = $('#' + id);
-                
+
                 console.log('removing')
-                
+
                 flash.css('transition', 'all 0.3s cubic-bezier(0.55, 0.055, 0.675, 0.19)');
                 flash.css({
                     'opacity': '0',
                     'transform': 'translateY(-20px)'
                 });
-                
+
                 setTimeout(function() {
                     flash.remove();
                 }, 300);
@@ -334,4 +421,4 @@ trait FlashTrait
         }
         </script>";
     }
-} 
+}

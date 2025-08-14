@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Traits;
+namespace Core\Traits;
 
 use Core\Routing\Request;
 use Exception;
@@ -271,7 +271,7 @@ trait Validation
     protected function getRequestValidationError(string $field): ?string
     {
         $request = $this->getRequest_();
-        $session = $request->getSession();
+        $session = $request->session;
         
         if ($session && $session->has('validation_errors')) {
             $errors = $session->get('validation_errors', []);
@@ -295,7 +295,7 @@ trait Validation
     protected function flashValidationErrors(array $errors): void
     {
         $request = $this->getRequest_();
-        $session = $request->getSession();
+        $session = $request->session;
         
         if ($session) {
             $session->set('validation_errors', $errors);

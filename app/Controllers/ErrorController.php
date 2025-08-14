@@ -2,12 +2,10 @@
 
 namespace App\Controllers;
 
-use Core\Traits\Controller;
+use Core\Render\BaseController;
 
-class ErrorController
+class ErrorController extends BaseController
 {
-    use Controller;
-
     /**
      * Zobrazí 404 chybovou stránku
      */

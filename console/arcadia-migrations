@@ -1,0 +1,11 @@
+#!/usr/bin/env php
+<?php
+
+use Core\CLI\MigrationCLI;
+use Doctrine\DBAL\Schema\SchemaException;
+
+require_once __DIR__ . '/../bootstrap.php';
+/**
+ * @throw Exception
+ */
+new MigrationCLI()->run(array_slice($argv, 1));
