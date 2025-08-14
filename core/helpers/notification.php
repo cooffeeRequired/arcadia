@@ -11,7 +11,7 @@ if (!function_exists('notification')) {
     /**
      * Přidá notifikaci
      */
-    function notification(string $type, string $message, array $options = ['type' => 'flash']): void
+    function notification(string $type, string $message, array $options = []): void
     {
         Notification::add($type, $message, $options);
     }
@@ -83,7 +83,7 @@ if (!function_exists('render_toasts')) {
      */
     function render_toasts(): string
     {
-        return \Core\Traits\ToastTrait::renderToasts();
+        return \Core\Notification\Toast::render();
     }
 }
 
@@ -93,7 +93,7 @@ if (!function_exists('render_toast_script')) {
      */
     function render_toast_script(): string
     {
-        return \Core\Traits\ToastTrait::renderToastScript();
+        return \Core\Notification\Toast::render();
     }
 }
 
@@ -103,7 +103,7 @@ if (!function_exists('render_flash')) {
      */
     function render_flash(): string
     {
-        return \Core\Traits\FlashTrait::renderFlash();
+        return Flash::render();
     }
 }
 
@@ -113,6 +113,6 @@ if (!function_exists('render_flash_scripts')) {
      */
     function render_flash_scripts(): string
     {
-        return \Core\Traits\FlashTrait::renderFlashScript();
+        return Flash::render();
     }
 }

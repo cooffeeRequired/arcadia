@@ -10,7 +10,6 @@ use App\Controllers\HomeController;
 use App\Controllers\InvoiceController;
 use App\Controllers\ReportController;
 use App\Controllers\SettingsController;
-
 use App\Controllers\WorkflowController;
 use Core\Routing\Router;
 
@@ -132,8 +131,6 @@ $router->group(['middleware' => ['auth']], function (Router $router) {
         $router->get('/servers', [EmailController::class, 'servers']);
     });
 });
-
-
 
 // Chybové stránky
 $router->notFound([ErrorController::class, 'notFound']);

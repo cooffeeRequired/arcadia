@@ -64,7 +64,7 @@ class Notification
     /**
      * Rychlá metoda pro success notifikaci
      */
-    public static function ok(string $message, array $options = ['type' => 'flash']): void
+    public static function ok(string $message, array $options = []): void
     {
         self::success($message, $options);
     }
@@ -72,7 +72,7 @@ class Notification
     /**
      * Rychlá metoda pro error notifikaci
      */
-    public static function fail(string $message, array $options = ['type' => 'flash']): void
+    public static function fail(string $message, array $options = []): void
     {
         self::error($message, $options);
     }
@@ -80,7 +80,7 @@ class Notification
     /**
      * Rychlá metoda pro warning notifikaci
      */
-    public static function warn(string $message, array $options = ['type' => 'flash']): void
+    public static function warn(string $message, array $options = []): void
     {
         self::warning($message, $options);
     }
@@ -88,7 +88,7 @@ class Notification
     /**
      * Přidá notifikaci s custom typem
      */
-    public static function add(string $type, string $message, array $options = ['type' => 'flash']): void
+    public static function add(string $type, string $message, array $options = []): void
     {
         self::custom($type, $message, $options);
     }

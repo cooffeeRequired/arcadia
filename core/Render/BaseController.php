@@ -61,17 +61,10 @@ abstract class BaseController
         return $this->renderer->json($data);
     }
 
+    #[NoReturn]
     protected function redirect(string $url, int $code = 302): void
     {
-        // Uloží session data před redirectem
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
-
-        // Přidá flash ID do URL pokud existují flash zprávy
-        $redirectUrl = \Core\Traits\FlashTrait::getRedirectUrl($url);
-
-        $this->renderer->redirect($redirectUrl, $code);
+        $this->renderer->redirect($url, $code);
     }
 
     protected function query(string $key, mixed $default = null): mixed

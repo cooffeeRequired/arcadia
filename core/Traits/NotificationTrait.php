@@ -50,7 +50,7 @@ trait NotificationTrait
     /**
      * Přidá success notifikaci (toast i flash)
      */
-    public static function success(string $message, array $options = ['type' => 'flash']): void
+    public static function success(string $message, array $options = ['type' => 'toast']): void
     {
         $toastOptions = $options['toast'] ?? [];
         $flashOptions = $options['flash'] ?? [];
@@ -67,7 +67,7 @@ trait NotificationTrait
     /**
      * Přidá error notifikaci (toast i flash)
      */
-    public static function error(string $message, array $options = ['type' => 'flash']): void
+    public static function error(string $message, array $options = []): void
     {
         $toastOptions = $options['toast'] ?? [];
         $flashOptions = $options['flash'] ?? [];
@@ -84,7 +84,7 @@ trait NotificationTrait
     /**
      * Přidá warning notifikaci (toast i flash)
      */
-    public static function warning(string $message, array $options = ['type' => 'flash']): void
+    public static function warning(string $message, array $options = []): void
     {
         $toastOptions = $options['toast'] ?? [];
         $flashOptions = $options['flash'] ?? [];
@@ -101,7 +101,7 @@ trait NotificationTrait
     /**
      * Přidá info notifikaci (toast i flash)
      */
-    public static function info(string $message, array $options = ['type' => 'flash']): void
+    public static function info(string $message, array $options = []): void
     {
         $toastOptions = $options['toast'] ?? [];
         $flashOptions = $options['flash'] ?? [];
@@ -229,7 +229,7 @@ trait NotificationTrait
     /**
      * Přidá custom notifikaci
      */
-    public static function custom(string $type, string $message, array $options = ['type' => 'flash']): void
+    public static function custom(string $type, string $message, array $options = []): void
     {
         $toastOptions = $options['toast'] ?? [];
         $flashOptions = $options['flash'] ?? [];

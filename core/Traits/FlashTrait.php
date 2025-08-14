@@ -78,71 +78,7 @@ trait FlashTrait
             'duration' => $options['duration'] ?? 5000
         ];
 
-        // Uloží flash zprávu do session
-        if (!isset($_SESSION['_flash_messages'])) {
-            $_SESSION['_flash_messages'] = [];
-        }
-        $_SESSION['_flash_messages'][] = $flash;
-
-
-        // Také přidá do statické proměnné pro aktuální request
         self::$flashMessages[] = $flash;
-    }
-
-    /**
-     * Získá URL s flash ID pro redirect
-     */
-    public static function getRedirectUrl(string $url): string
-    {
-        // Zkontroluj, zda existují flash zprávy v session
-        if (!isset($_SESSION['_flash_messages']) || empty($_SESSION['_flash_messages'])) {
-            return $url;
-        }
-
-        // Uloží flash zprávy do dočasného úložiště
-        $flashId = uniqid('flash_redirect_');
-        $tempDir = sys_get_temp_dir() . '/arcadia_flash';
-        if (!is_dir($tempDir)) {
-            mkdir($tempDir, 0755, true);
-        }
-
-        $filename = $tempDir . '/' . $flashId . '.json';
-        $data = [
-            'flash' => $_SESSION['_flash_messages'],
-            'created' => time(),
-            'expires' => time() + 300 // 5 minut
-        ];
-
-        file_put_contents($filename, json_encode($data));
-
-        // Přidá flash ID do URL
-        $separator = strpos($url, '?') !== false ? '&' : '?';
-        return $url . $separator . 'flash_id=' . $flashId;
-    }
-
-    /**
-     * Načte flash zprávy z URL parametru
-     */
-    protected static function loadFlashFromUrl(): void
-    {
-        $flashId = $_GET['flash_id'] ?? null;
-        if (!$flashId) {
-            return;
-        }
-
-        $tempDir = sys_get_temp_dir() . '/arcadia_flash';
-        $filename = $tempDir . '/' . $flashId . '.json';
-
-        if (file_exists($filename)) {
-            $data = json_decode(file_get_contents($filename), true);
-
-            if ($data && isset($data['flash']) && $data['expires'] > time()) {
-                self::$flashMessages = array_merge(self::$flashMessages, $data['flash']);
-            }
-
-            // Smaže soubor
-            unlink($filename);
-        }
     }
 
     /**
@@ -151,18 +87,6 @@ trait FlashTrait
     protected static function initFlash(): void
     {
         self::$flashInitialized = true;
-
-
-
-        // Načte flash zprávy ze session
-        if (isset($_SESSION['_flash_messages']) && is_array($_SESSION['_flash_messages'])) {
-            self::$flashMessages = array_merge(self::$flashMessages, $_SESSION['_flash_messages']);
-            // Vyčistí session flash zprávy po načtení
-            unset($_SESSION['_flash_messages']);
-        }
-
-        // Načte flash z URL parametrů
-        self::loadFlashFromUrl();
 
         if (!isset($_SESSION['_flash_js_added'])) {
             $_SESSION['_flash_js_added'] = true;
@@ -174,10 +98,6 @@ trait FlashTrait
      */
     public static function getAllFlash(): array
     {
-        if (!self::$flashInitialized) {
-            self::initFlash();
-        }
-
         $flash = self::$flashMessages;
         self::$flashMessages = [];
         return $flash;
@@ -188,10 +108,6 @@ trait FlashTrait
      */
     public static function hasFlash(): bool
     {
-        if (!self::$flashInitialized) {
-            self::initFlash();
-        }
-
         return !empty(self::$flashMessages);
     }
 
@@ -201,9 +117,6 @@ trait FlashTrait
     public static function clearFlash(): void
     {
         self::$flashMessages = [];
-        if (isset($_SESSION['_flash_messages'])) {
-            unset($_SESSION['_flash_messages']);
-        }
     }
 
     /**
