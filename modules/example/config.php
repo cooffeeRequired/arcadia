@@ -45,5 +45,43 @@ return [
                 'permission' => 'create'
             ]
         ]
+    ],
+    'controllers' => [
+        'Example' => [
+            'namespace' => 'Modules\Example\Controllers',
+            'extends' => 'Core\Controllers\BaseController',
+            'methods' => ['index', 'show', 'create', 'store', 'edit', 'update', 'destroy'],
+            'enabled' => true
+        ],
+        'ExampleApi' => [
+            'namespace' => 'Modules\Example\Controllers',
+            'extends' => 'Core\Controllers\ApiController',
+            'methods' => ['index', 'show', 'store', 'update', 'destroy'],
+            'enabled' => true
+        ]
+    ],
+    'entities' => [
+        'Example' => [
+            'table' => 'examples',
+            'namespace' => 'Modules\Example\Models',
+            'extends' => 'Core\Models\BaseModel',
+            'properties' => ['name', 'description', 'status', 'created_at', 'updated_at']
+        ],
+        'ExampleCategory' => [
+            'table' => 'example_categories',
+            'namespace' => 'Modules\Example\Models',
+            'extends' => 'Core\Models\BaseModel',
+            'properties' => ['name', 'description', 'parent_id']
+        ]
+    ],
+    'migrations' => [
+        'create_examples_table' => [
+            'type' => 'create_table',
+            'table' => 'examples'
+        ],
+        'create_example_categories_table' => [
+            'type' => 'create_table',
+            'table' => 'example_categories'
+        ]
     ]
 ];

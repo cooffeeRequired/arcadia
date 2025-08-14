@@ -1,0 +1,5 @@
+tady ty šablony udělejj jako je udělanoí @migrations.tpl
+a v edit bladu to pak jen načti
+udělej na to endpoint
+/systems/templates/....
+a udělej pro to routu a controller

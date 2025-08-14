@@ -293,6 +293,32 @@ if (!function_exists('optimize_opcache')) {
     }
 }
 
+if (!function_exists('clear_all_cache')) {
+    /**
+     * Vymaže všechny typy cache (soubory, Redis, ORM, OPcache, session)
+     *
+     * @return array
+     */
+    function clear_all_cache(): array
+    {
+        \Core\Cache\CacheManager::init();
+        return \Core\Cache\CacheManager::clearAllCache();
+    }
+}
+
+if (!function_exists('get_cache_stats')) {
+    /**
+     * Získá statistiky všech typů cache
+     *
+     * @return array
+     */
+    function get_cache_stats(): array
+    {
+        \Core\Cache\CacheManager::init();
+        return \Core\Cache\CacheManager::getCacheStats();
+    }
+}
+
 if (!function_exists('get_opcache_status')) {
     /**
      * Získá informace o stavu OPcache

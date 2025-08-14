@@ -104,6 +104,21 @@ class Module implements JsonSerializable
         return $this->author;
     }
 
+    public function getIcon(): ?string
+    {
+        return $this->icon;
+    }
+
+    public function getColor(): ?string
+    {
+        return $this->color;
+    }
+
+    public function getSortOrder(): ?int
+    {
+        return $this->sortOrder;
+    }
+
     public function isEnabled(): bool
     {
         return $this->isEnabled;
@@ -180,6 +195,24 @@ class Module implements JsonSerializable
         return $this;
     }
 
+    public function setIcon(?string $icon): self
+    {
+        $this->icon = $icon;
+        return $this;
+    }
+
+    public function setColor(?string $color): self
+    {
+        $this->color = $color;
+        return $this;
+    }
+
+    public function setSortOrder(?int $sortOrder): self
+    {
+        $this->sortOrder = $sortOrder;
+        return $this;
+    }
+
     public function setIsEnabled(bool $is_enabled): self
     {
         $this->isEnabled = $is_enabled;
@@ -251,6 +284,8 @@ class Module implements JsonSerializable
             'description' => $this->description,
             'version' => $this->version,
             'author' => $this->author,
+            'icon' => $this->icon,
+            'color' => $this->color,
             'is_enabled' => $this->isEnabled,
             'is_installed' => $this->isInstalled,
             'install_date' => $this->installDate?->format('Y-m-d H:i:s'),

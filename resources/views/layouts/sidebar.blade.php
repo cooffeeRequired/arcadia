@@ -17,53 +17,6 @@
             $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
         @endphp
 
-        <!-- Dashboard -->
-        <a href="/" class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ $currentUri === '/' || $currentUri === '/home' ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-            <i class="fas fa-home mr-3 {{ $currentUri === '/' || $currentUri === '/home' ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}"></i>
-            <span class="flex-1">Dashboard</span>
-        </a>
-
-        <!-- Statické položky - základní funkce aplikace -->
-        <a href="/customers" class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ str_starts_with($currentUri, '/customers') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-            <i class="fas fa-users mr-3 {{ str_starts_with($currentUri, '/customers') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}"></i>
-            <span class="flex-1">Zákazníci</span>
-        </a>
-
-        <a href="/contacts" class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ str_starts_with($currentUri, '/contacts') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-            <i class="fas fa-user mr-3 {{ str_starts_with($currentUri, '/contacts') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}"></i>
-            <span class="flex-1">Kontakty</span>
-        </a>
-
-        <a href="/deals" class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ str_starts_with($currentUri, '/deals') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-            <i class="fas fa-handshake mr-3 {{ str_starts_with($currentUri, '/deals') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}"></i>
-            <span class="flex-1">Obchody</span>
-        </a>
-
-        <a href="/projects" class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ str_starts_with($currentUri, '/projects') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-            <i class="fas fa-folder mr-3 {{ str_starts_with($currentUri, '/projects') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}"></i>
-            <span class="flex-1">Projekty</span>
-        </a>
-
-        <a href="/invoices" class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ str_starts_with($currentUri, '/invoices') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-            <i class="fas fa-file-invoice mr-3 {{ str_starts_with($currentUri, '/invoices') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}"></i>
-            <span class="flex-1">Faktury</span>
-        </a>
-
-        <a href="/reports" class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ str_starts_with($currentUri, '/reports') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-            <i class="fas fa-chart-bar mr-3 {{ str_starts_with($currentUri, '/reports') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}"></i>
-            <span class="flex-1">Reporty</span>
-        </a>
-
-        <a href="/workflows" class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ str_starts_with($currentUri, '/workflows') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-            <i class="fas fa-sitemap mr-3 {{ str_starts_with($currentUri, '/workflows') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}"></i>
-            <span class="flex-1">Workflow</span>
-        </a>
-
-        <a href="/emails" class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ str_starts_with($currentUri, '/emails') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-            <i class="fas fa-envelope mr-3 {{ str_starts_with($currentUri, '/emails') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}"></i>
-            <span class="flex-1">E-maily</span>
-        </a>
-
         <!-- Dynamické moduly -->
         @foreach($menuItems as $item)
             <div>
@@ -118,18 +71,18 @@
         </h3>
         <div class="space-y-1">
             <a href="/settings/profile"
-               class="group flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900">
-                <i class="fas fa-user-cog mr-3 text-gray-400 group-hover:text-gray-500"></i>
+               class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ str_starts_with($currentUri, '/settings/profile') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i class="fas fa-user-cog mr-3 {{ str_starts_with($currentUri, '/settings/profile') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}"></i>
                 <span class="flex-1">Profil</span>
             </a>
             <a href="/settings/system"
-               class="group flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900">
-                <i class="fas fa-cog mr-3 text-gray-400 group-hover:text-gray-500"></i>
+               class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ str_starts_with($currentUri, '/settings/system') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i class="fas fa-cog mr-3 {{ str_starts_with($currentUri, '/settings/system') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}"></i>
                 <span class="flex-1">Systém</span>
             </a>
             <a href="/settings/modules"
-               class="group flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900">
-                <i class="fas fa-puzzle-piece mr-3 text-gray-400 group-hover:text-gray-500"></i>
+               class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ str_starts_with($currentUri, '/settings/modules') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                <i class="fas fa-puzzle-piece mr-3 {{ str_starts_with($currentUri, '/settings/modules') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}"></i>
                 <span class="flex-1">Moduly</span>
             </a>
         </div>

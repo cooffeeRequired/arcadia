@@ -7,6 +7,7 @@
     <title>@yield('title', 'Arcadia CRM')</title>
     <link href="{{ asset('app.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
     @hmrClient
     @hmr('resources/js/app.js')
     @yield('styles')
@@ -29,6 +30,26 @@
     <!-- Blur overlay for mobile -->
     <div id="sidebar-overlay" class="fixed inset-0 z-30 bg-transparent backdrop-blur-sm lg:hidden hidden transition-all duration-300 ease-in-out"></div>
 
+    <!-- Global Modal System -->
+    <div id="global-modal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-title">Název modalu</h3>
+                <button class="modal-close" id="modal-close" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <div class="modal-loading">Načítání...</div>
+            </div>
+            <div class="modal-footer" id="modal-footer">
+                <button type="button" class="btn-secondary" id="modal-cancel">
+                    Zavřít
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification System -->
     {!! render_toasts() !!}
 
@@ -39,15 +60,191 @@
         </main>
     </div>
 
-    @stack('scripts')
-    @yield('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.min.js" integrity="sha256-AlTido85uXPlSyyaZNsjJXeCs07eSv3r43kyCVc8ChI=" crossorigin="anonymous"></script>
+
+    @stack('scripts')
+    @yield('scripts')
     <?php if (getenv('APP_ENV') !== 'development'): ?>
         <script src="{{ asset('js/main.js') }}"></script>
     <?php endif; ?>
     <!-- Toast Notification JavaScript -->
     {!! render_toast_scripts() !!}
+
+    <!-- Global Modal JavaScript -->
+    <script>
+        // Global Modal System
+        class GlobalModal {
+            constructor() {
+                this.modal = document.getElementById('global-modal');
+                this.container = this.modal.querySelector('.modal-container');
+                this.title = document.getElementById('modal-title');
+                this.body = document.getElementById('modal-body');
+                this.footer = document.getElementById('modal-footer');
+                this.closeBtn = document.getElementById('modal-close');
+                this.cancelBtn = document.getElementById('modal-cancel');
+
+                this.bindEvents();
+            }
+
+            bindEvents() {
+                // Zavření modalu kliknutím na overlay
+                this.modal.addEventListener('click', (e) => {
+                    if (e.target === this.modal) {
+                        this.hide();
+                    }
+                });
+
+                // Zavření modalu kliknutím na tlačítko zavřít
+                this.closeBtn.addEventListener('click', () => this.hide());
+                this.cancelBtn.addEventListener('click', () => this.hide());
+
+                // Zavření modalu klávesou Escape
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.isVisible()) {
+                        this.hide();
+                    }
+                });
+            }
+
+            show() {
+                this.modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+
+            hide() {
+                this.modal.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+
+            isVisible() {
+                return this.modal.classList.contains('show');
+            }
+
+            setTitle(title) {
+                this.title.textContent = title;
+            }
+
+            setContent(content) {
+                this.body.innerHTML = content;
+            }
+
+            setFooter(footer) {
+                this.footer.innerHTML = footer;
+            }
+
+            showLoading() {
+                this.body.innerHTML = '<div class="modal-loading">Načítání...</div>';
+            }
+
+            loadModal(options = {}) {
+                const {
+                    title = 'Název modalu',
+                    url = null,
+                    content = null,
+                    footer = null,
+                    size = 'medium',
+                    onLoad = null,
+                    onClose = null
+                } = options;
+
+                // Nastavení velikosti modalu
+                this.container.className = 'modal-container';
+                if (size === 'small') {
+                    this.container.style.width = '400px';
+                } else if (size === 'large') {
+                    this.container.style.width = '800px';
+                } else if (size === 'xlarge') {
+                    this.container.style.width = '1200px';
+                } else {
+                    this.container.style.width = '600px';
+                }
+
+                this.setTitle(title);
+
+                if (footer) {
+                    this.setFooter(footer);
+                } else {
+                    this.setFooter('<button type="button" class="btn-secondary" id="modal-cancel">Zavřít</button>');
+                }
+
+                if (url) {
+                    this.showLoading();
+                    this.show();
+
+                    // Načtení obsahu z URL
+                    fetch(url)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.text();
+                        })
+                        .then(html => {
+                            this.setContent(html);
+                            if (onLoad) onLoad(this);
+                        })
+                        .catch(error => {
+                            this.setContent(`<div class="text-red-600 p-4">Chyba při načítání: ${error.message}</div>`);
+                        });
+                } else if (content) {
+                    this.setContent(content);
+                    this.show();
+                    if (onLoad) onLoad(this);
+                } else {
+                    this.showLoading();
+                    this.show();
+                }
+
+                // Přidání callback pro zavření
+                if (onClose) {
+                    this.onCloseCallback = onClose;
+                }
+
+                // Přebindování tlačítek po změně obsahu
+                setTimeout(() => {
+                    const newCancelBtn = this.footer.querySelector('#modal-cancel');
+                    if (newCancelBtn) {
+                        newCancelBtn.addEventListener('click', () => {
+                            this.hide();
+                            if (this.onCloseCallback) this.onCloseCallback();
+                        });
+                    }
+                }, 100);
+            }
+        }
+
+        // Inicializace globálního modalu
+        const globalModal = new GlobalModal();
+
+        // Globální funkce pro použití v celé aplikaci
+        window.loadModal = function(options) {
+            globalModal.loadModal(options);
+        };
+
+        window.showModal = function(title, content, size = 'medium') {
+            globalModal.loadModal({
+                title: title,
+                content: content,
+                size: size
+            });
+        };
+
+        window.hideModal = function() {
+            globalModal.hide();
+        };
+
+        // Příklad použití:
+        // loadModal({
+        //     title: 'Můj modál',
+        //     url: '/api/modal-content',
+        //     size: 'large',
+        //     onLoad: (modal) => console.log('Modál načten'),
+        //     onClose: () => console.log('Modál zavřen')
+        // });
+
+        // showModal('Jednoduchý modál', '<p>Obsah modalu</p>', 'small');
+    </script>
 
     <!-- Mobile menu JavaScript -->
     <script>

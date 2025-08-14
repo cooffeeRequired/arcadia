@@ -8,10 +8,12 @@ if (!getenv('APP_ENV')) {
 }
 
 use Core\Authorization\Session;
+use Core\Cache\CacheManager;
 use Core\Database\DatabaseLogger;
 use Core\Facades\Container;
 use Core\Logging\Tracy;
 use Core\Middleware\ToastMiddleware;
+use Core\Modules\ModuleManager;
 use Core\Render\Renderer;
 use Core\Render\View;
 
@@ -80,6 +82,7 @@ try {
     Container::set(EntityManager::class, $em, ['doctrine.em']);
     Container::set(Renderer::class, $renderer, ['app.renderer']);
 
+    CacheManager::init();
     View::init();
     ToastMiddleware::autoHandle();
 
@@ -94,6 +97,23 @@ try {
 
 function boot(): void
 {
+    // Automatické skenování a synchronizace modulů při startu aplikace
+    try {
+        $moduleManager = new ModuleManager();
+        $availableFiles = $moduleManager->getAvailableModuleFiles();
+        $scanResults = $moduleManager->scanAndSyncModules();
+        debug_log('Arcadia CRM: Výsledky skenování: ' . json_encode($scanResults));
+
+
+        // Automaticky vložit nové moduly do databáze (bez zapnutí/instalace)
+        if (!empty($scanResults['new_modules'])) {
+            $insertResults = $moduleManager->autoInsertNewModules();
+        }
+    } catch (Exception $e) {
+        debug_log('Arcadia CRM: Chyba při skenování modulů: ' . $e->getMessage());
+        debug_log('Arcadia CRM: Stack trace: ' . $e->getTraceAsString());
+    }
+
     require_once __DIR__ . '/app/router.php';
 
 }

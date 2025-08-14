@@ -30,13 +30,78 @@ class SidebarHelper
         // Získáme aktuální URI
         $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
 
-        // Základní menu položky
+        // Dashboard - první položka
         $menuItems[] = [
             'name' => 'Dashboard',
             'icon' => 'home',
             'url' => '/',
             'active' => $currentUri === '/' || $currentUri === '/home',
             'color' => 'blue'
+        ];
+
+        // Základní funkce aplikace
+        $menuItems[] = [
+            'name' => 'Zákazníci',
+            'icon' => 'users',
+            'url' => '/customers',
+            'active' => str_starts_with($currentUri, '/customers'),
+            'color' => 'green'
+        ];
+
+        $menuItems[] = [
+            'name' => 'Kontakty',
+            'icon' => 'user',
+            'url' => '/contacts',
+            'active' => str_starts_with($currentUri, '/contacts'),
+            'color' => 'blue'
+        ];
+
+        $menuItems[] = [
+            'name' => 'Obchody',
+            'icon' => 'handshake',
+            'url' => '/deals',
+            'active' => str_starts_with($currentUri, '/deals'),
+            'color' => 'purple'
+        ];
+
+        $menuItems[] = [
+            'name' => 'Projekty',
+            'icon' => 'folder',
+            'url' => '/projects',
+            'active' => str_starts_with($currentUri, '/projects'),
+            'color' => 'orange'
+        ];
+
+        $menuItems[] = [
+            'name' => 'Faktury',
+            'icon' => 'file-invoice',
+            'url' => '/invoices',
+            'active' => str_starts_with($currentUri, '/invoices'),
+            'color' => 'red'
+        ];
+
+        $menuItems[] = [
+            'name' => 'Reporty',
+            'icon' => 'chart-bar',
+            'url' => '/reports',
+            'active' => str_starts_with($currentUri, '/reports'),
+            'color' => 'indigo'
+        ];
+
+        $menuItems[] = [
+            'name' => 'Workflow',
+            'icon' => 'sitemap',
+            'url' => '/workflows',
+            'active' => str_starts_with($currentUri, '/workflows'),
+            'color' => 'teal'
+        ];
+
+        $menuItems[] = [
+            'name' => 'E-maily',
+            'icon' => 'envelope',
+            'url' => '/emails',
+            'active' => str_starts_with($currentUri, '/emails'),
+            'color' => 'pink'
         ];
 
         // Sekce Moduly s registrovánými moduly (pouze ty ze složky /modules)
@@ -58,7 +123,7 @@ class SidebarHelper
                     'url' => '/' . $moduleName,
                     'active' => str_starts_with($currentUri, '/' . $moduleName),
                     'color' => self::getModuleColor($moduleName),
-                    'badge' => $config['enabled'] ? null : ['text' => 'Vypnuto', 'color' => 'gray']
+                    'badge' => ($config['enabled'] ?? $config['is_enabled'] ?? false) ? null : ['text' => 'Vypnuto', 'color' => 'gray']
                 ];
             }
 
@@ -67,7 +132,7 @@ class SidebarHelper
                     'name' => 'Moduly',
                     'icon' => 'puzzle-piece',
                     'url' => '#',
-                    'active' => str_starts_with($currentUri, '/settings/modules'),
+                    'active' => self::isAnyModuleActive($modulesSubmenu),
                     'color' => 'yellow',
                     'submenu' => $modulesSubmenu
                 ];
@@ -227,6 +292,28 @@ class SidebarHelper
     {
         $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
         return str_starts_with($currentUri, '/' . $module);
+    }
+
+    /**
+     * Zkontroluje, zda je některý z modulů v submenu aktivní
+     */
+    private static function isAnyModuleActive(array $modulesSubmenu): bool
+    {
+        $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
+
+        // Kontrola, zda jsme na stránce nastavení modulů - v tom případě nechceme označit sekci Moduly
+        if (str_starts_with($currentUri, '/settings/modules')) {
+            return false;
+        }
+
+        // Kontrola, zda je některý z modulů aktivní
+        foreach ($modulesSubmenu as $module) {
+            if ($module['active']) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

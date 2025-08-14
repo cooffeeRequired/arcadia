@@ -51,5 +51,99 @@ final class RedisContainer
 
         return $result;
     }
+
+    public static function forAllForSession(): array
+    {
+        $keys = self::$redis->keys(self::PREFIX . '*');
+        $result = [];
+
+        foreach ($keys as $key) {
+            $shortKey = str_replace(self::PREFIX, '', $key);
+            $data = self::$redis->get($key);
+
+            if ($data !== null) {
+                $result[$shortKey] = [
+                    'key' => $shortKey,
+                    'data' => unserialize($data),
+                    'ttl' => self::$redis->ttl($key),
+                    'exists' => true
+                ];
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Vymaže celou cache z Redis včetně ORM cache
+     */
+    public static function clearAllCache(): bool
+    {
+        try {
+            // Vymazání celé databáze Redis (flushdb)
+            self::$redis->flushdb();
+
+            // Vymazání ORM cache pomocí Doctrine
+            self::clearDoctrineCache();
+
+            return true;
+        } catch (\Exception $e) {
+            error_log("Chyba při vymazání Redis cache: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Vymaže pouze Doctrine ORM cache
+     */
+    public static function clearDoctrineCache(): void
+    {
+        try {
+            // Získání EntityManager z containeru
+            $em = \Core\Facades\Container::get('doctrine.em');
+            if ($em) {
+                $config = $em->getConfiguration();
+
+                // Vymazání metadata cache
+                if ($config->getMetadataCache()) {
+                    $config->getMetadataCache()->clear();
+                }
+
+                // Vymazání query cache
+                if ($config->getQueryCache()) {
+                    $config->getQueryCache()->clear();
+                }
+
+                // Vymazání result cache
+                if ($config->getResultCache()) {
+                    $config->getResultCache()->clear();
+                }
+            }
+        } catch (\Exception $e) {
+            error_log("Chyba při vymazání Doctrine cache: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Vymaže pouze session cache (container data)
+     */
+    public static function clearSessionCache(): void
+    {
+        $keys = self::$redis->keys(self::PREFIX . '*');
+        if (!empty($keys)) {
+            self::$redis->del($keys);
+        }
+    }
+
+    /**
+     * Vymaže cache podle patternu
+     */
+    public static function clearCacheByPattern(string $pattern): void
+    {
+        $keys = self::$redis->keys($pattern);
+        if (!empty($keys)) {
+            self::$redis->del($keys);
+        }
+    }
 }
 

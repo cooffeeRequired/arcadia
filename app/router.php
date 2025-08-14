@@ -153,13 +153,47 @@ $router->group(['middleware' => ['auth']], function (Router $router) {
     // Moduly (přesunuto do nastavení)
     $router->group(['prefix' => '/settings/modules'], function (Router $router) {
         $router->get('/', [ModuleController::class, 'index'])->name('settings.modules.index');
-        $router->get('/{module}', [ModuleController::class, 'show'])->name('settings.modules.show');
-        $router->get('/{module}/edit', [ModuleController::class, 'edit'])->name('settings.modules.edit');
-        $router->post('/{module}', [ModuleController::class, 'update'])->name('settings.modules.update');
-        $router->post('/{module}/toggle', [ModuleController::class, 'toggle'])->name('settings.modules.toggle');
-        $router->get('/{module}/dependencies', [ModuleController::class, 'dependencies'])->name('settings.modules.dependencies');
         $router->get('/api/status', [ModuleController::class, 'apiStatus'])->name('settings.modules.api.status');
+        $router->get('/api/scan', [ModuleController::class, 'scan'])->name('settings.modules.api.scan');
+        $router->post('/api/auto-insert', [ModuleController::class, 'autoInsert'])->name('settings.modules.api.auto-insert');
         $router->get('/log', [ModuleController::class, 'log'])->name('settings.modules.log');
+        $router->get('/{moduleName}', [ModuleController::class, 'show'])->name('settings.modules.show');
+        $router->get('/{moduleName}/edit', [ModuleController::class, 'edit'])->name('settings.modules.edit');
+        $router->post('/{moduleName}', [ModuleController::class, 'update'])->name('settings.modules.update');
+        $router->post('/{moduleName}/toggle', [ModuleController::class, 'toggle'])->name('settings.modules.toggle');
+        $router->get('/{moduleName}/dependencies', [ModuleController::class, 'dependencies'])->name('settings.modules.dependencies');
+
+        // Controllers
+        $router->get('/{moduleName}/controllers', [ModuleController::class, 'getControllers'])->name('settings.modules.controllers.index');
+        $router->post('/{moduleName}/controllers', [ModuleController::class, 'createController'])->name('settings.modules.controllers.create');
+        $router->delete('/{moduleName}/controllers/{controllerName}', [ModuleController::class, 'deleteController'])->name('settings.modules.controllers.delete');
+
+        // Entities
+        $router->get('/{moduleName}/entities', [ModuleController::class, 'getEntities'])->name('settings.modules.entities.index');
+        $router->post('/{moduleName}/entities', [ModuleController::class, 'createEntity'])->name('settings.modules.entities.create');
+        $router->delete('/{moduleName}/entities/{entityName}', [ModuleController::class, 'deleteEntity'])->name('settings.modules.entities.delete');
+
+        // Migrations
+        $router->get('/{moduleName}/migrations', [ModuleController::class, 'getMigrations'])->name('settings.modules.migrations.index');
+        $router->post('/{moduleName}/migrations', [ModuleController::class, 'createMigration'])->name('settings.modules.migrations.create');
+        $router->post('/{moduleName}/migrations/{migrationFile}/run', [ModuleController::class, 'runMigration'])->name('settings.modules.migrations.run');
+        $router->post('/{moduleName}/migrations/{migrationFile}/rollback', [ModuleController::class, 'rollbackMigration'])->name('settings.modules.migrations.rollback');
+        $router->get('/{moduleName}/migrations/{migrationFile}/log', [ModuleController::class, 'getMigrationLog'])->name('settings.modules.migrations.log');
+        $router->delete('/{moduleName}/migrations/{migrationFile}', [ModuleController::class, 'deleteMigration'])->name('settings.modules.migrations.delete');
+
+        // Files
+        $router->post('/{moduleName}/files/read', [ModuleController::class, 'readFile'])->name('settings.modules.files.read');
+        $router->post('/{moduleName}/files/write', [ModuleController::class, 'writeFile'])->name('settings.modules.files.write');
+
+        // File operations for controllers, entities, migrations
+        $router->get('/{moduleName}/controllers/{controllerName}/files', [ModuleController::class, 'getControllerFiles'])->name('settings.modules.controllers.files');
+        $router->get('/{moduleName}/entities/{entityName}/files', [ModuleController::class, 'getEntityFiles'])->name('settings.modules.entities.files');
+        $router->get('/{moduleName}/migrations/{migrationFile}/files', [ModuleController::class, 'getMigrationFiles'])->name('settings.modules.migrations.files');
+
+        // File save operations
+        $router->post('/{moduleName}/controllers/{controllerName}/files/save', [ModuleController::class, 'saveControllerFile'])->name('settings.modules.controllers.files.save');
+        $router->post('/{moduleName}/entities/{entityName}/files/save', [ModuleController::class, 'saveEntityFile'])->name('settings.modules.entities.files.save');
+        $router->post('/{moduleName}/migrations/{migrationFile}/files/save', [ModuleController::class, 'saveMigrationFile'])->name('settings.modules.migrations.files.save');
     });
 });
 

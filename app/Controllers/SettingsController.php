@@ -2,8 +2,11 @@
 
 namespace App\Controllers;
 
+use Core\Cache\CacheManager;
+use Core\Facades\Container;
 use Core\Http\Response;
 use Core\Render\BaseController;
+use Core\State\RedisContainer;
 
 class SettingsController extends BaseController
 {
@@ -89,19 +92,27 @@ class SettingsController extends BaseController
 
     public function clearCache(): void
     {
-        // Kontrola oprávnění (zde by měla být kontrola role admin)
         if (!$this->session('user')) {
             $this->redirect('/login');
         }
 
-        $success = clear_cache();
+        $cacheResults = CacheManager::clearAllCache();
 
-        if ($success) {
-            $this->session('flash_message', 'Cache byla úspěšně vymazána.');
-            $this->session('flash_type', 'success');
+        // Kontrola výsledků
+        $allSuccess = true;
+        $failedTypes = [];
+
+        foreach ($cacheResults as $type => $success) {
+            if (!$success) {
+                $allSuccess = false;
+                $failedTypes[] = $type;
+            }
+        }
+        if ($allSuccess) {
+            $this->toastSuccess('Všechna cache byla úspěšně vymazána (soubory + Redis + ORM + OPcache + session)');
         } else {
-            $this->session('flash_message', 'Chyba při vymazání cache.');
-            $this->session('flash_type', 'error');
+            $failedTypesStr = implode(', ', $failedTypes);
+            $this->toastWarning("Cache byla částečně vymazána. Problémy s: {$failedTypesStr}");
         }
 
         $this->redirect('/settings/system');
