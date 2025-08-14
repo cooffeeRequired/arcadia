@@ -5,28 +5,15 @@ namespace App\Controllers;
 use App\Entities\Contact;
 use App\Entities\Customer;
 use App\Entities\Deal;
-use Core\Facades\Container;
-use Core\Render\View;
-use Doctrine\ORM\EntityManager;
+use Core\Http\Response;
+use Core\Render\BaseController;
 
-class CustomerController
+class CustomerController extends BaseController
 {
-    private EntityManager $em;
-
-    public function __construct()
+    public function index(): Response\ViewResponse
     {
-        $this->em = Container::get('doctrine.em');
-    }
-
-    public function index()
-    {
-        // Kontrola přihlášení
-
-
-        // Získání zákazníků z databáze
         $customers = $this->em->getRepository(Customer::class)->findAll();
 
-        // Simulace paginace (v reálné aplikaci by byla implementována)
         $pagination = (object) [
             'from' => 1,
             'to' => count($customers),
@@ -35,23 +22,18 @@ class CustomerController
             'lastPage' => 1
         ];
 
-        return View::render('customers.index', [
+        return $this->view('customers.index', [
             'customers' => $customers,
             'pagination' => $pagination
         ]);
     }
 
-    public function show($id)
+    public function show($id): Response\ViewResponse
     {
-        // Kontrola přihlášení
-
-
-        // Získání zákazníka z databáze
         $customer = $this->em->getRepository(Customer::class)->find($id);
 
         if (!$customer) {
-            http_response_code(404);
-            return View::render('errors.404');
+            return $this->notFound();
         }
 
         // Získání kontaktů zákazníka
@@ -68,128 +50,99 @@ class CustomerController
             10
         );
 
-        return View::render('customers.show', [
+        return $this->view('customers.show', [
             'customer' => $customer,
             'contacts' => $contacts,
             'deals' => $deals
         ]);
     }
 
-    public function create()
+    public function create(): Response\ViewResponse
     {
-        // Kontrola přihlášení
-
-
-        return View::render('customers.create');
+        return $this->view('customers.create');
     }
 
-    public function store()
+    public function store(): void
     {
-        // Kontrola přihlášení
-
-
-        // Zde by byla validace a uložení nového zákazníka
         $customer = new Customer();
-        $customer->setName($_POST['name'] ?? '');
-        $customer->setEmail($_POST['email'] ?? null);
-        $customer->setPhone($_POST['phone'] ?? null);
-        $customer->setCompany($_POST['company'] ?? null);
-        $customer->setCategory($_POST['category'] ?? 'person');
-        $customer->setAddress($_POST['address'] ?? null);
-        $customer->setZipCode($_POST['zip_code'] ?? null);
-        $customer->setCity($_POST['city'] ?? null);
-        $customer->setCountry($_POST['country'] ?? null);
-        $customer->setStatus($_POST['status'] ?? 'active');
-        $customer->setNotes($_POST['notes'] ?? null);
+        $customer->setName($this->input('name', ''));
+        $customer->setEmail($this->input('email', null));
+        $customer->setPhone($this->input('phone', null));
+        $customer->setCompany($this->input('company', null));
+        $customer->setCategory($this->input('category', 'person'));
+        $customer->setAddress($this->input('address', null));
+        $customer->setZipCode($this->input('zip_code', null));
+        $customer->setCity($this->input('city', null));
+        $customer->setCountry($this->input('country', null));
+        $customer->setStatus($this->input('status', 'active'));
+        $customer->setNotes($this->input('notes', null));
 
         $this->em->persist($customer);
         $this->em->flush();
 
-        header('Location: /customers/' . $customer->getId());
-        exit;
+        $this->redirect('/customers/' . $customer->getId());
     }
 
-    public function edit($id)
+    public function edit($id): Response\ViewResponse
     {
-        // Kontrola přihlášení
-
-
-        // Získání zákazníka z databáze
         $customer = $this->em->getRepository(Customer::class)->find($id);
 
         if (!$customer) {
-            http_response_code(404);
-            return View::render('errors.404');
+            return $this->notFound();
         }
 
-        return View::render('customers.edit', [
+        return $this->view('customers.edit', [
             'customer' => $customer
         ]);
     }
 
-    public function update($id)
+    public function update($id): void
     {
-        // Kontrola přihlášení
-
-
-        // Získání zákazníka z databáze
         $customer = $this->em->getRepository(Customer::class)->find($id);
 
         if (!$customer) {
-            http_response_code(404);
-            return View::render('errors.404');
+            $this->redirect('/customers');
         }
 
         // Aktualizace dat zákazníka
-        $customer->setName($_POST['name'] ?? '');
-        $customer->setEmail($_POST['email'] ?? null);
-        $customer->setPhone($_POST['phone'] ?? null);
-        $customer->setCompany($_POST['company'] ?? null);
-        $customer->setCategory($_POST['category'] ?? 'person');
-        $customer->setAddress($_POST['address'] ?? null);
-        $customer->setZipCode($_POST['zip_code'] ?? null);
-        $customer->setCity($_POST['city'] ?? null);
-        $customer->setCountry($_POST['country'] ?? null);
-        $customer->setStatus($_POST['status'] ?? 'active');
-        $customer->setNotes($_POST['notes'] ?? null);
+        $customer->setName($this->input('name', ''));
+        $customer->setEmail($this->input('email', null));
+        $customer->setPhone($this->input('phone', null));
+        $customer->setCompany($this->input('company', null));
+        $customer->setCategory($this->input('category', 'person'));
+        $customer->setAddress($this->input('address', null));
+        $customer->setZipCode($this->input('zip_code', null));
+        $customer->setCity($this->input('city', null));
+        $customer->setCountry($this->input('country', null));
+        $customer->setStatus($this->input('status', 'active'));
+        $customer->setNotes($this->input('notes', null));
 
         $this->em->flush();
 
-        header('Location: /customers/' . $customer->getId());
-        exit;
+        $this->redirect('/customers/' . $customer->getId());
     }
 
-    public function delete($id)
+    public function delete($id): void
     {
-        // Kontrola přihlášení
-
-
-        // Získání zákazníka z databáze
         $customer = $this->em->getRepository(Customer::class)->find($id);
 
         if (!$customer) {
-            http_response_code(404);
-            return View::render('errors.404');
+            $this->redirect('/customers');
         }
 
         $this->em->remove($customer);
         $this->em->flush();
 
-        header('Location: /customers');
-        exit;
+        $this->redirect('/customers');
     }
 
-    public function bulkDelete()
+    public function bulkDelete(): void
     {
-        // Kontrola přihlášení
-
-
-        $ids = $_POST['ids'] ?? [];
+        $ids = $this->input('ids', []);
 
         if (empty($ids)) {
-            $_SESSION['error'] = 'Nebyly vybrány žádné položky ke smazání.';
-            header('Location: /');
-            exit;
+            $this->session('error', 'Nebyly vybrány žádné položky ke smazání.');
+            $this->redirect('/customers');
         }
 
         $deletedCount = 0;
@@ -203,8 +156,7 @@ class CustomerController
 
         $this->em->flush();
 
-        $_SESSION['success'] = "Úspěšně smazáno {$deletedCount} zákazníků.";
-        header('Location: /');
-        exit;
+        $this->session('success', "Úspěšně smazáno {$deletedCount} zákazníků.");
+        $this->redirect('/customers');
     }
 }

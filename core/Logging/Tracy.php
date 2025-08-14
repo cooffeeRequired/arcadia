@@ -9,8 +9,11 @@ class Tracy
 {
     public static function init()
     {
+        // Určení módu podle environment
+        $mode = getenv('APP_ENV') === 'production' ? Debugger::Production : Debugger::Development;
+
         // Inicializace Tracy
-        Debugger::enable(Debugger::Development, APP_CONFIGURATION['cache_dir'] . '/tracy');
+        Debugger::enable($mode, APP_CONFIGURATION['cache_dir'] . '/tracy');
 
         // Přidání custom panelů
         Debugger::getBar()->addPanel(new DatabasePanel(), 'database');

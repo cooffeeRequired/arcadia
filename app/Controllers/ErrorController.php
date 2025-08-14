@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use Core\Http\Response\ViewResponse;
 use Core\Render\BaseController;
 
 class ErrorController extends BaseController
@@ -9,7 +10,7 @@ class ErrorController extends BaseController
     /**
      * Zobrazí 404 chybovou stránku
      */
-    public function notFound(): string
+    public function showNotFound(): ViewResponse
     {
         return $this->view('errors.404');
     }
@@ -17,7 +18,7 @@ class ErrorController extends BaseController
     /**
      * Zobrazí 500 chybovou stránku
      */
-    public function serverError(\Exception $exception = null): string
+    public function showServerError(\Exception $exception = null): ViewResponse
     {
         // Log chyby pro debugging (v produkci by se mělo logovat do souboru)
         if ($exception) {
@@ -29,7 +30,7 @@ class ErrorController extends BaseController
     /**
      * Zobrazí 403 chybovou stránku
      */
-    public function forbidden(): string
+    public function showForbidden(): ViewResponse
     {
         return $this->view('errors.403');
     }
@@ -37,14 +38,13 @@ class ErrorController extends BaseController
     /**
      * Zobrazí obecnou chybovou stránku
      */
-    public function error(int $statusCode, string $message = null): string
+    public function error(int $statusCode, string $message = null): ViewResponse
     {
         $errorData = [
             'code' => $statusCode,
             'title' => $this->getErrorTitle($statusCode),
             'message' => $message ?? $this->getErrorMessage($statusCode)
         ];
-
 
         return $this->view('errors.generic', $errorData);
     }
@@ -90,4 +90,4 @@ class ErrorController extends BaseController
             default => 'Došlo k neočekávané chybě.'
         };
     }
-} 
+}

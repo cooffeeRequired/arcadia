@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -116,7 +117,7 @@
         </nav>
 
         <!-- User Profile -->
-        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
             @php
                 $user = session('user');
             @endphp
@@ -150,8 +151,8 @@
     <!-- Blur overlay for mobile -->
     <div id="sidebar-overlay" class="fixed inset-0 z-30 bg-transparent backdrop-blur-sm lg:hidden hidden transition-all duration-300 ease-in-out"></div>
 
-    <!-- Notification System -->
-    {!! render_notifications() !!}
+    <!-- Toast Notification System -->
+    {!! render_toasts() !!}
 
     <!-- Main Content -->
     <div id="main-content" class="lg:pl-64 transition-all duration-300 ease-in-out">
@@ -167,7 +168,7 @@
     <?php if (getenv('APP_ENV') !== 'development'): ?>
         <script src="{{ asset('js/main.js') }}"></script>
     <?php endif; ?>
-    <!-- Notification JavaScript -->
-    {!! render_notification_scripts() !!}
+    <!-- Toast Notification JavaScript -->
+    {!! render_toast_scripts() !!}
 </body>
 </html>

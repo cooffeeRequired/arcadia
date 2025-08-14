@@ -2,337 +2,403 @@
 
 namespace Core\Routing;
 
-use App\Controllers\ErrorController;
-use Core\Routing\Request;
+use Core\Http\Request;
+use Core\Http\Response\AbstractResponse;
+use Core\Http\Response\ViewResponse;
+use Core\Logging\RenderLogger;
+use Core\Events\EventBus;
 use Exception;
 
 class Router
 {
-  protected array $routes = [];
-  protected array $errorHandlers = [];
-  protected array $middleware = [];
-  protected array $groupMiddleware = [];
-  protected string $prefix = '';
-  protected string $namespace = '';
+    public private(set) array $routes = [];
+    private array $routeMap = []; // Hash mapa pro rychlé vyhledávání
+    private array $parameterizedRoutes = []; // Routes s parametry
+    private array $namedRoutes = []; // Pojmenované routes
+    private array $middleware = [];
+    private array $groupStack = [];
 
-  /**
-   * Přidá routu s middleware
-   */
-  private function addRoute(string $method, string $uri, callable|array $handler, array $middleware = []): void
-  {
-    $fullUri = $this->prefix . $uri;
-    $this->routes[$method][$fullUri] = $this->resolveHandler($handler);
-
-    // Přidej group middleware
-    $allMiddleware = [];
-    foreach ($this->groupMiddleware as $groupMiddleware) {
-      $allMiddleware = array_merge($allMiddleware, $groupMiddleware);
+    /**
+     * Přidá GET route
+     */
+    public function get(string $uri, callable|array $action): Route
+    {
+        return $this->addRoute(['GET'], $uri, $action);
     }
 
-    // Přidej route-specific middleware
-    if (!empty($middleware)) {
-      $allMiddleware = array_merge($allMiddleware, $middleware);
+    /**
+     * Přidá POST route
+     */
+    public function post(string $uri, callable|array $action): Route
+    {
+        return $this->addRoute(['POST'], $uri, $action);
     }
 
-    if (!empty($allMiddleware)) {
-      $this->middleware[$method][$fullUri] = $allMiddleware;
-    }
-  }
-
-  public function get(string $uri, callable|array $handler, array $middleware = []): void
-  {
-    $this->addRoute('GET', $uri, $handler, $middleware);
-  }
-
-  public function post(string $uri, callable|array $handler, array $middleware = []): void
-  {
-    $this->addRoute('POST', $uri, $handler, $middleware);
-  }
-
-  public function put(string $uri, callable|array $handler, array $middleware = []): void
-  {
-    $this->addRoute('PUT', $uri, $handler, $middleware);
-  }
-
-  public function delete(string $uri, callable|array $handler, array $middleware = []): void
-  {
-    $this->addRoute('DELETE', $uri, $handler, $middleware);
-  }
-
-  /**
-   * Definuje middleware pro skupinu rout
-   */
-  public function middleware(array $middleware, callable $callback): void
-  {
-    $this->groupMiddleware[] = $middleware;
-    $callback($this);
-    array_pop($this->groupMiddleware);
-  }
-
-  /**
-   * Definuje prefix pro skupinu rout
-   */
-  public function prefix(string $prefix, callable $callback): void
-  {
-    $oldPrefix = $this->prefix;
-    $this->prefix .= $prefix;
-    $callback($this);
-    $this->prefix = $oldPrefix;
-  }
-
-  /**
-   * Definuje namespace pro controllery
-   */
-  public function namespace(string $namespace, callable $callback): void
-  {
-    $oldNamespace = $this->namespace;
-    $this->namespace .= $namespace;
-    $callback($this);
-    $this->namespace = $oldNamespace;
-  }
-
-  /**
-   * Kombinuje middleware, prefix a namespace
-   */
-  public function group(array $attributes, callable $callback): void
-  {
-    $oldPrefix = $this->prefix;
-    $oldNamespace = $this->namespace;
-
-    if (isset($attributes['prefix'])) {
-      $this->prefix .= $attributes['prefix'];
+    /**
+     * Přidá PUT route
+     */
+    public function put(string $uri, callable|array $action): Route
+    {
+        return $this->addRoute(['PUT'], $uri, $action);
     }
 
-    if (isset($attributes['namespace'])) {
-      $this->namespace .= $attributes['namespace'];
+    /**
+     * Přidá DELETE route
+     */
+    public function delete(string $uri, callable|array $action): Route
+    {
+        return $this->addRoute(['DELETE'], $uri, $action);
     }
 
-    if (isset($attributes['middleware'])) {
-      $this->groupMiddleware[] = $attributes['middleware'];
+    /**
+     * Přidá PATCH route
+     */
+    public function patch(string $uri, callable|array $action): Route
+    {
+        return $this->addRoute(['PATCH'], $uri, $action);
     }
 
-    $callback($this);
-
-    $this->prefix = $oldPrefix;
-    $this->namespace = $oldNamespace;
-
-    if (isset($attributes['middleware'])) {
-      array_pop($this->groupMiddleware);
-    }
-  }
-
-  /**
-   * Vyřeší handler s namespace
-   */
-  private function resolveHandler(callable|array $handler): callable|array
-  {
-    if (is_array($handler) && is_string($handler[0]) && !empty($this->namespace)) {
-      $handler[0] = $this->namespace . '\\' . $handler[0];
-    }
-    return $handler;
-  }
-
-  /**
-   * Definuje handler pro chybové stránky
-   */
-  public function error(int $statusCode, callable|array $handler): void
-  {
-    $this->errorHandlers[$statusCode] = $handler;
-  }
-
-  /**
-   * Definuje 404 handler
-   */
-  public function notFound(callable|array $handler): void
-  {
-    $this->error(404, $handler);
-  }
-
-  /**
-   * Definuje 500 handler
-   */
-  public function serverError(callable|array $handler): void
-  {
-    $this->error(500, $handler);
-  }
-
-  /**
-   * Spustí middleware pro danou routu
-   */
-  private function runMiddleware(string $method, string $uri, Request $request, ?array $route = null): void
-  {
-    $middlewareToRun = [];
-
-    // Přidej route-specific middleware
-    if ($route) {
-      [$handler, $params] = $route;
-      $routeUri = $this->findRouteUri($method, $handler);
-
-      if ($routeUri && isset($this->middleware[$method][$routeUri])) {
-        $middlewareToRun = array_merge($middlewareToRun, $this->middleware[$method][$routeUri]);
-      }
+    /**
+     * Přidá route pro všechny metody
+     */
+    public function any(string $uri, callable|array $action): Route
+    {
+        return $this->addRoute(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], $uri, $action);
     }
 
-    debug_log("Found " . count($middlewareToRun) . " middleware to run");
-    foreach ($middlewareToRun as $middleware) {
-      debug_log("Running middleware: " . $middleware);
-      if (method_exists(Middleware::class, $middleware)) {
-        Middleware::$middleware($request);
+    /**
+     * Přidá route
+     */
+    private function addRoute(array $methods, string $uri, callable|array $action): Route
+    {
+        // Aplikuj prefix ze skupin
+        $fullUri = $this->buildUri($uri);
+        $route = new Route($methods, $fullUri, $action);
 
-        // V testovacím prostředí nevoláme exit
-        if (!defined('APP_ROOT') || !str_contains($_SERVER['SCRIPT_NAME'] ?? '', 'test_')) {
-          if (headers_sent() || http_response_code() >= 300) {
-            exit;
-          }
+        // Aplikuj middleware ze skupin
+        if (!empty($this->groupStack)) {
+            $currentGroup = $this->groupStack[count($this->groupStack) - 1];
+            if (isset($currentGroup['middleware']) && !empty($currentGroup['middleware'])) {
+                $route->middleware($currentGroup['middleware']);
+            }
         }
-      }
+
+        $this->routes[] = $route;
+
+        // Přidej do hash mapy pro rychlé vyhledávání
+        foreach ($methods as $method) {
+            $key = $method . ':' . $fullUri;
+            $this->routeMap[$key] = $route;
+        }
+
+        // Pokud route obsahuje parametry, přidej do separátního seznamu
+        if (strpos($fullUri, '{') !== false) {
+            foreach ($methods as $method) {
+                $this->parameterizedRoutes[$method][] = $route;
+            }
+        }
+
+        // Pokud route má název, přidej do pojmenovaných routes
+        if ($route->getName()) {
+            $this->namedRoutes[$route->getName()] = $route;
+        }
+
+        return $route;
     }
-  }
 
-  /**
-   * Najde URI routy podle handleru
-   */
-  private function findRouteUri(string $method, callable|array $handler): ?string
-  {
-    if (!isset($this->routes[$method])) {
-      return null;
+    /**
+     * Sestaví URI s prefixy ze skupin
+     */
+    private function buildUri(string $uri): string
+    {
+        $fullUri = $uri;
+
+        foreach ($this->groupStack as $index => $group) {
+            if (isset($group['prefix'])) {
+                $fullUri = $group['prefix'] . '/' . ltrim($fullUri, '/');
+            }
+        }
+        return $fullUri;
     }
 
-    foreach ($this->routes[$method] as $routeUri => $routeHandler) {
-      if ($routeHandler === $handler) {
-        return $routeUri;
-      }
+    /**
+     * Vytvoří skupinu routes
+     */
+    public function group(array $attributes, callable $callback): void
+    {
+        // Inicializuj middleware pole pokud není nastaveno
+        if (!isset($attributes['middleware'])) {
+            $attributes['middleware'] = [];
+        }
+
+        // Inicializuj prefix pokud není nastaven
+        if (!isset($attributes['prefix'])) {
+            $attributes['prefix'] = '';
+        }
+
+        $this->groupStack[] = $attributes;
+
+        $callback($this);
+
+        array_pop($this->groupStack);
     }
 
-    return null;
-  }
+    /**
+     * Přidá middleware
+     */
+    public function middleware(string $middleware): self
+    {
+        if (!empty($this->groupStack)) {
+            $currentGroup = &$this->groupStack[count($this->groupStack) - 1];
+            if (!isset($currentGroup['middleware'])) {
+                $currentGroup['middleware'] = [];
+            }
+            $currentGroup['middleware'][] = $middleware;
+        }
+        return $this;
+    }
 
-  /**
-   * @throws Exception
-   */
-  public function dispatch(string $uri): void
-  {
-    $uri = parse_url($uri, PHP_URL_PATH);
-    $method = $_SERVER['REQUEST_METHOD'];
+    /**
+     * Zpracuje požadavek
+     */
+    public function dispatch(Request $request): void
+    {
+        $startTime = microtime(true);
 
-    // Vytvoř Request objekt
-    $request = Request::getInstance();
+        try {
+            $route = $this->findRoute($request);
+            //dump($request, $route);
 
-    // Najdi routu s parametry
-    $route = $this->findRoute($method, $uri);
+            if (!$route) {
+                $this->handleNotFound($request);
+                return;
+            }
 
-    if ($route) {
-      [$handler, $params] = $route;
+            // Aplikuj middleware
+            $this->applyMiddleware($route, $request);
 
-      try {
-        // Spusť middleware před voláním handleru
-        $this->runMiddleware($method, $uri, $request, $route);
+            // Zpracuj route
+            $result = $this->executeRoute($route, $request);
 
-        if (is_array($handler)) {
-          [$class, $method] = $handler;
-          $controller = new $class();
+            // Loguj zpracování
+            RenderLogger::logRender('route', $startTime, $result);
 
-          if (!empty($params)) {
-            $result = $controller->$method($request, ...$params);
-          } else {
-            $result = $controller->$method($request);
-          }
+            // Odešli response
+            if ($result instanceof AbstractResponse) {
+                $result->send();
+            } else {
+                echo $result;
+            }
 
-          // Pokud metoda vrátila něco, vypiš to
-          if ($result !== null && $result !== '') {
-            echo $result;
-          }
+        } catch (Exception $e) {
+            debug_log("❌ Router Exception: " . $e->getMessage());
+            $this->handleException($e, $request);
+        }
+    }
+
+    /**
+     * Najde odpovídající route
+     */
+    private function findRoute(Request $request): ?Route
+    {
+        $time = microtime(true);
+        $method = $request->getMethod();
+        $uri = $request->getUri();
+
+        // Nejdříve zkus přímou shodu v hash mapě
+        $directKey = $method . ':' . $uri;
+
+
+        if (isset($this->routeMap[$directKey])) {
+            debug_log("✅ Route found: $method $uri");
+            return $this->routeMap[$directKey];
+        }
+
+        if (isset($this->routeMap[$directKey . '/'])) {
+            debug_log("✅ Route found: $method $uri");
+            return $this->routeMap[$directKey . '/'];
+        }
+
+        // Pokud není přímá shoda, hledej routes s parametry
+        if (isset($this->parameterizedRoutes[$method])) {
+            foreach ($this->parameterizedRoutes[$method] as $route) {
+                if ($route->matches($uri)) {
+                    debug_log("✅ Route found: $method " . $route->getUri());
+                    return $route;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Aplikuje middleware
+     */
+    private function applyMiddleware(Route $route, Request $request): void
+    {
+        $middleware = $route->getMiddleware();
+
+        foreach ($middleware as $middlewareName) {
+            if (method_exists(Middleware::class, $middlewareName)) {
+                Middleware::$middlewareName($request);
+            }
+        }
+    }
+
+    /**
+     * Spustí route
+     */
+    private function executeRoute(Route $route, Request $request): AbstractResponse
+    {
+        $action = $route->getAction();
+
+        if (is_callable($action)) {
+            return $action($request);
+        }
+
+        if (is_array($action)) {
+            [$controller, $method] = $action;
+
+            $controllerInstance = new $controller();
+
+            // Předaj request do controlleru
+            if (method_exists($controllerInstance, 'setRequest')) {
+                $controllerInstance->setRequest($request);
+            }
+
+            // Předaj parametry z route podle názvu
+            $parameters = $route->getParameters();
+            if (!empty($parameters)) {
+                // Zkus najít metodu s parametry podle názvu
+                $reflection = new \ReflectionMethod($controllerInstance, $method);
+                $methodParams = $reflection->getParameters();
+
+                $args = [];
+                foreach ($methodParams as $param) {
+                    $paramName = $param->getName();
+                    if (isset($parameters[$paramName])) {
+                        $args[] = $parameters[$paramName];
+                    } elseif ($param->isDefaultValueAvailable()) {
+                        $args[] = $param->getDefaultValue();
+                    } else {
+                        $args[] = null;
+                    }
+                }
+
+                return $controllerInstance->$method(...$args);
+            }
+
+            return $controllerInstance->$method();
+        }
+
+        throw new Exception('Invalid route action');
+    }
+
+        /**
+     * Zpracuje 404 chybu
+     */
+    private function handleNotFound(Request $request): void
+    {
+        debug_log("❌ Route not found: " . $request->getMethod() . " " . $request->getUri());
+
+        $errorController = new \App\Controllers\ErrorController();
+        $response = $errorController->showNotFound();
+
+        if ($response instanceof AbstractResponse) {
+            $response->send();
         } else {
-          $result = (!empty($params)) ? $handler($request, ...$params) : $handler($request);
-
-          // Pokud handler vrátil něco, vypiš to
-          if ($result !== null && $result !== '') {
-            echo $result;
-          }
+            http_response_code(404);
+            echo '404 - Stránka nenalezena';
         }
-      } catch (Exception $e) {
-        if (! APP_CONFIGURATION['app_debug']) {
-          $this->handleError(500, $e);
+    }
+
+    /**
+     * Zpracuje výjimku
+     */
+    private function handleException(Exception $e, Request $request): void
+    {
+        // V development módu zobrazíme TracyException
+        if (getenv('APP_ENV') === 'development') {
+            // Necháme Tracy zpracovat výjimku
+            \Tracy\Debugger::log($e, \Tracy\ILogger::EXCEPTION);
+
+            // Vytvoříme Tracy error stránku
+            $html = \Tracy\Debugger::getBlueScreen()->render($e);
+
+            if ($html) {
+                http_response_code(500);
+                echo $html;
+                exit;
+            }
         }
-        throw $e;
-      }
-    } else {
-      $this->handleError(404);
-    }
-  }
 
-  private function findRoute(string $method, string $uri): ?array
-  {
-    if (!isset($this->routes[$method])) {
-      return null;
-    }
+        // Loguj chybu
+        error_log("Router Exception: " . $e->getMessage());
 
-    // Přímá shoda
-    if (isset($this->routes[$method][$uri])) {
-      return [$this->routes[$method][$uri], []];
-    }
+        $errorController = new \App\Controllers\ErrorController();
+        $response = $errorController->showServerError($e);
 
-    // Hledání routy s parametry
-    foreach ($this->routes[$method] as $route => $handler) {
-      $pattern = $this->convertRouteToRegex($route);
-      if (preg_match($pattern, $uri, $matches)) {
-        array_shift($matches); // Odstraň celou shodu
-        return [$handler, $matches];
-      }
-    }
-
-    return null;
-  }
-
-  private function convertRouteToRegex(string $route): string
-  {
-    return '#^' . preg_replace('#\{([a-zA-Z]+)}#', '([^/]+)', $route) . '$#';
-  }
-
-  /**
-   * Zpracuje chybovou stránku
-   */
-  private function handleError(int $statusCode, ?Exception $exception = null): void
-  {
-    http_response_code($statusCode);
-
-    if (isset($this->errorHandlers[$statusCode])) {
-      $handler = $this->errorHandlers[$statusCode];
-
-      if (is_array($handler)) {
-        [$class, $method] = $handler;
-        $controller = new $class();
-
-        if ($exception) {
-          $result = $controller->$method($exception);
+        if ($response instanceof AbstractResponse) {
+            $response->send();
         } else {
-          $result = $controller->$method();
+            http_response_code(500);
+            echo '500 - Interní chyba serveru';
         }
-
-        if ($result !== null && $result !== '') {
-          echo $result;
-        }
-      } else {
-        if ($exception) {
-          $result = $handler($exception);
-        } else {
-          $result = $handler();
-        }
-
-        if ($result !== null && $result !== '') {
-          echo $result;
-        }
-      }
-    } else {
-      // Výchozí chybové stránky pomocí ErrorController
-      $errorController = new ErrorController();
-
-      echo match ($statusCode) {
-        404 => $errorController->notFound(),
-        500 => $errorController->serverError($exception),
-        403 => $errorController->forbidden(),
-        default => $errorController->error($statusCode),
-      };
     }
-  }
+
+    /**
+     * Získá všechny routes
+     */
+    public function getRoutes(): array
+    {
+        return $this->routes;
+    }
+
+    /**
+     * Získá route podle názvu
+     */
+    public function getRouteByName(string $name): ?Route
+    {
+        return $this->namedRoutes[$name] ?? null;
+    }
+
+    /**
+     * Vygeneruje URL pro pojmenovanou route
+     */
+    public function route(string $name, array $parameters = []): string
+    {
+        $route = $this->getRouteByName($name);
+        if (!$route) {
+            throw new \Exception("Route '$name' not found");
+        }
+
+        $uri = $route->getUri();
+
+        // Nahraď parametry v URI
+        foreach ($parameters as $key => $value) {
+            $uri = str_replace("{{$key}}", $value, $uri);
+        }
+
+        return $uri;
+    }
+
+    /**
+     * Získá všechny pojmenované routes
+     */
+    public function getNamedRoutes(): array
+    {
+        return $this->namedRoutes;
+    }
+
+    /**
+     * Vyčistí všechny routes
+     */
+    public function clear(): void
+    {
+        $this->routes = [];
+        $this->routeMap = [];
+        $this->parameterizedRoutes = [];
+        $this->namedRoutes = [];
+    }
 }

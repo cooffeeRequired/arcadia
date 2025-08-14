@@ -4,24 +4,19 @@ namespace App\Controllers;
 
 use App\Entities\Contact;
 use App\Entities\Customer;
-use Core\Facades\Container;
+use Core\Http\Response;
 use Core\Render\BaseController;
-use Core\Render\View;
-use Core\Traits\NotificationTrait;
 use Core\Traits\Validation;
 use DateTime;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Exception\NotSupported;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
-use JetBrains\PhpStorm\NoReturn;
 
 class ContactController extends BaseController
 {
-    use Validation, NotificationTrait;
+    use Validation;
 
-
-    public function index(): void
+    public function index(): Response\ViewResponse
     {
         $qb = $this->em->createQueryBuilder();
         $qb->select('c', 'cu')
@@ -39,7 +34,7 @@ class ContactController extends BaseController
             'lastPage' => 1
         ];
 
-        $this->renderView('contacts.index', [
+        return $this->view('contacts.index', [
             'contacts' => $contacts,
             'pagination' => $pagination
         ]);
@@ -48,23 +43,24 @@ class ContactController extends BaseController
     /**
      * @throws NotSupported
      */
-    public function show($id): void
+    public function show($id): Response\ViewResponse
     {
         $contact = $this->em->getRepository(Contact::class)->find($id);
 
         if (!$contact) {
-            $this->status(404)->view('errors.404');
+            return $this->notFound();
         }
-        $this->renderView('contacts.show', ['contact' => $contact]);
+
+        return $this->view('contacts.show', ['contact' => $contact]);
     }
 
     /**
      * @throws NotSupported
      */
-    public function create(): void
+    public function create(): Response\ViewResponse
     {
         $customers = $this->em->getRepository(Customer::class)->findAll();
-        $this->renderView('contacts.create', ['customers' => $customers]);
+        return $this->view('contacts.create', ['customers' => $customers]);
     }
 
     /**
@@ -72,13 +68,12 @@ class ContactController extends BaseController
      * @throws \DateMalformedStringException
      * @throws ORMException
      */
-    #[NoReturn]
     public function store(): void
     {
-        $customer = $this->em->getRepository(Customer::class)->find($_POST['customer_id'] ?? 0);
+        $customer = $this->em->getRepository(Customer::class)->find($this->input('customer_id', 0));
 
         if (!$customer) {
-            $this->status(404)->view('errors.404');
+            $this->redirect('/contacts');
         }
 
         $contact = new Contact();
@@ -92,26 +87,26 @@ class ContactController extends BaseController
         $this->em->persist($contact);
         $this->em->flush();
         $this->redirect('/contacts/' . $contact->getId());
+    }
 
-    public function edit($id): void
+    public function edit($id): Response\ViewResponse
     {
         $contact = $this->em->getRepository(Contact::class)->find($id);
 
         if (!$contact) {
-            $this->status(404)->view('errors.404');
+            return $this->notFound();
         }
 
         $customers = $this->em->getRepository(Customer::class)->findAll();
-        $this->renderView('contacts.edit', ['contact' => $contact, 'customers' => $customers]);
+        return $this->view('contacts.edit', ['contact' => $contact, 'customers' => $customers]);
     }
 
-    public #[NoReturn]
-    function update($id): void
+    public function update($id): void
     {
         $contact = $this->em->getRepository(Contact::class)->find($id);
 
         if (!$contact) {
-            $this->status(404)->view('errors.404');
+            $this->redirect('/contacts');
         }
 
         $customer = $this->em->getRepository(Customer::class)->find($this->input('customer_id', 0));
@@ -130,36 +125,27 @@ class ContactController extends BaseController
         $this->redirect('/contacts/' . $contact->getId());
     }
 
-    public function delete($id)
+    public function delete($id): void
     {
-        // Kontrola přihlášení
-
-
         $contact = $this->em->getRepository(Contact::class)->find($id);
 
         if (!$contact) {
-            http_response_code(404);
-            return View::render('errors.404');
+            $this->redirect('/contacts');
         }
 
         $this->em->remove($contact);
         $this->em->flush();
 
-        header('Location: /contacts');
-        exit;
+        $this->redirect('/contacts');
     }
 
-    public function bulkDelete()
+    public function bulkDelete(): void
     {
-        // Kontrola přihlášení
-
-
-        $ids = $_POST['ids'] ?? [];
+        $ids = $this->input('ids', []);
 
         if (empty($ids)) {
-            $_SESSION['error'] = 'Nebyly vybrány žádné položky ke smazání.';
-            header('Location: /');
-            exit;
+            $this->session('error', 'Nebyly vybrány žádné položky ke smazání.');
+            $this->redirect('/contacts');
         }
 
         $deletedCount = 0;
@@ -173,8 +159,7 @@ class ContactController extends BaseController
 
         $this->em->flush();
 
-        $_SESSION['success'] = "Úspěšně smazáno {$deletedCount} kontaktů.";
-        header('Location: /');
-        exit;
+        $this->session('success', "Úspěšně smazáno {$deletedCount} kontaktů.");
+        $this->redirect('/contacts');
     }
 }

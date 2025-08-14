@@ -2,31 +2,22 @@
 
 namespace App\Controllers;
 
-use Core\Facades\Container;
-use Core\Traits\Controller;
+use Core\Http\Response;
+use Core\Render\BaseController;
 
-class ExampleController
+class ExampleController extends BaseController
 {
-    use Controller;
-
-    private mixed $em;
-
-    public function __construct()
-    {
-        $this->em = Container::get('doctrine.em');
-    }
-
     /**
      * Příklad GET endpointu s view
      */
-    public function index(): string
+    public function index(): Response\ViewResponse
     {
         // Použití middleware
-        $this->auth();
-        
+        \Core\Routing\Middleware::auth($this->request);
+
         // Sdílení dat s view
         $this->share('title', 'Příklad stránka');
-        
+
         // Renderování view s daty
         return $this->view('example.index', [
             'message' => 'Ahoj světe!',
@@ -37,12 +28,11 @@ class ExampleController
     /**
      * Příklad POST endpointu s JSON odpovědí
      */
-    public function api(): string
+    public function api(): Response\JsonResponse
     {
         // Kontrola, zda je AJAX request
         if (!$this->isAjax()) {
-            $this->status(400);
-            return $this->json(['error' => 'Pouze AJAX requesty']);
+            return $this->json(['error' => 'Pouze AJAX requesty'], 400);
         }
 
         // Získání POST dat
@@ -50,8 +40,7 @@ class ExampleController
         $email = $this->input('email', '');
 
         if (empty($name) || empty($email)) {
-            $this->status(422);
-            return $this->json(['error' => 'Chybí povinná pole']);
+            return $this->json(['error' => 'Chybí povinná pole'], 422);
         }
 
         // Úspěšná odpověď
@@ -76,25 +65,25 @@ class ExampleController
     /**
      * Příklad s custom headers
      */
-    public function download(): string
+    public function download(): Response\HtmlResponse
     {
-        $this->contentType('application/pdf');
-        $this->header('Content-Disposition: attachment; filename="example.pdf"');
-        
         // Simulace PDF obsahu
         $pdfContent = '%PDF-1.4...'; // Zde by byl skutečný PDF obsah
-        
-        return $this->render($pdfContent);
+
+        return new Response\HtmlResponse($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="example.pdf"'
+        ]);
     }
 
     /**
      * Příklad s query parametry
      */
-    public function search(): string
+    public function search(): Response\ViewResponse
     {
         $query = $this->query('q', '');
         $page = (int) $this->query('page', 1);
-        
+
         if (empty($query)) {
             $this->session('error', 'Zadejte vyhledávací dotaz');
             $this->redirect('/example');
@@ -102,11 +91,11 @@ class ExampleController
 
         // Zde by byla logika vyhledávání
         $results = []; // Simulace výsledků
-        
+
         return $this->view('example.search', [
             'query' => $query,
             'page' => $page,
             'results' => $results
         ]);
     }
-} 
+}

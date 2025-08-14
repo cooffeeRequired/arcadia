@@ -4,24 +4,13 @@ namespace App\Controllers;
 
 use App\Entities\Customer;
 use App\Entities\Deal;
-use Core\Facades\Container;
-use Core\Render\View;
-use Core\Routing\Middleware;
-use Doctrine\ORM\EntityManager;
+use Core\Http\Response;
+use Core\Render\BaseController;
 
-class DealController
+class DealController extends BaseController
 {
-    private EntityManager $em;
-
-    public function __construct()
+    public function index(): Response\ViewResponse
     {
-        $this->em = Container::get('doctrine.em');
-    }
-
-    public function index()
-    {
-        // Kontrola přihlášení
-        Middleware::auth();
 
         // Získání obchodů z databáze s join na zákazníky
         $qb = $this->em->createQueryBuilder();
@@ -31,7 +20,7 @@ class DealController
            ->orderBy('d.created_at', 'DESC');
 
         $deals = $qb->getQuery()->getResult();
-        
+
         $pagination = (object) [
             'from' => 1,
             'to' => count($deals),
@@ -40,151 +29,128 @@ class DealController
             'lastPage' => 1
         ];
 
-        return View::render('deals.index', [
+        return $this->view('deals.index', [
             'deals' => $deals,
             'pagination' => $pagination
         ]);
     }
 
-    public function show($id)
+    public function show($id): Response\ViewResponse
     {
-        Middleware::auth();
 
         $deal = $this->em->getRepository(Deal::class)->find($id);
-        
+
         if (!$deal) {
-            http_response_code(404);
-            return View::render('errors.404');
+            return $this->notFound();
         }
 
-        return View::render('deals.show', [
+        return $this->view('deals.show', [
             'deal' => $deal
         ]);
     }
 
-    public function create()
+    public function create(): Response\ViewResponse
     {
-        // Kontrola přihlášení
-        Middleware::auth();
-
         // Získání všech zákazníků pro select
         $customers = $this->em->getRepository(Customer::class)->findAll();
 
-        return View::render('deals.create', [
+        return $this->view('deals.create', [
             'customers' => $customers
         ]);
     }
 
-    public function store()
+    public function store(): void
     {
         // Kontrola přihlášení
-        Middleware::auth();
 
-        $customer = $this->em->getRepository(Customer::class)->find($_POST['customer_id'] ?? 0);
-        
+        $customer = $this->em->getRepository(Customer::class)->find($this->input('customer_id', 0));
+
         if (!$customer) {
-            http_response_code(400);
-            return View::render('errors.400');
+            $this->redirect('/deals');
         }
 
         $deal = new Deal();
         $deal->setCustomer($customer);
-        $deal->setTitle($_POST['title'] ?? '');
-        $deal->setDescription($_POST['description'] ?? null);
-        $deal->setValue($_POST['value'] ? (float)$_POST['value'] : null);
-        $deal->setStage($_POST['stage'] ?? 'prospecting');
-        $deal->setProbability($_POST['probability'] ? (float)$_POST['probability'] : 0.0);
-        $deal->setExpectedCloseDate($_POST['expected_close_date'] ? new \DateTime($_POST['expected_close_date']) : null);
-        $deal->setStatus($_POST['status'] ?? 'active');
+        $deal->setTitle($this->input('title', ''));
+        $deal->setDescription($this->input('description', null));
+        $deal->setValue($this->input('value') ? (float)$this->input('value') : null);
+        $deal->setStage($this->input('stage', 'prospecting'));
+        $deal->setProbability($this->input('probability') ? (float)$this->input('probability') : 0.0);
+        $deal->setExpectedCloseDate($this->input('expected_close_date') ? new \DateTime($this->input('expected_close_date')) : null);
+        $deal->setStatus($this->input('status', 'active'));
 
         $this->em->persist($deal);
         $this->em->flush();
 
-        header('Location: /deals/' . $deal->getId());
-        exit;
+        $this->redirect('/deals/' . $deal->getId());
     }
 
-    public function edit($id)
+    public function edit($id): Response\ViewResponse
     {
-        // Kontrola přihlášení
-        Middleware::auth();
+
 
         $deal = $this->em->getRepository(Deal::class)->find($id);
-        
+
         if (!$deal) {
-            http_response_code(404);
-            return View::render('errors.404');
+            return $this->notFound();
         }
 
         $customers = $this->em->getRepository(Customer::class)->findAll();
 
-        return View::render('deals.edit', [
+        return $this->view('deals.edit', [
             'deal' => $deal,
             'customers' => $customers
         ]);
     }
 
-    public function update($id)
+    public function update($id): void
     {
-        // Kontrola přihlášení
-        Middleware::auth();
 
         $deal = $this->em->getRepository(Deal::class)->find($id);
-        
+
         if (!$deal) {
-            http_response_code(404);
-            return View::render('errors.404');
+            $this->redirect('/deals');
         }
 
-        $customer = $this->em->getRepository(Customer::class)->find($_POST['customer_id'] ?? 0);
+        $customer = $this->em->getRepository(Customer::class)->find($this->input('customer_id', 0));
         if ($customer) {
             $deal->setCustomer($customer);
         }
 
-        $deal->setTitle($_POST['title'] ?? '');
-        $deal->setDescription($_POST['description'] ?? null);
-        $deal->setValue($_POST['value'] ? (float)$_POST['value'] : null);
-        $deal->setStage($_POST['stage'] ?? 'prospecting');
-        $deal->setProbability($_POST['probability'] ? (float)$_POST['probability'] : 0.0);
-        $deal->setExpectedCloseDate($_POST['expected_close_date'] ? new \DateTime($_POST['expected_close_date']) : null);
-        $deal->setStatus($_POST['status'] ?? 'active');
+        $deal->setTitle($this->input('title', ''));
+        $deal->setDescription($this->input('description', null));
+        $deal->setValue($this->input('value') ? (float)$this->input('value') : null);
+        $deal->setStage($this->input('stage', 'prospecting'));
+        $deal->setProbability($this->input('probability') ? (float)$this->input('probability') : 0.0);
+        $deal->setExpectedCloseDate($this->input('expected_close_date') ? new \DateTime($this->input('expected_close_date')) : null);
+        $deal->setStatus($this->input('status', 'active'));
 
         $this->em->flush();
 
-        header('Location: /deals/' . $deal->getId());
-        exit;
+        $this->redirect('/deals/' . $deal->getId());
     }
 
-    public function delete($id)
+    public function delete($id): void
     {
-        // Kontrola přihlášení
-        Middleware::auth();
-
         $deal = $this->em->getRepository(Deal::class)->find($id);
-        
+
         if (!$deal) {
-            http_response_code(404);
-            return View::render('errors.404');
+            $this->redirect('/deals');
         }
 
         $this->em->remove($deal);
         $this->em->flush();
 
-        header('Location: /deals');
-        exit;
+        $this->redirect('/deals');
     }
 
-    public function bulkDelete()
+    public function bulkDelete(): void
     {
-        // Kontrola přihlášení
-        Middleware::auth();
+        $ids = $this->input('ids', []);
 
-        $ids = $_POST['ids'] ?? [];
-        
         if (empty($ids)) {
-            $_SESSION['error'] = 'Nebyly vybrány žádné položky ke smazání.';
-            header('Location: /');
-            exit;
+            $this->session('error', 'Nebyly vybrány žádné položky ke smazání.');
+            $this->redirect('/deals');
         }
 
         $deletedCount = 0;
@@ -198,8 +164,7 @@ class DealController
 
         $this->em->flush();
 
-        $_SESSION['success'] = "Úspěšně smazáno {$deletedCount} obchodů.";
-        header('Location: /');
-        exit;
+        $this->session('success', "Úspěšně smazáno {$deletedCount} obchodů.");
+        $this->redirect('/deals');
     }
-} 
+}

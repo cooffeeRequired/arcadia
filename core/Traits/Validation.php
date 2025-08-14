@@ -2,7 +2,7 @@
 
 namespace Core\Traits;
 
-use Core\Routing\Request;
+use Core\Http\Request;
 use Exception;
 
 trait Validation
@@ -30,11 +30,11 @@ trait Validation
     protected function validateData(array $data, array $rules, array $messages = [], array $attributes = []): array
     {
         $errors = $this->validate($data, $rules, $messages, $attributes);
-        
+
         if (!empty($errors)) {
             throw new Exception('Validation failed: ' . json_encode($errors));
         }
-        
+
         return $data;
     }
 
@@ -50,25 +50,25 @@ trait Validation
     protected function validate(array $data, array $rules, array $messages = [], array $attributes = []): array
     {
         $errors = [];
-        
+
         foreach ($rules as $field => $fieldRules) {
             $fieldRules = is_string($fieldRules) ? explode('|', $fieldRules) : $fieldRules;
-            
+
             foreach ($fieldRules as $rule) {
                 $ruleParts = explode(':', $rule);
                 $ruleName = $ruleParts[0];
                 $ruleParams = isset($ruleParts[1]) ? explode(',', $ruleParts[1]) : [];
-                
+
                 $value = $data[$field] ?? null;
                 $fieldName = $attributes[$field] ?? $field;
-                
+
                 if (!$this->validateField($value, $ruleName, $ruleParams, $fieldName)) {
                     $message = $messages[$field . '.' . $ruleName] ?? $this->getDefaultMessage($ruleName, $fieldName, $ruleParams);
                     $errors[$field][] = $message;
                 }
             }
         }
-        
+
         return $errors;
     }
 
@@ -193,7 +193,7 @@ trait Validation
     {
         $request = $this->getRequest_();
         $confirmationField = $fieldName . '_confirmation';
-        return $request->post($confirmationField) === $value;
+        return $request->input($confirmationField) === $value;
     }
 
     /**
@@ -260,8 +260,8 @@ trait Validation
     protected function validateRequest(array $rules, array $messages = [], array $attributes = []): array
     {
         $request = $this->getRequest_();
-        $data = $request->isPost() ? $_POST : $_GET;
-        
+        $data = $request->isPost() ? $request->allInput() : $request->allQuery();
+
         return $this->validate($data, $rules, $messages, $attributes);
     }
 
@@ -271,13 +271,13 @@ trait Validation
     protected function getRequestValidationError(string $field): ?string
     {
         $request = $this->getRequest_();
-        $session = $request->session;
-        
+        $session = $request->getSession();
+
         if ($session && $session->has('validation_errors')) {
             $errors = $session->get('validation_errors', []);
             return $errors[$field][0] ?? null;
         }
-        
+
         return null;
     }
 
@@ -295,10 +295,10 @@ trait Validation
     protected function flashValidationErrors(array $errors): void
     {
         $request = $this->getRequest_();
-        $session = $request->session;
-        
+        $session = $request->getSession();
+
         if ($session) {
             $session->set('validation_errors', $errors);
         }
     }
-} 
+}

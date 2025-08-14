@@ -67,7 +67,7 @@ trait NotificationTrait
     /**
      * Přidá error notifikaci (toast i flash)
      */
-    public static function error(string $message, array $options = []): void
+    public static function notificationError(string $message, array $options = []): void
     {
         $toastOptions = $options['toast'] ?? [];
         $flashOptions = $options['flash'] ?? [];
@@ -79,6 +79,14 @@ trait NotificationTrait
         if (!isset($options['type']) || $options['type'] === 'flash' || $options['type'] === 'both') {
             self::flashError($message, $flashOptions);
         }
+    }
+
+    /**
+     * @deprecated Použijte notificationError() místo error()
+     */
+    public static function error(string $message, array $options = []): void
+    {
+        self::notificationError($message, $options);
     }
 
     /**

@@ -11,135 +11,132 @@ use App\Controllers\InvoiceController;
 use App\Controllers\ReportController;
 use App\Controllers\SettingsController;
 use App\Controllers\WorkflowController;
+use Core\Facades\Container;
+use Core\Http\Request;
 use Core\Routing\Router;
 
 $router = new Router();
 
+
+
 // Auth routes (guest middleware - dostupné nepřihlášeným)
 $router->group(['middleware' => ['guest']], function (Router $router) {
-    $router->get('/login', [AuthController::class, 'showLogin']);
-    $router->post('/login', [AuthController::class, 'login']);
-    $router->get('/register', [AuthController::class, 'showRegister']);
-    $router->post('/register', [AuthController::class, 'register']);
+    $router->get('/login', [AuthController::class, 'showLogin'])->name('auth.login');
+    $router->post('/login', [AuthController::class, 'login'])->name('auth.login.post');
+    $router->get('/register', [AuthController::class, 'showRegister'])->name('auth.register');
+    $router->post('/register', [AuthController::class, 'register'])->name('auth.register.post');
 });
 
 // Chráněné routy (auth middleware - vyžadují přihlášení)
 $router->group(['middleware' => ['auth']], function (Router $router) {
     // Logout
-    $router->get('/logout', [AuthController::class, 'logout']);
+    $router->get('/logout', [AuthController::class, 'logout'])->name('auth.logout');
 
     // Domovská stránka
-    $router->get('/', [HomeController::class, 'index']);
-    $router->get('/home', [HomeController::class, 'index']);
-    $router->get('/test-external-session', [HomeController::class, 'testExternalSession']);
+    $router->get('/', [HomeController::class, 'index'])->name('home');
+    $router->get('/home', [HomeController::class, 'index'])->name('home.index');
+    $router->get('/test-external-session', [HomeController::class, 'testExternalSession'])->name('home.test-session');
 
     // Zákazníci
     $router->group(['prefix' => '/customers'], function (Router $router) {
-        $router->get('', [CustomerController::class, 'index']);
-        $router->get('/create', [CustomerController::class, 'create']);
-        $router->post('', [CustomerController::class, 'store']);
-        $router->get('/{id}', [CustomerController::class, 'show']);
-        $router->get('/{id}/edit', [CustomerController::class, 'edit']);
-        $router->post('/{id}', [CustomerController::class, 'update']);
-        $router->post('/{id}/delete', [CustomerController::class, 'delete']);
-        $router->post('/bulk-delete', [CustomerController::class, 'bulkDelete']);
+        $router->get('', [CustomerController::class, 'index'])->name('customers.index'); // -> no projde.
+        $router->get('/create', [CustomerController::class, 'create'])->name('customers.create');
+        $router->post('/', [CustomerController::class, 'store'])->name('customers.store');
+        $router->get('/{id}', [CustomerController::class, 'show'])->name('customers.show'); // -> projde
+        $router->get('/{id}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
+        $router->post('/{id}', [CustomerController::class, 'update'])->name('customers.update');
+        $router->post('/{id}/delete', [CustomerController::class, 'delete'])->name('customers.delete');
+        $router->post('/bulk-delete', [CustomerController::class, 'bulkDelete'])->name('customers.bulk-delete');
     });
 
     // Kontakty
     $router->group(['prefix' => '/contacts'], function (Router $router) {
-        $router->get('', [ContactController::class, 'index']);
-        $router->get('/create', [ContactController::class, 'create']);
-        $router->post('', [ContactController::class, 'store']);
-        $router->get('/{id}', [ContactController::class, 'show']);
-        $router->get('/{id}/edit', [ContactController::class, 'edit']);
-        $router->post('/{id}', [ContactController::class, 'update']);
-        $router->post('/{id}/delete', [ContactController::class, 'delete']);
-        $router->post('/bulk-delete', [ContactController::class, 'bulkDelete']);
+        $router->get('/', [ContactController::class, 'index'])->name('contacts.index');
+        $router->get('/create', [ContactController::class, 'create'])->name('contacts.create');
+        $router->post('/', [ContactController::class, 'store'])->name('contacts.store');
+        $router->get('/{id}', [ContactController::class, 'show'])->name('contacts.show');
+        $router->get('/{id}/edit', [ContactController::class, 'edit'])->name('contacts.edit');
+        $router->post('/{id}', [ContactController::class, 'update'])->name('contacts.update');
+        $router->post('/{id}/delete', [ContactController::class, 'delete'])->name('contacts.delete');
+        $router->post('/bulk-delete', [ContactController::class, 'bulkDelete'])->name('contacts.bulk-delete');
     });
 
     // Obchody
     $router->group(['prefix' => '/deals'], function (Router $router) {
-        $router->get('', [DealController::class, 'index']);
-        $router->get('/create', [DealController::class, 'create']);
-        $router->post('', [DealController::class, 'store']);
-        $router->get('/{id}', [DealController::class, 'show']);
-        $router->get('/{id}/edit', [DealController::class, 'edit']);
-        $router->post('/{id}', [DealController::class, 'update']);
-        $router->post('/{id}/delete', [DealController::class, 'delete']);
-        $router->post('/bulk-delete', [DealController::class, 'bulkDelete']);
+        $router->get('/', [DealController::class, 'index'])->name('deals.index');
+        $router->get('/create', [DealController::class, 'create'])->name('deals.create');
+        $router->get('/{id}', [DealController::class, 'show'])->name('deals.show');
+        $router->get('/{id}/edit', [DealController::class, 'edit'])->name('deals.edit');
+        $router->post('/', [DealController::class, 'store'])->name('deals.store');
+        $router->post('/{id}', [DealController::class, 'update'])->name('deals.update');
+        $router->post('/{id}/delete', [DealController::class, 'delete'])->name('deals.delete');
+        $router->post('/bulk-delete', [DealController::class, 'bulkDelete'])->name('deals.bulk-delete');
     });
 
     // Reporty
     $router->group(['prefix' => '/reports'], function (Router $router) {
-        $router->get('', [ReportController::class, 'index']);
-        $router->get('/customers', [ReportController::class, 'customers']);
-        $router->get('/deals', [ReportController::class, 'deals']);
-        $router->get('/contacts', [ReportController::class, 'contacts']);
+        $router->get('/', [ReportController::class, 'index'])->name('reports.index');
+        $router->get('/customers', [ReportController::class, 'customers'])->name('reports.customers');
+        $router->get('/deals', [ReportController::class, 'deals'])->name('reports.deals');
+        $router->get('/contacts', [ReportController::class, 'contacts'])->name('reports.contacts');
     });
 
     // Faktury
     $router->group(['prefix' => '/invoices'], function (Router $router) {
-        $router->get('', [InvoiceController::class, 'index']);
-        $router->get('/create', [InvoiceController::class, 'create']);
-        $router->post('', [InvoiceController::class, 'store']);
-        $router->get('/{id}', [InvoiceController::class, 'show']);
-        $router->get('/{id}/edit', [InvoiceController::class, 'edit']);
-        $router->post('/{id}', [InvoiceController::class, 'update']);
-        $router->post('/{id}/delete', [InvoiceController::class, 'delete']);
-        $router->get('/{id}/pdf', [InvoiceController::class, 'pdf']);
+        $router->get('/', [InvoiceController::class, 'index'])->name('invoices.index');
+        $router->get('/create', [InvoiceController::class, 'create'])->name('invoices.create');
+        $router->post('/', [InvoiceController::class, 'store'])->name('invoices.store');
+        $router->get('/{id}', [InvoiceController::class, 'show'])->name('invoices.show');
+        $router->get('/{id}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit');
+        $router->post('/{id}', [InvoiceController::class, 'update'])->name('invoices.update');
+        $router->post('/{id}/delete', [InvoiceController::class, 'delete'])->name('invoices.delete');
+        $router->get('/{id}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
     });
 
     // Nastavení
     $router->group(['prefix' => '/settings'], function (Router $router) {
-        $router->get('', [SettingsController::class, 'index']);
-        $router->post('', [SettingsController::class, 'update']);
-        $router->get('/profile', [SettingsController::class, 'profile']);
-        $router->post('/profile', [SettingsController::class, 'updateProfile']);
-        $router->get('/system', [SettingsController::class, 'system']);
-        $router->post('/clear-cache', [SettingsController::class, 'clearCache']);
-        $router->post('/optimize-opcache', [SettingsController::class, 'optimizeOpCache']);
-        $router->post('/create-backup', [SettingsController::class, 'createBackup']);
-        $router->get('/logs', [SettingsController::class, 'systemLogs']);
-        $router->post('/check-integrity', [SettingsController::class, 'checkIntegrity']);
+        $router->get('/', [SettingsController::class, 'index'])->name('settings.index');
+        $router->post('/', [SettingsController::class, 'update'])->name('settings.update');
+        $router->get('/profile', [SettingsController::class, 'profile'])->name('settings.profile');
+        $router->post('/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile.update');
+        $router->get('/system', [SettingsController::class, 'system'])->name('settings.system');
+        $router->post('/clear-cache', [SettingsController::class, 'clearCache'])->name('settings.clear-cache');
+        $router->post('/optimize-opcache', [SettingsController::class, 'optimizeOpCache'])->name('settings.optimize-opcache');
+        $router->post('/create-backup', [SettingsController::class, 'createBackup'])->name('settings.create-backup');
+        $router->get('/logs', [SettingsController::class, 'systemLogs'])->name('settings.logs');
+        $router->post('/check-integrity', [SettingsController::class, 'checkIntegrity'])->name('settings.check-integrity');
     });
 
     // Workflow
     $router->group(['prefix' => '/workflows'], function (Router $router) {
-        $router->get('', [WorkflowController::class, 'index']);
-        $router->get('/create', [WorkflowController::class, 'create']);
-        $router->post('', [WorkflowController::class, 'store']);
-        $router->get('/{id}', [WorkflowController::class, 'show']);
-        $router->get('/{id}/edit', [WorkflowController::class, 'edit']);
-        $router->post('/{id}', [WorkflowController::class, 'update']);
-        $router->post('/{id}/delete', [WorkflowController::class, 'delete']);
-        $router->post('/{id}/toggle', [WorkflowController::class, 'toggle']);
-        $router->get('/{id}/test', [WorkflowController::class, 'test']);
+        $router->get('/', [WorkflowController::class, 'index'])->name('workflows.index');
+        $router->get('/create', [WorkflowController::class, 'create'])->name('workflows.create');
+        $router->post('/', [WorkflowController::class, 'store'])->name('workflows.store');
+        $router->get('/{id}', [WorkflowController::class, 'show'])->name('workflows.show');
+        $router->get('/{id}/edit', [WorkflowController::class, 'edit'])->name('workflows.edit');
+        $router->post('/{id}', [WorkflowController::class, 'update'])->name('workflows.update');
+        $router->post('/{id}/delete', [WorkflowController::class, 'delete'])->name('workflows.delete');
+        $router->post('/{id}/toggle', [WorkflowController::class, 'toggle'])->name('workflows.toggle');
+        $router->get('/{id}/test', [WorkflowController::class, 'test'])->name('workflows.test');
     });
 
     // E-maily
     $router->group(['prefix' => '/emails'], function (Router $router) {
-        $router->get('', [EmailController::class, 'index']);
-        $router->get('/create', [EmailController::class, 'create']);
-        $router->post('', [EmailController::class, 'store']);
-        $router->get('/{id}', [EmailController::class, 'show']);
-        $router->get('/{id}/edit', [EmailController::class, 'edit']);
-        $router->post('/{id}', [EmailController::class, 'update']);
-        $router->post('/{id}/delete', [EmailController::class, 'delete']);
-        $router->post('/{id}/send', [EmailController::class, 'send']);
-        $router->get('/templates', [EmailController::class, 'templates']);
-        $router->get('/signatures', [EmailController::class, 'signatures']);
-        $router->get('/servers', [EmailController::class, 'servers']);
+        $router->get('/', [EmailController::class, 'index'])->name('emails.index');
+        $router->get('/create', [EmailController::class, 'create'])->name('emails.create');
+        $router->post('/', [EmailController::class, 'store'])->name('emails.store');
+        $router->get('/{id}', [EmailController::class, 'show'])->name('emails.show');
+        $router->get('/{id}/edit', [EmailController::class, 'edit'])->name('emails.edit');
+        $router->post('/{id}', [EmailController::class, 'update'])->name('emails.update');
+        $router->post('/{id}/delete', [EmailController::class, 'delete'])->name('emails.delete');
+        $router->post('/{id}/send', [EmailController::class, 'send'])->name('emails.send');
+        $router->get('/templates', [EmailController::class, 'templates'])->name('emails.templates');
+        $router->get('/signatures', [EmailController::class, 'signatures'])->name('emails.signatures');
+        $router->get('/servers', [EmailController::class, 'servers'])->name('emails.servers');
     });
 });
 
-// Chybové stránky
-$router->notFound([ErrorController::class, 'notFound']);
-$router->serverError([ErrorController::class, 'serverError']);
-$router->error(403, [ErrorController::class, 'forbidden']);
-
 // Spuštění aplikace
-try {
-    $router->dispatch($_SERVER['REQUEST_URI']);
-} catch (Exception $e) {
-
-}
+$request = Request::getInstance();
+Container::set(Router::class, $router, ['router']);
+$router->dispatch($request);

@@ -5,22 +5,14 @@ namespace App\Controllers;
 use App\Entities\Workflow;
 use App\Entities\WorkflowExecution;
 use App\Entities\User;
-use Core\Facades\Container;
-use Core\Render\View;
-use Illuminate\Support\Facades\Validator;
+use Core\Http\Response;
+use Core\Render\BaseController;
 
-class WorkflowController
+class WorkflowController extends BaseController
 {
-    private $entityManager;
-
-    public function __construct()
+    public function index(): Response\ViewResponse
     {
-        $this->entityManager = Container::get('doctrine.em');
-    }
-
-    public function index()
-    {
-        $workflows = $this->entityManager->getRepository(Workflow::class)
+        $workflows = $this->em->getRepository(Workflow::class)
             ->createQueryBuilder('w')
             ->orderBy('w.priority', 'DESC')
             ->addOrderBy('w.created_at', 'DESC')
@@ -33,14 +25,14 @@ class WorkflowController
             'inactive' => count(array_filter($workflows, fn($w) => !$w->isActive()))
         ];
 
-        return View::render('workflows/index', [
+        return $this->view('workflows/index', [
             'title' => 'Workflow',
             'workflows' => $workflows,
             'stats' => $stats
         ]);
     }
 
-    public function create()
+    public function create(): Response\ViewResponse
     {
         $triggerTypes = [
             'customer_created' => 'Nový zákazník',
@@ -65,56 +57,41 @@ class WorkflowController
             'update_customer' => 'Aktualizovat zákazníka'
         ];
 
-        return View::render('workflows/create', [
+        return $this->view('workflows/create', [
             'title' => 'Vytvořit workflow',
             'triggerTypes' => $triggerTypes,
             'actionTypes' => $actionTypes
         ]);
     }
 
-    public function store()
+    public function store(): void
     {
-        // $validator = new Validator($_POST);
-        // $validator->required(['name', 'trigger_type'])
-        //          ->maxLength('name', 255)
-        //          ->maxLength('description', 1000);
-
-        // if ($validator->fails()) {
-        //     return View::render('workflows/create', [
-        //         'title' => 'Vytvořit workflow',
-        //         'errors' => $validator->errors(),
-        //         'old' => $_POST
-        //     ]);
-        // }
-
         $workflow = new Workflow();
-        $workflow->setName($_POST['name'])
-                ->setDescription($_POST['description'] ?? null)
-                ->setTriggerType($_POST['trigger_type'])
-                ->setTriggerConfig(json_decode($_POST['trigger_config'] ?? '{}', true))
-                ->setConditions(json_decode($_POST['conditions'] ?? '[]', true))
-                ->setActions(json_decode($_POST['actions'] ?? '[]', true))
-                ->setIsActive(isset($_POST['is_active']))
-                ->setPriority((int)($_POST['priority'] ?? 0))
+        $workflow->setName($this->input('name'))
+                ->setDescription($this->input('description', null))
+                ->setTriggerType($this->input('trigger_type'))
+                ->setTriggerConfig(json_decode($this->input('trigger_config', '{}'), true))
+                ->setConditions(json_decode($this->input('conditions', '[]'), true))
+                ->setActions(json_decode($this->input('actions', '[]'), true))
+                ->setIsActive($this->has('is_active'))
+                ->setPriority((int)($this->input('priority', 0)))
                 ->setCreatedBy($this->getCurrentUser());
 
-        $this->entityManager->persist($workflow);
-        $this->entityManager->flush();
+        $this->em->persist($workflow);
+        $this->em->flush();
 
-        header('Location: /workflows');
-        exit;
+        $this->redirect('/workflows');
     }
 
-    public function show($id)
+    public function show($id): Response\ViewResponse
     {
-        $workflow = $this->entityManager->find(Workflow::class, $id);
+        $workflow = $this->em->find(Workflow::class, $id);
         if (!$workflow) {
-            header('Location: /workflows');
-            exit;
+            $this->redirect('/workflows');
         }
 
         // Získat poslední spuštění
-        $executions = $this->entityManager->getRepository(WorkflowExecution::class)
+        $executions = $this->em->getRepository(WorkflowExecution::class)
             ->createQueryBuilder('e')
             ->where('e.workflow = :workflow')
             ->setParameter('workflow', $workflow)
@@ -130,7 +107,7 @@ class WorkflowController
             'running' => count(array_filter($executions, fn($e) => $e->getStatus() === 'running'))
         ];
 
-        return View::render('workflows/show', [
+        return $this->view('workflows/show', [
             'title' => 'Workflow: ' . $workflow->getName(),
             'workflow' => $workflow,
             'executions' => $executions,
@@ -138,12 +115,11 @@ class WorkflowController
         ]);
     }
 
-    public function edit($id)
+    public function edit($id): Response\ViewResponse
     {
-        $workflow = $this->entityManager->find(Workflow::class, $id);
+        $workflow = $this->em->find(Workflow::class, $id);
         if (!$workflow) {
-            header('Location: /workflows');
-            exit;
+            $this->redirect('/workflows');
         }
 
         $triggerTypes = [
@@ -169,7 +145,7 @@ class WorkflowController
             'update_customer' => 'Aktualizovat zákazníka'
         ];
 
-        return View::render('workflows/edit', [
+        return $this->view('workflows/edit', [
             'title' => 'Upravit workflow',
             'workflow' => $workflow,
             'triggerTypes' => $triggerTypes,
@@ -177,73 +153,54 @@ class WorkflowController
         ]);
     }
 
-    public function update($id)
+    public function update($id): void
     {
-        $workflow = $this->entityManager->find(Workflow::class, $id);
+        $workflow = $this->em->find(Workflow::class, $id);
         if (!$workflow) {
-            header('Location: /workflows');
-            exit;
+            $this->redirect('/workflows');
         }
 
-        // $validator = new Validator();
-        // $validator->required(['name', 'trigger_type'])
-        //          ->maxLength('name', 255)
-        //          ->maxLength('description', 1000);
+        $workflow->setName($this->input('name'))
+                ->setDescription($this->input('description', null))
+                ->setTriggerType($this->input('trigger_type'))
+                ->setTriggerConfig(json_decode($this->input('trigger_config', '{}'), true))
+                ->setConditions(json_decode($this->input('conditions', '[]'), true))
+                ->setActions(json_decode($this->input('actions', '[]'), true))
+                ->setIsActive($this->has('is_active'))
+                ->setPriority((int)($this->input('priority', 0)));
 
-        // if ($validator->fails()) {
-        //     return View::render('workflows/edit', [
-        //         'title' => 'Upravit workflow',
-        //         'workflow' => $workflow,
-        //         'errors' => $validator->errors(),
-        //         'old' => $_POST
-        //     ]);
-        // }
+        $this->em->flush();
 
-        $workflow->setName($_POST['name'])
-                ->setDescription($_POST['description'] ?? null)
-                ->setTriggerType($_POST['trigger_type'])
-                ->setTriggerConfig(json_decode($_POST['trigger_config'] ?? '{}', true))
-                ->setConditions(json_decode($_POST['conditions'] ?? '[]', true))
-                ->setActions(json_decode($_POST['actions'] ?? '[]', true))
-                ->setIsActive(isset($_POST['is_active']))
-                ->setPriority((int)($_POST['priority'] ?? 0));
-
-        $this->entityManager->flush();
-
-        header('Location: /workflows/' . $id);
-        exit;
+        $this->redirect('/workflows/' . $id);
     }
 
-    public function delete($id)
+    public function delete($id): void
     {
-        $workflow = $this->entityManager->find(Workflow::class, $id);
+        $workflow = $this->em->find(Workflow::class, $id);
         if ($workflow) {
-            $this->entityManager->remove($workflow);
-            $this->entityManager->flush();
+            $this->em->remove($workflow);
+            $this->em->flush();
         }
 
-        header('Location: /workflows');
-        exit;
+        $this->redirect('/workflows');
     }
 
-    public function toggle($id)
+    public function toggle($id): void
     {
-        $workflow = $this->entityManager->find(Workflow::class, $id);
+        $workflow = $this->em->find(Workflow::class, $id);
         if ($workflow) {
             $workflow->setIsActive(!$workflow->isActive());
-            $this->entityManager->flush();
+            $this->em->flush();
         }
 
-        header('Location: /workflows');
-        exit;
+        $this->redirect('/workflows');
     }
 
-    public function test($id)
+    public function test($id): void
     {
-        $workflow = $this->entityManager->find(Workflow::class, $id);
+        $workflow = $this->em->find(Workflow::class, $id);
         if (!$workflow) {
-            header('Location: /workflows');
-            exit;
+            $this->redirect('/workflows');
         }
 
         // Simulace spuštění workflow
@@ -252,8 +209,8 @@ class WorkflowController
                  ->setStatus('running')
                  ->setTriggerData(['test' => true]);
 
-        $this->entityManager->persist($execution);
-        $this->entityManager->flush();
+        $this->em->persist($execution);
+        $this->em->flush();
 
         // Zde by se spustil skutečný workflow engine
         $execution->setStatus('completed')
@@ -261,15 +218,14 @@ class WorkflowController
                  ->setExecutionTimeMs(rand(100, 1000))
                  ->addExecutionLog('test_execution', 'completed', 'Test workflow spuštěn úspěšně');
 
-        $this->entityManager->flush();
+        $this->em->flush();
 
-        header('Location: /workflows/' . $id);
-        exit;
+        $this->redirect('/workflows/' . $id);
     }
 
     private function getCurrentUser(): User
     {
         // Zde by se získal aktuální uživatel ze session
-        return $this->entityManager->find(User::class, 1);
+        return $this->em->find(User::class, 1);
     }
 }

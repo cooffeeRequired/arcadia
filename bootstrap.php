@@ -2,14 +2,20 @@
 
 error_reporting(E_ALL);
 
+// Nastavení environment
+if (!getenv('APP_ENV')) {
+    putenv('APP_ENV=development');
+}
+
 use Core\Authorization\Session;
 use Core\Database\DatabaseLogger;
 use Core\Facades\Container;
 use Core\Logging\Tracy;
-use Core\Notification\Notification;
+use Core\Middleware\ToastMiddleware;
 use Core\Render\Renderer;
 use Core\Render\View;
 
+use Core\State\RedisContainer;
 use Dba\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
@@ -21,6 +27,7 @@ const APP_ROOT = __DIR__;
 
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/core/helpers.php';
+require_once __DIR__ . '/core/helpers/toast.php';
 define("APP_CONFIGURATION", require_once __DIR__ . '/config/config.php');
 
 Tracy::init();
@@ -44,6 +51,8 @@ Container::set('redis', $redis);
 Container::set('cache', $cache);
 Container::set('session', $session);
 
+RedisContainer::init($redis);
+
 $config = ORMSetup::createAttributeMetadataConfiguration(
     paths: [APP_ROOT . "/app/Entities"],
     isDevMode: true, // Dev mode pro debugging, ale cache je explicitně nastaven
@@ -53,13 +62,9 @@ $config = ORMSetup::createAttributeMetadataConfiguration(
 
 // Přidání SQL loggeru pro Tracy
 $config->setSQLLogger(new DatabaseLogger());
-
-// Explicitní nastavení cache driverů
 $config->setMetadataCache($cache);
 $config->setQueryCache($cache);
 $config->setResultCache($cache);
-
-// Cache lifetime se nastavuje při vytváření query nebo result cache
 
 try {
     $conn = require __DIR__ . '/config/doctrine.php';
@@ -76,7 +81,7 @@ try {
     Container::set(Renderer::class, $renderer, ['app.renderer']);
 
     View::init();
-    Notification::init();
+    ToastMiddleware::autoHandle();
 
 } catch (ORMException|\Doctrine\DBAL\Exception $e) {
     $html = View::render('errors.generic', [

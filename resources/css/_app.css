@@ -239,12 +239,12 @@
     #sidebar {
       z-index: 9999;
     }
-    
+
     /* Overlay pod sidebar */
     #sidebar-overlay {
       z-index: 9998;
     }
-    
+
     /* Obsah pod overlay */
     #main-content {
       z-index: 1;
@@ -262,7 +262,7 @@
     #sidebar {
       z-index: 40;
     }
-    
+
     #main-content {
       z-index: 10;
     }

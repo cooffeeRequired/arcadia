@@ -66,13 +66,13 @@
         </div>
     </div>
 
-    <!-- Notification System -->
-    {!! render_notifications() !!}
+    <!-- Toast Notification System -->
+    {!! render_toasts() !!}
 
     @stack('scripts')
     @yield('scripts')
     
-    <!-- Notification JavaScript -->
-    {!! render_notification_scripts() !!}
+    <!-- Toast Notification JavaScript -->
+    {!! render_toast_scripts() !!}
 </body>
 </html> 

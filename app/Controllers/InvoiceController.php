@@ -5,27 +5,19 @@ namespace App\Controllers;
 use App\Entities\Customer;
 use App\Entities\Invoice;
 use App\Entities\InvoiceItem;
-use Core\Facades\Container;
-use Core\Render\View;
-use Doctrine\ORM\EntityManager;
+use Core\Http\Response;
+use Core\Render\BaseController;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 
-class InvoiceController
+class InvoiceController extends BaseController
 {
-    private EntityManager $em;
-
-    public function __construct()
-    {
-        $this->em = Container::get('doctrine.em');
-    }
-
-    public function index()
+    public function index(): Response\ViewResponse
     {
         $invoices = $this->em->getRepository(Invoice::class)->findAll();
-        
+
         $pagination = (object) [
             'from' => 1,
             'to' => count($invoices),
@@ -34,57 +26,55 @@ class InvoiceController
             'lastPage' => 1
         ];
 
-        return View::render('invoices.index', [
+        return $this->view('invoices.index', [
             'invoices' => $invoices,
             'pagination' => $pagination
         ]);
     }
 
-    public function show($id)
+    public function show($id): Response\ViewResponse
     {
         $invoice = $this->em->getRepository(Invoice::class)->find($id);
-        
+
         if (!$invoice) {
-            http_response_code(404);
-            return View::render('errors.404');
+            return $this->notFound();
         }
 
-        return View::render('invoices.show', [
+        return $this->view('invoices.show', [
             'invoice' => $invoice
         ]);
     }
 
-    public function create()
+    public function create(): Response\ViewResponse
     {
         $customers = $this->em->getRepository(Customer::class)->findAll();
 
-        return View::render('invoices.create', [
+        return $this->view('invoices.create', [
             'customers' => $customers
         ]);
     }
 
-    public function store()
+    public function store(): void
     {
-        $customer = $this->em->getRepository(Customer::class)->find($_POST['customer_id'] ?? 0);
-        
+        $customer = $this->em->getRepository(Customer::class)->find($this->input('customer_id', 0));
+
         if (!$customer) {
-            http_response_code(400);
-            return View::render('errors.400');
+            $this->redirect('/invoices');
         }
 
         $invoice = new Invoice();
         $invoice->setCustomer($customer);
         $invoice->setInvoiceNumber($this->generateInvoiceNumber());
-        $invoice->setIssueDate(new \DateTime($_POST['issue_date'] ?? 'now'));
-        $invoice->setDueDate(new \DateTime($_POST['due_date'] ?? '+30 days'));
-        $invoice->setTaxRate($_POST['tax_rate'] ? (float)$_POST['tax_rate'] : 21);
-        $invoice->setCurrency($_POST['currency'] ?? 'CZK');
-        $invoice->setNotes($_POST['notes'] ?? null);
-        $invoice->setStatus($_POST['status'] ?? 'draft');
+        $invoice->setIssueDate(new \DateTime($this->input('issue_date', 'now')));
+        $invoice->setDueDate(new \DateTime($this->input('due_date', '+30 days')));
+        $invoice->setTaxRate($this->input('tax_rate') ? (float)$this->input('tax_rate') : 21);
+        $invoice->setCurrency($this->input('currency', 'CZK'));
+        $invoice->setNotes($this->input('notes', null));
+        $invoice->setStatus($this->input('status', 'draft'));
 
         // Přidání položek
-        if (isset($_POST['items']) && is_array($_POST['items'])) {
-            foreach ($_POST['items'] as $itemData) {
+        if ($this->has('items') && is_array($this->input('items'))) {
+            foreach ($this->input('items') as $itemData) {
                 if (!empty($itemData['description'])) {
                     $item = new InvoiceItem();
                     $item->setDescription($itemData['description']);
@@ -92,7 +82,7 @@ class InvoiceController
                     $item->setUnitPrice($itemData['unit_price'] ? (float)$itemData['unit_price'] : 0);
                     $item->setUnit($itemData['unit'] ?? 'ks');
                     $item->calculateTotal();
-                    
+
                     $invoice->addItem($item);
                 }
             }
@@ -103,50 +93,46 @@ class InvoiceController
         $this->em->persist($invoice);
         $this->em->flush();
 
-        header('Location: /invoices/' . $invoice->getId());
-        exit;
+        $this->redirect('/invoices/' . $invoice->getId());
     }
 
-    public function edit($id)
+    public function edit($id): Response\ViewResponse
     {
         $invoice = $this->em->getRepository(Invoice::class)->find($id);
-        
+
         if (!$invoice) {
-            http_response_code(404);
-            return View::render('errors.404');
+            return $this->notFound();
         }
 
         $customers = $this->em->getRepository(Customer::class)->findAll();
 
-        return View::render('invoices.edit', [
+        return $this->view('invoices.edit', [
             'invoice' => $invoice,
             'customers' => $customers
         ]);
     }
 
-    public function update($id)
+    public function update($id): void
     {
         $invoice = $this->em->getRepository(Invoice::class)->find($id);
-        
+
         if (!$invoice) {
-            http_response_code(404);
-            return View::render('errors.404');
+            $this->redirect('/invoices');
         }
 
-        $customer = $this->em->getRepository(Customer::class)->find($_POST['customer_id'] ?? 0);
-        
+        $customer = $this->em->getRepository(Customer::class)->find($this->input('customer_id', 0));
+
         if (!$customer) {
-            http_response_code(400);
-            return View::render('errors.400');
+            $this->redirect('/invoices');
         }
 
         $invoice->setCustomer($customer);
-        $invoice->setIssueDate(new \DateTime($_POST['issue_date'] ?? 'now'));
-        $invoice->setDueDate(new \DateTime($_POST['due_date'] ?? '+30 days'));
-        $invoice->setTaxRate($_POST['tax_rate'] ? (float)$_POST['tax_rate'] : 21);
-        $invoice->setCurrency($_POST['currency'] ?? 'CZK');
-        $invoice->setNotes($_POST['notes'] ?? null);
-        $invoice->setStatus($_POST['status'] ?? 'draft');
+        $invoice->setIssueDate(new \DateTime($this->input('issue_date', 'now')));
+        $invoice->setDueDate(new \DateTime($this->input('due_date', '+30 days')));
+        $invoice->setTaxRate($this->input('tax_rate') ? (float)$this->input('tax_rate') : 21);
+        $invoice->setCurrency($this->input('currency', 'CZK'));
+        $invoice->setNotes($this->input('notes', null));
+        $invoice->setStatus($this->input('status', 'draft'));
 
         // Odstranění starých položek
         foreach ($invoice->getItems() as $item) {
@@ -154,8 +140,8 @@ class InvoiceController
         }
 
         // Přidání nových položek
-        if (isset($_POST['items']) && is_array($_POST['items'])) {
-            foreach ($_POST['items'] as $itemData) {
+        if ($this->has('items') && is_array($this->input('items'))) {
+            foreach ($this->input('items') as $itemData) {
                 if (!empty($itemData['description'])) {
                     $item = new InvoiceItem();
                     $item->setDescription($itemData['description']);
@@ -163,7 +149,7 @@ class InvoiceController
                     $item->setUnitPrice($itemData['unit_price'] ? (float)$itemData['unit_price'] : 0);
                     $item->setUnit($itemData['unit'] ?? 'ks');
                     $item->calculateTotal();
-                    
+
                     $invoice->addItem($item);
                 }
             }
@@ -173,74 +159,69 @@ class InvoiceController
 
         $this->em->flush();
 
-        header('Location: /invoices/' . $invoice->getId());
-        exit;
+        $this->redirect('/invoices/' . $invoice->getId());
     }
 
-    public function delete($id)
+    public function delete($id): void
     {
         $invoice = $this->em->getRepository(Invoice::class)->find($id);
-        
+
         if (!$invoice) {
-            http_response_code(404);
-            return View::render('errors.404');
+            $this->redirect('/invoices');
         }
 
         $this->em->remove($invoice);
         $this->em->flush();
 
-        header('Location: /invoices');
-        exit;
+        $this->redirect('/invoices');
     }
 
-    public function pdf($id)
+    public function pdf($id): Response\AbstractResponse
     {
         $invoice = $this->em->getRepository(Invoice::class)->find($id);
-        
+
         if (!$invoice) {
-            http_response_code(404);
-            return "Faktura nebyla nalezena";
+            return $this->notFound('Faktura nebyla nalezena');
         }
 
         // Generování QR kódu pro platbu
         $qrData = $this->generatePaymentQRCode($invoice);
-        
+
         // Vytvoření PDF
         $html = $this->generateInvoiceHTML($invoice, $qrData);
-        
+
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isPhpEnabled', true);
-        
+
         $dompdf = new Dompdf($options);
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
-        
-        header('Content-Type: application/pdf');
-        header('Content-Disposition: inline; filename="faktura-' . $invoice->getInvoiceNumber() . '.pdf"');
-        
-        echo $dompdf->output();
-        exit;
+
+        return new Response\HtmlResponse($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="faktura-' . $invoice->getInvoiceNumber() . '.pdf"'
+        ]);
     }
 
-    private function generateInvoiceNumber()
+    private function generateInvoiceNumber(): string
     {
         $year = date('Y');
         $month = date('m');
-        
+
         $qb = $this->em->createQueryBuilder();
         $qb->select('COUNT(i.id)')
            ->from(Invoice::class, 'i')
            ->where('i.invoice_number LIKE :pattern')
            ->setParameter('pattern', "F{$year}{$month}%");
-        
+
         $count = $qb->getQuery()->getSingleScalarResult();
-        
+
         return sprintf('F%s%s%04d', $year, $month, $count + 1);
     }
 
-    private function generatePaymentQRCode($invoice)
+    private function generatePaymentQRCode($invoice): string
     {
         // QR kód pro platbu (formát pro české banky)
         $qrData = [
@@ -250,21 +231,21 @@ class InvoiceController
             'message' => $invoice->getInvoiceNumber(),
             'variable_symbol' => $invoice->getId()
         ];
-        
+
         $qrCode = new QrCode(json_encode($qrData));
         $qrCode->setSize(200);
         $qrCode->setMargin(10);
-        
+
         $writer = new PngWriter();
         $result = $writer->write($qrCode);
-        
+
         return 'data:image/png;base64,' . base64_encode($result->getString());
     }
 
-    private function generateInvoiceHTML($invoice, $qrCodeData)
+    private function generateInvoiceHTML($invoice, $qrCodeData): string
     {
         $customer = $invoice->getCustomer();
-        
+
         return '
         <!DOCTYPE html>
         <html>
@@ -291,7 +272,7 @@ class InvoiceController
                 <h1>FAKTURA</h1>
                 <h2>' . $invoice->getInvoiceNumber() . '</h2>
             </div>
-            
+
             <div class="company-info">
                 <h3>Dodavatel</h3>
                 <p>Arcadia CRM<br>
@@ -300,37 +281,37 @@ class InvoiceController
                 IČ: 12345678<br>
                 DIČ: CZ12345678</p>
             </div>
-            
+
             <div class="invoice-info">
                 <p><strong>Datum vystavení:</strong> ' . $invoice->getIssueDate()->format('d.m.Y') . '<br>
                 <strong>Datum splatnosti:</strong> ' . $invoice->getDueDate()->format('d.m.Y') . '<br>
                 <strong>Způsob platby:</strong> Bankovní převod</p>
             </div>
-            
+
             <div class="clear"></div>
-            
+
             <div class="customer-info">
                 <h3>Odběratel</h3>
                 <p>' . $customer->getName() . '<br>';
-        
+
         if ($customer->getCompany()) {
             $html .= $customer->getCompany() . '<br>';
         }
-        
+
         $html .= $customer->getAddress() . '<br>
                 ' . $customer->getZipCode() . ' ' . $customer->getCity() . '<br>';
-        
+
         if ($customer->getEmail()) {
             $html .= 'Email: ' . $customer->getEmail() . '<br>';
         }
-        
+
         if ($customer->getPhone()) {
             $html .= 'Tel: ' . $customer->getPhone();
         }
-        
+
         $html .= '</p>
             </div>
-            
+
             <table>
                 <thead>
                     <tr>
@@ -342,7 +323,7 @@ class InvoiceController
                     </tr>
                 </thead>
                 <tbody>';
-        
+
         foreach ($invoice->getItems() as $item) {
             $html .= '<tr>
                         <td>' . htmlspecialchars($item->getDescription()) . '</td>
@@ -352,30 +333,30 @@ class InvoiceController
                         <td>' . number_format($item->getTotal(), 2, ',', ' ') . ' ' . $invoice->getCurrency() . '</td>
                     </tr>';
         }
-        
+
         $html .= '</tbody>
             </table>
-            
+
             <div class="totals">
                 <p><strong>Mezisoučet:</strong> ' . number_format($invoice->getSubtotal(), 2, ',', ' ') . ' ' . $invoice->getCurrency() . '</p>
                 <p><strong>DPH (' . $invoice->getTaxRate() . '%):</strong> ' . number_format($invoice->getTaxAmount(), 2, ',', ' ') . ' ' . $invoice->getCurrency() . '</p>
                 <p><strong>Celkem k úhradě:</strong> ' . number_format($invoice->getTotal(), 2, ',', ' ') . ' ' . $invoice->getCurrency() . '</p>
             </div>
-            
+
             <div class="clear"></div>
-            
+
             <div class="qr-code">
                 <h3>QR kód pro platbu</h3>
                 <img src="' . $qrCodeData . '" alt="QR kód pro platbu">
             </div>
-            
+
             <div style="margin-top: 30px;">
                 <p><strong>Poznámky:</strong></p>
                 <p>' . nl2br(htmlspecialchars($invoice->getNotes() ?? '')) . '</p>
             </div>
         </body>
         </html>';
-        
+
         return $html;
     }
-} 
+}

@@ -83,7 +83,7 @@ if (!function_exists('render_toasts')) {
      */
     function render_toasts(): string
     {
-        return \Core\Notification\Toast::render();
+        return \Core\Notification\ToastNotification::render();
     }
 }
 
@@ -93,26 +93,36 @@ if (!function_exists('render_toast_script')) {
      */
     function render_toast_script(): string
     {
-        return \Core\Notification\Toast::render();
+        return \Core\Notification\ToastNotification::renderScripts();
+    }
+}
+
+if (!function_exists('render_toast_scripts')) {
+    /**
+     * Vyrenderuje toast notification skripty (nová funkce)
+     */
+    function render_toast_scripts(): string
+    {
+        return \Core\Notification\ToastNotification::renderScripts();
     }
 }
 
 if (!function_exists('render_flash')) {
     /**
-     * Vyrenderuje flash notifikace
+     * Vyrenderuje flash notifikace (kompatibilita - přesměrováno na toast)
      */
     function render_flash(): string
     {
-        return Flash::render();
+        return \Core\Notification\ToastNotification::render();
     }
 }
 
 if (!function_exists('render_flash_scripts')) {
     /**
-     * Vyrenderuje flash skripty
+     * Vyrenderuje flash skripty (kompatibilita - přesměrováno na toast)
      */
     function render_flash_scripts(): string
     {
-        return Flash::render();
+        return \Core\Notification\ToastNotification::renderScripts();
     }
 }

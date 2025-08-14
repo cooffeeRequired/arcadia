@@ -6,7 +6,7 @@
 
 use Core\Facades\Container;
 use Core\Notification\Toast;
-use Core\Routing\Request;
+use Core\Http\Request;
 use Random\RandomException;
 use Symfony\Component\VarDumper\VarDumper;
 
@@ -799,3 +799,4 @@ if (!function_exists('method_field')) {
 }
 
 require_once APP_ROOT . '/core/helpers/notification.php';
+require_once APP_ROOT . '/core/helpers/toast.php';

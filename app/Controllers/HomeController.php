@@ -6,20 +6,17 @@ use App\Entities\Activity;
 use App\Entities\Contact;
 use App\Entities\Customer;
 use App\Entities\Deal;
-use Core\Facades\Container;
+use Core\Http\Response;
 use Core\Render\BaseController;
-use Core\Render\View;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Exception\NotSupported;
-use JetBrains\PhpStorm\NoReturn;
 
 class HomeController extends BaseController
 {
-
     /**
      * @throws NotSupported
+     * @throws \Exception
      */
-    public function index(): string
+    public function index(): Response\ViewResponse
     {
         debug_log("HomeController::index() started");
 
@@ -126,24 +123,19 @@ class HomeController extends BaseController
             'recentActivities' => $recentActivities
         ];
         debug_log("HomeController::index() - about to render view");
+
+        toast_info('Helper funkce info!');
         return $this->view('home', $data);
     }
-
 
     /**
      * Demonstruje použití nových externích session metod
      */
-    #[NoReturn]
-    public function testExternalSession(): void
+    public function testExternalSession(): Response\JsonResponse
     {
-        $request = $this->getRequest();
-
-        // Nastav JSON header
-        header('Content-Type: application/json');
-        header('Cache-Control: no-cache, must-revalidate');
+        $request = $this->request;
 
         // Vrať JSON
-        echo json_encode($request->getExternalSession(true), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        exit;
+        return $this->json($request->getExternalSession(true));
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Core\Routing;
 
-use Core\Routing\Request;
+use Core\Http\Request;
 use Exception;
 
 class Middleware

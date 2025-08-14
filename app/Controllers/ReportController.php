@@ -5,20 +5,12 @@ namespace App\Controllers;
 use App\Entities\Contact;
 use App\Entities\Customer;
 use App\Entities\Deal;
-use Core\Facades\Container;
-use Core\Render\View;
-use Doctrine\ORM\EntityManager;
+use Core\Http\Response;
+use Core\Render\BaseController;
 
-class ReportController
+class ReportController extends BaseController
 {
-    private EntityManager $em;
-
-    public function __construct()
-    {
-        $this->em = Container::get('doctrine.em');
-    }
-
-    public function index()
+    public function index(): Response\ViewResponse
     {
         // Získání základních statistik
         $customersCount = $this->em->getRepository(Customer::class)->count([]);
@@ -47,7 +39,7 @@ class ReportController
            ->where('d.status = :status')
            ->setParameter('status', 'active')
            ->groupBy('d.stage');
-        
+
         $stageStats = $qb->getQuery()->getResult();
 
         // Získání posledních aktivit
@@ -63,7 +55,7 @@ class ReportController
             10
         );
 
-        return View::render('reports.index', [
+        return $this->view('reports.index', [
             'customersCount' => $customersCount,
             'contactsCount' => $contactsCount,
             'dealsCount' => $dealsCount,
@@ -76,17 +68,17 @@ class ReportController
         ]);
     }
 
-    public function customers()
+    public function customers(): Response\ViewResponse
     {
         // Získání zákazníků s počtem kontaktů a obchodů
         $customers = $this->em->getRepository(Customer::class)->findAll();
 
-        return View::render('reports.customers', [
+        return $this->view('reports.customers', [
             'customers' => $customers
         ]);
     }
 
-    public function deals()
+    public function deals(): Response\ViewResponse
     {
         // Získání obchodů s detaily
         $deals = $this->em->getRepository(Deal::class)->findAll();
@@ -104,13 +96,13 @@ class ReportController
             }
         }
 
-        return View::render('reports.deals', [
+        return $this->view('reports.deals', [
             'deals' => $deals,
             'stageStats' => $stageStats
         ]);
     }
 
-    public function contacts()
+    public function contacts(): Response\ViewResponse
     {
         // Získání kontaktů s detaily
         $contacts = $this->em->getRepository(Contact::class)->findAll();
@@ -125,9 +117,9 @@ class ReportController
             $typeStats[$type]++;
         }
 
-        return View::render('reports.contacts', [
+        return $this->view('reports.contacts', [
             'contacts' => $contacts,
             'typeStats' => $typeStats
         ]);
     }
-} 
+}

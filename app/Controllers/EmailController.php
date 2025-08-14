@@ -9,27 +9,16 @@ use App\Entities\EmailSignature;
 use App\Entities\EmailServer;
 use App\Entities\EmailTemplate;
 use App\Entities\User;
-use Core\Facades\Container;
-use Core\Render\View;
-use Doctrine\ORM\EntityManager;
+use Core\Http\Response;
+use Core\Render\BaseController;
 
-class EmailController
+class EmailController extends BaseController
 {
-    private EntityManager $em;
-
-    public function __construct()
+    public function index(): Response\ViewResponse
     {
-        $this->em = Container::get('doctrine.em');
-    }
-
-    public function index()
-    {
-        // Kontrola přihlášení
-
-
         // Získání e-mailů z databáze
         $emails = $this->em->getRepository(Email::class)->findBy(
-            ['user' => $_SESSION['user_id']],
+            ['user' => $this->session('user_id')],
             ['created_at' => 'DESC'],
             50
         );
@@ -43,85 +32,79 @@ class EmailController
             'lastPage' => 1
         ];
 
-        return View::render('emails.index', [
+        return $this->view('emails.index', [
             'emails' => $emails,
             'pagination' => $pagination
         ]);
     }
 
-    public function create()
+    public function create(): Response\ViewResponse
     {
-        // Kontrola přihlášení
-
-
         // Získání dostupných šablon
         $templates = $this->em->getRepository(EmailTemplate::class)->findBy(
-            ['user' => $_SESSION['user_id'], 'is_active' => true]
+            ['user' => $this->session('user_id'), 'is_active' => true]
         );
 
         // Získání dostupných serverů
         $servers = $this->em->getRepository(EmailServer::class)->findBy(
-            ['user' => $_SESSION['user_id'], 'is_active' => true]
+            ['user' => $this->session('user_id'), 'is_active' => true]
         );
 
         // Získání zákazníků pro autocomplete
         $customers = $this->em->getRepository(Customer::class)->findBy(
-            ['user' => $_SESSION['user_id']],
+            ['user' => $this->session('user_id')],
             ['name' => 'ASC']
         );
 
-        return View::render('emails.create', [
+        return $this->view('emails.create', [
             'templates' => $templates,
             'servers' => $servers,
             'customers' => $customers
         ]);
     }
 
-    public function store()
+    public function store(): void
     {
-        // Kontrola přihlášení
-
-
-        $user = $this->em->getRepository(User::class)->find($_SESSION['user_id']);
+        $user = $this->em->getRepository(User::class)->find($this->session('user_id'));
 
         $email = new Email();
-        $email->setSubject($_POST['subject'] ?? '');
-        $email->setBody($_POST['body'] ?? '');
-        $email->setFromEmail($_POST['from_email'] ?? '');
-        $email->setFromName($_POST['from_name'] ?? '');
-        $email->setToEmails($_POST['to_emails'] ?? '');
-        $email->setCcEmails($_POST['cc_emails'] ?? null);
-        $email->setBccEmails($_POST['bcc_emails'] ?? null);
+        $email->setSubject($this->input('subject', ''));
+        $email->setBody($this->input('body', ''));
+        $email->setFromEmail($this->input('from_email', ''));
+        $email->setFromName($this->input('from_name', ''));
+        $email->setToEmails($this->input('to_emails', ''));
+        $email->setCcEmails($this->input('cc_emails', null));
+        $email->setBccEmails($this->input('bcc_emails', null));
         $email->setStatus('draft');
         $email->setUser($user);
 
         // Nastavení zákazníka pokud je vybrán
-        if (!empty($_POST['customer_id'])) {
-            $customer = $this->em->getRepository(Customer::class)->find($_POST['customer_id']);
+        if ($this->has('customer_id')) {
+            $customer = $this->em->getRepository(Customer::class)->find($this->input('customer_id'));
             if ($customer) {
                 $email->setCustomer($customer);
             }
         }
 
         // Nastavení obchodu pokud je vybrán
-        if (!empty($_POST['deal_id'])) {
-            $deal = $this->em->getRepository(Deal::class)->find($_POST['deal_id']);
+        if ($this->has('deal_id')) {
+            $deal = $this->em->getRepository(Deal::class)->find($this->input('deal_id'));
             if ($deal) {
                 $email->setDeal($deal);
             }
         }
 
         // Nastavení šablony pokud je vybrána
-        if (!empty($_POST['template_id'])) {
-            $template = $this->em->getRepository(EmailTemplate::class)->find($_POST['template_id']);
+        if ($this->has('template_id')) {
+            $template = $this->em->getRepository(EmailTemplate::class)->find($this->input('template_id'));
             if ($template) {
                 $email->setTemplate($template);
             }
         }
 
         // Nastavení serveru pokud je vybrán
-        if (!empty($_POST['server_id'])) {
-            $server = $this->em->getRepository(EmailServer::class)->find($_POST['server_id']);
+        if ($this->has('server_id')) {
+            $server = $this->em->getRepository(EmailServer::class)->find($this->input('server_id'));
             if ($server) {
                 $email->setServer($server);
             }
@@ -130,90 +113,77 @@ class EmailController
         $this->em->persist($email);
         $this->em->flush();
 
-        header('Location: /emails');
-        exit;
+        $this->redirect('/emails');
     }
 
-    public function show($id)
+    public function show($id): Response\ViewResponse
     {
-        // Kontrola přihlášení
-
-
         // Získání e-mailu z databáze
         $email = $this->em->getRepository(Email::class)->find($id);
 
         if (!$email) {
-            http_response_code(404);
-            return View::render('errors.404');
+            return $this->notFound();
         }
 
-        return View::render('emails.show', [
+        return $this->view('emails.show', [
             'email' => $email
         ]);
     }
 
-    public function edit($id)
+    public function edit($id): Response\ViewResponse
     {
-        // Kontrola přihlášení
-
-
         // Získání e-mailu z databáze
         $email = $this->em->getRepository(Email::class)->find($id);
 
         if (!$email) {
-            http_response_code(404);
-            return View::render('errors.404');
+            return $this->notFound();
         }
 
         // Získání dostupných šablon
         $templates = $this->em->getRepository(EmailTemplate::class)->findBy(
-            ['user' => $_SESSION['user_id'], 'is_active' => true]
+            ['user' => $this->session('user_id'), 'is_active' => true]
         );
 
         // Získání dostupných serverů
         $servers = $this->em->getRepository(EmailServer::class)->findBy(
-            ['user' => $_SESSION['user_id'], 'is_active' => true]
+            ['user' => $this->session('user_id'), 'is_active' => true]
         );
 
-        return View::render('emails.edit', [
+        return $this->view('emails.edit', [
             'email' => $email,
             'templates' => $templates,
             'servers' => $servers
         ]);
     }
 
-    public function update($id)
+    public function update($id): void
     {
-        // Kontrola přihlášení
-
-
         // Získání e-mailu z databáze
         $email = $this->em->getRepository(Email::class)->find($id);
 
         if (!$email) {
-            http_response_code(404);
-            return View::render('errors.404');
+            $this->redirect('/emails');
         }
 
-        $email->setSubject($_POST['subject'] ?? '');
-        $email->setBody($_POST['body'] ?? '');
-        $email->setFromEmail($_POST['from_email'] ?? '');
-        $email->setFromName($_POST['from_name'] ?? '');
-        $email->setToEmails($_POST['to_emails'] ?? '');
-        $email->setCcEmails($_POST['cc_emails'] ?? null);
-        $email->setBccEmails($_POST['bcc_emails'] ?? null);
+        $email->setSubject($this->input('subject', ''));
+        $email->setBody($this->input('body', ''));
+        $email->setFromEmail($this->input('from_email', ''));
+        $email->setFromName($this->input('from_name', ''));
+        $email->setToEmails($this->input('to_emails', ''));
+        $email->setCcEmails($this->input('cc_emails', null));
+        $email->setBccEmails($this->input('bcc_emails', null));
 
         // Nastavení šablony pokud je vybrána
-        if (!empty($_POST['template_id'])) {
-            $template = $this->em->getRepository(EmailTemplate::class)->find($_POST['template_id']);
+        if ($this->has('template_id')) {
+            $template = $this->em->getRepository(EmailTemplate::class)->find($this->input('template_id'));
             if ($template) {
                 $email->setTemplate($template);
             }
         }
 
         // Nastavení serveru pokud je vybrán
-        if (!empty($_POST['server_id'])) {
-            $server = $this->em->getRepository(EmailServer::class)->find($_POST['server_id']);
+        if ($this->has('server_id')) {
+            $server = $this->em->getRepository(EmailServer::class)->find($this->input('server_id'));
             if ($server) {
                 $email->setServer($server);
             }
@@ -221,41 +191,31 @@ class EmailController
 
         $this->em->flush();
 
-        header('Location: /emails/' . $email->getId());
-        exit;
+        $this->redirect('/emails/' . $email->getId());
     }
 
-    public function delete($id)
+    public function delete($id): void
     {
-        // Kontrola přihlášení
-
-
         // Získání e-mailu z databáze
         $email = $this->em->getRepository(Email::class)->find($id);
 
         if (!$email) {
-            http_response_code(404);
-            return View::render('errors.404');
+            $this->redirect('/emails');
         }
 
         $this->em->remove($email);
         $this->em->flush();
 
-        header('Location: /emails');
-        exit;
+        $this->redirect('/emails');
     }
 
-    public function send($id)
+    public function send($id): void
     {
-        // Kontrola přihlášení
-
-
         // Získání e-mailu z databáze
         $email = $this->em->getRepository(Email::class)->find($id);
 
         if (!$email) {
-            http_response_code(404);
-            return View::render('errors.404');
+            $this->redirect('/emails');
         }
 
         // Zde by byla implementace odeslání e-mailu
@@ -265,51 +225,41 @@ class EmailController
 
         $this->em->flush();
 
-        header('Location: /emails/' . $email->getId());
-        exit;
+        $this->redirect('/emails/' . $email->getId());
     }
 
-    public function templates()
+    public function templates(): Response\ViewResponse
     {
-        // Kontrola přihlášení
-
-
         // Získání šablon z databáze
         $templates = $this->em->getRepository(EmailTemplate::class)->findBy(
-            ['user' => $_SESSION['user_id']],
+            ['user' => $this->session('user_id')],
             ['created_at' => 'DESC']
         );
 
-        return View::render('emails.templates', [
+        return $this->view('emails.templates', [
             'templates' => $templates
         ]);
     }
 
-    public function signatures()
+    public function signatures(): Response\ViewResponse
     {
-        // Kontrola přihlášení
-
-
         // Získání podpisů z databáze
         $signatures = $this->em->getRepository(EmailSignature::class)->findBy(
-            ['user' => $_SESSION['user_id']],
+            ['user' => $this->session('user_id')],
             ['created_at' => 'DESC']
         );
 
-        return View::render('emails.signatures', [
+        return $this->view('emails.signatures', [
             'signatures' => $signatures
         ]);
     }
 
-    public function servers()
+    public function servers(): Response\ViewResponse
     {
-        // Kontrola přihlášení
-
-
         // Získání serverů z databáze
         $servers = $this->em->getRepository(EmailSignature::class)->findAll();
 
-        return View::render('emails.servers', [
+        return $this->view('emails.servers', [
             'servers' => $servers
         ]);
     }
