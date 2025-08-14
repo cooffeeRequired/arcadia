@@ -12,32 +12,32 @@ class Contact implements JsonSerializable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', name: 'id')]
     protected readonly int $id;
 
     #[ORM\ManyToOne(targetEntity: Customer::class, inversedBy: 'contacts')]
     #[ORM\JoinColumn(name: 'customer_id', referencedColumnName: 'id')]
     private Customer $customer;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, name: 'type')]
     private string $type; // email, phone, meeting, note
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, name: 'subject')]
     private string $subject;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true, name: 'description')]
     private ?string $description = null;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', name: 'contact_date')]
     private DateTime $contact_date;
 
-    #[ORM\Column(type: 'string', length: 50)]
+    #[ORM\Column(type: 'string', length: 50, name: 'status')]
     private string $status = 'completed'; // scheduled, completed, cancelled
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', name: 'created_at')]
     private DateTime $created_at;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', name: 'updated_at')]
     private DateTime $updated_at;
 
     public function __construct()

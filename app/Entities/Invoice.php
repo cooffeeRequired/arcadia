@@ -12,47 +12,47 @@ class Invoice implements JsonSerializable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', name: 'id')]
     private $id;
 
-    #[ORM\Column(type: 'string', length: 50, unique: true)]
+    #[ORM\Column(type: 'string', length: 50, unique: true, name: 'invoice_number')]
     private $invoice_number;
 
     #[ORM\ManyToOne(targetEntity: Customer::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, name: 'customer_id')]
     private $customer;
 
-    #[ORM\Column(type: 'date')]
+    #[ORM\Column(type: 'date', name: 'issue_date')]
     private $issue_date;
 
-    #[ORM\Column(type: 'date')]
+    #[ORM\Column(type: 'date', name: 'due_date')]
     private $due_date;
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, name: 'subtotal')]
     private $subtotal = 0;
 
-    #[ORM\Column(type: 'decimal', precision: 5, scale: 2)]
+    #[ORM\Column(type: 'decimal', precision: 5, scale: 2, name: 'tax_rate')]
     private $tax_rate = 21;
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, name: 'tax_amount')]
     private $tax_amount = 0;
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, name: 'total')]
     private $total = 0;
 
-    #[ORM\Column(type: 'string', length: 20)]
+    #[ORM\Column(type: 'string', length: 20, name: 'currency')]
     private $currency = 'CZK';
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true, name: 'notes')]
     private $notes;
 
-    #[ORM\Column(type: 'string', length: 20)]
+    #[ORM\Column(type: 'string', length: 20, name: 'status')]
     private $status = 'draft';
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', name: 'created_at')]
     private $created_at;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', name: 'updated_at')]
     private $updated_at;
 
     #[ORM\OneToMany(targetEntity: InvoiceItem::class, mappedBy: 'invoice', cascade: ['persist', 'remove'])]

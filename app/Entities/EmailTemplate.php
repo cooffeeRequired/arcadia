@@ -11,32 +11,32 @@ class EmailTemplate implements JsonSerializable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', name: 'id')]
     private int $id;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, name: 'name')]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, name: 'subject')]
     private string $subject;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', name: 'content')]
     private string $content;
 
-    #[ORM\Column(type: 'string', length: 50)]
+    #[ORM\Column(type: 'string', length: 50, name: 'category')]
     private string $category; // welcome, follow_up, invoice, reminder, etc.
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: 'boolean', name: 'is_active')]
     private bool $is_active = true;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
     private User $user;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', name: 'created_at')]
     private \DateTime $created_at;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', name: 'updated_at')]
     private \DateTime $updated_at;
 
     public function __construct()

@@ -123,8 +123,6 @@ class HomeController extends BaseController
             'recentActivities' => $recentActivities
         ];
         debug_log("HomeController::index() - about to render view");
-
-        toast_info('Helper funkce info!');
         return $this->view('home', $data);
     }
 

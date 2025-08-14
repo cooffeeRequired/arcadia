@@ -11,38 +11,38 @@ class Deal implements JsonSerializable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', name: 'id')]
     private int $id;
 
     #[ORM\ManyToOne(targetEntity: Customer::class, inversedBy: 'deals')]
     #[ORM\JoinColumn(name: 'customer_id', referencedColumnName: 'id')]
     private Customer $customer;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, name: 'title')]
     private string $title;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true, name: 'description')]
     private ?string $description = null;
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true, name: 'value')]
     private ?float $value = null;
 
-    #[ORM\Column(type: 'string', length: 50)]
+    #[ORM\Column(type: 'string', length: 50, name: 'stage')]
     private string $stage = 'prospecting'; // prospecting, qualification, proposal, negotiation, closed_won, closed_lost
 
-    #[ORM\Column(type: 'decimal', precision: 3, scale: 2)]
+    #[ORM\Column(type: 'decimal', precision: 3, scale: 2, name: 'probability')]
     private float $probability = 0.0; // 0.0 - 1.0
 
-    #[ORM\Column(type: 'date', nullable: true)]
+    #[ORM\Column(type: 'date', nullable: true, name: 'expected_close_date')]
     private ?\DateTime $expected_close_date = null;
 
-    #[ORM\Column(type: 'string', length: 50)]
+    #[ORM\Column(type: 'string', length: 50, name: 'status')]
     private string $status = 'active'; // active, won, lost, cancelled
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', name: 'created_at')]
     private \DateTime $created_at;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', name: 'updated_at')]
     private \DateTime $updated_at;
 
     public function __construct()

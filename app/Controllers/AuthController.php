@@ -20,6 +20,11 @@ class AuthController extends BaseController {
         return $this->view('auth.login');
     }
 
+    public function showRegister(): Response\ViewResponse
+    {
+        return $this->view('auth.register');
+    }
+
     public function logout(): void
     {
         $this->request->getSession()->destroy();
@@ -55,5 +60,38 @@ class AuthController extends BaseController {
 
         $this->toastSuccess('Přihlášení úspěšné!');
         $this->redirect('/');
+    }
+
+    /**
+     * @throws OptimisticLockException
+     * @throws NotSupported
+     * @throws ORMException|Exception
+     */
+    public function register(): void
+    {
+        // Kontrola, zda uživatel s tímto emailem již neexistuje
+        $existingUser = $this->em
+            ->getRepository(User::class)
+            ->findOneBy(['email' => $this->input('email')]);
+
+        if ($existingUser) {
+            $this->toastError('Uživatel s tímto emailem již existuje.');
+            $this->redirect('/register');
+            return;
+        }
+
+        // Vytvoření nového uživatele
+        $user = new User();
+        $user->setName($this->input('name'));
+        $user->setEmail($this->input('email'));
+        $user->setPassword(password_hash($this->input('password'), PASSWORD_DEFAULT));
+        $user->setRole('user');
+        $user->setIsActive(true);
+
+        $this->em->persist($user);
+        $this->em->flush();
+
+        $this->toastSuccess('Registrace úspěšná! Nyní se můžete přihlásit.');
+        $this->redirect('/login');
     }
 }

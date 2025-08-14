@@ -8,6 +8,8 @@ use App\Controllers\EmailController;
 use App\Controllers\ErrorController;
 use App\Controllers\HomeController;
 use App\Controllers\InvoiceController;
+use App\Controllers\ModuleController;
+use App\Controllers\ProjectController;
 use App\Controllers\ReportController;
 use App\Controllers\SettingsController;
 use App\Controllers\WorkflowController;
@@ -133,6 +135,31 @@ $router->group(['middleware' => ['auth']], function (Router $router) {
         $router->get('/templates', [EmailController::class, 'templates'])->name('emails.templates');
         $router->get('/signatures', [EmailController::class, 'signatures'])->name('emails.signatures');
         $router->get('/servers', [EmailController::class, 'servers'])->name('emails.servers');
+    });
+
+    // Projekty
+    $router->group(['prefix' => '/projects'], function (Router $router) {
+        $router->get('/', [ProjectController::class, 'index'])->name('projects.index');
+        $router->get('/create', [ProjectController::class, 'create'])->name('projects.create');
+        $router->post('/', [ProjectController::class, 'store'])->name('projects.store');
+        $router->get('/{id}', [ProjectController::class, 'show'])->name('projects.show');
+        $router->get('/{id}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
+        $router->post('/{id}', [ProjectController::class, 'update'])->name('projects.update');
+        $router->post('/{id}/delete', [ProjectController::class, 'delete'])->name('projects.delete');
+        $router->get('/{id}/api', [ProjectController::class, 'apiShow'])->name('projects.api.show');
+        $router->get('/mini/{slug}', [ProjectController::class, 'miniPage'])->name('projects.mini-page');
+    });
+
+    // Moduly (přesunuto do nastavení)
+    $router->group(['prefix' => '/settings/modules'], function (Router $router) {
+        $router->get('/', [ModuleController::class, 'index'])->name('settings.modules.index');
+        $router->get('/{module}', [ModuleController::class, 'show'])->name('settings.modules.show');
+        $router->get('/{module}/edit', [ModuleController::class, 'edit'])->name('settings.modules.edit');
+        $router->post('/{module}', [ModuleController::class, 'update'])->name('settings.modules.update');
+        $router->post('/{module}/toggle', [ModuleController::class, 'toggle'])->name('settings.modules.toggle');
+        $router->get('/{module}/dependencies', [ModuleController::class, 'dependencies'])->name('settings.modules.dependencies');
+        $router->get('/api/status', [ModuleController::class, 'apiStatus'])->name('settings.modules.api.status');
+        $router->get('/log', [ModuleController::class, 'log'])->name('settings.modules.log');
     });
 });
 

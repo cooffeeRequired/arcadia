@@ -11,37 +11,37 @@ class Workflow implements JsonSerializable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', name: 'id')]
     private int $id;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, name: 'name')]
     private string $name;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true, name: 'description')]
     private ?string $description = null;
 
-    #[ORM\Column(type: 'string', length: 50)]
+    #[ORM\Column(type: 'string', length: 50, name: 'trigger_type')]
     private string $trigger_type; // customer_created, deal_stage_changed, contact_added, etc.
 
-    #[ORM\Column(type: 'json')]
+    #[ORM\Column(type: 'json', name: 'trigger_config')]
     private array $trigger_config = [];
 
-    #[ORM\Column(type: 'json')]
+    #[ORM\Column(type: 'json', name: 'conditions')]
     private array $conditions = [];
 
-    #[ORM\Column(type: 'json')]
+    #[ORM\Column(type: 'json', name: 'actions')]
     private array $actions = [];
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: 'boolean', name: 'is_active')]
     private bool $is_active = true;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', name: 'priority')]
     private int $priority = 0;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', name: 'created_at')]
     private \DateTime $created_at;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', name: 'updated_at')]
     private \DateTime $updated_at;
 
     #[ORM\ManyToOne(targetEntity: User::class)]

@@ -10,4 +10,5 @@ return [
     'cache_dir' => APP_ROOT . '/cache',
     'migrations_dir' => APP_ROOT . '/database/migrations',
     'seeds_dir' =>  APP_ROOT . '/database/seeds',
+    'modules_dir' => APP_ROOT . '/modules',
 ];

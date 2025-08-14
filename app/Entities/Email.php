@@ -11,43 +11,43 @@ class Email implements JsonSerializable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', name: 'id')]
     private int $id;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, name: 'subject')]
     private string $subject;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', name: 'body')]
     private string $body;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, name: 'from_email')]
     private string $from_email;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, name: 'from_name')]
     private string $from_name;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', name: 'to_emails')]
     private string $to_emails; // JSON array of email addresses
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true, name: 'cc_emails')]
     private ?string $cc_emails;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true, name: 'bcc_emails')]
     private ?string $bcc_emails;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true, name: 'attachments')]
     private ?string $attachments;
 
-    #[ORM\Column(type: 'string', length: 50)]
+    #[ORM\Column(type: 'string', length: 50, name: 'status')]
     private string $status = 'draft'; // draft, sent, failed, scheduled
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true, name: 'sent_at')]
     private ?\DateTime $sent_at = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true, name: 'scheduled_at')]
     private ?\DateTime $scheduled_at = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true, name: 'error_message')]
     private ?string $error_message = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
@@ -70,10 +70,10 @@ class Email implements JsonSerializable
     #[ORM\JoinColumn(name: 'server_id', referencedColumnName: 'id')]
     private ?EmailServer $server = null;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', name: 'created_at')]
     private \DateTime $created_at;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', name: 'updated_at')]
     private \DateTime $updated_at;
 
     public function __construct()

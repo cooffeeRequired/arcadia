@@ -13,16 +13,16 @@ class Activity implements JsonSerializable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(name: 'id', type: 'integer')]
     protected readonly int $id;
 
-    #[ORM\Column(type: 'string', length: 50)]
+    #[ORM\Column(name: 'type', type: 'string', length: 50)]
     protected string $type;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(name: 'title', type: 'string', length: 255)]
     protected string $title;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(name: 'description', type: 'text', nullable: true)]
     protected ?string $description = null;
 
     #[ORM\ManyToOne(targetEntity: Customer::class)]
@@ -37,10 +37,10 @@ class Activity implements JsonSerializable
     #[ORM\JoinColumn(name: 'contact_id', referencedColumnName: 'id', onDelete: 'SET NULL')]
     protected ?Contact $contact = null;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(name: 'created_at', type: 'datetime')]
     protected DateTime $created_at;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(name: 'updated_at', type: 'datetime')]
     protected DateTime $updated_at;
 
     public function __construct()
@@ -50,10 +50,7 @@ class Activity implements JsonSerializable
     }
 
     // Gettery a Settery
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    public function getId(): ?int {return $this->id;}
 
     public function getType(): string
     {

@@ -11,32 +11,32 @@ class WorkflowExecution implements JsonSerializable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', name: 'id')]
     private int $id;
 
     #[ORM\ManyToOne(targetEntity: Workflow::class)]
     #[ORM\JoinColumn(name: 'workflow_id', referencedColumnName: 'id')]
     private Workflow $workflow;
 
-    #[ORM\Column(type: 'string', length: 50)]
+    #[ORM\Column(type: 'string', length: 50, name: 'status')]
     private string $status; // running, completed, failed, cancelled
 
-    #[ORM\Column(type: 'json')]
+    #[ORM\Column(type: 'json', name: 'trigger_data')]
     private array $trigger_data = [];
 
-    #[ORM\Column(type: 'json')]
+    #[ORM\Column(type: 'json', name: 'execution_log')]
     private array $execution_log = [];
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true, name: 'error_message')]
     private ?string $error_message = null;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', name: 'started_at')]
     private \DateTime $started_at;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true, name: 'completed_at')]
     private ?\DateTime $completed_at = null;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', name: 'execution_time_ms')]
     private int $execution_time_ms = 0;
 
     public function __construct()

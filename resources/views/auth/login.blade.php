@@ -8,10 +8,10 @@
                 Přihlášení do účtu
             </h2>
         </div>
-        
+
         <form class="mt-8 space-y-6" method="POST" action="/login">
             @csrf
-            
+
             <div class="space-y-4">
                 @include('auth.comps.simple-input', [
                     'name' => 'email',
@@ -21,7 +21,7 @@
                     'required' => true,
                     'autocomplete' => 'email'
                 ])
-                
+
                 @include('auth.comps.simple-input', [
                     'name' => 'password',
                     'label' => 'Heslo',

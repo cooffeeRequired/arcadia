@@ -8,10 +8,10 @@
                 Vytvořit nový účet
             </h2>
         </div>
-        
+
         <form class="mt-8 space-y-6" method="POST" action="/register">
             @csrf
-            
+
             <div class="space-y-4">
                 @include('auth.comps.simple-input', [
                     'name' => 'name',
@@ -21,7 +21,7 @@
                     'required' => true,
                     'autocomplete' => 'name'
                 ])
-                
+
                 @include('auth.comps.simple-input', [
                     'name' => 'email',
                     'label' => 'Email',
@@ -30,7 +30,7 @@
                     'required' => true,
                     'autocomplete' => 'email'
                 ])
-                
+
                 @include('auth.comps.simple-input', [
                     'name' => 'password',
                     'label' => 'Heslo',
@@ -39,7 +39,7 @@
                     'required' => true,
                     'autocomplete' => 'new-password'
                 ])
-                
+
                 @include('auth.comps.simple-input', [
                     'name' => 'password_confirm',
                     'label' => 'Potvrzení hesla',

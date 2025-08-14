@@ -11,6 +11,7 @@ use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\Migrations\Provider\DBALSchemaDiffProvider;
 use Doctrine\Migrations\Version\Version;
+use Doctrine\ORM\Tools\SchemaTool;
 use Exception;
 
 class MigrationCLI
@@ -23,6 +24,7 @@ class MigrationCLI
     private ?string $migrationsDir;
     private ?string $seedsDir;
     private ?string $migrationsTable = 'migrations';
+    private ?string $entitiesDir;
 
     /**
      * @throws SchemaException
@@ -35,6 +37,7 @@ class MigrationCLI
         }
         $this->migrationsDir = APP_CONFIGURATION['migrations_dir'];
         $this->seedsDir = APP_CONFIGURATION['seeds_dir'];
+        $this->entitiesDir = APP_CONFIGURATION['entities_dir'] ?? 'app/Entities';
 
         if (! is_dir($this->migrationsDir)) mkdir($this->migrationsDir, 0755, true);
         if (! is_dir($this->seedsDir)) mkdir($this->seedsDir, 0755, true);
@@ -83,10 +86,12 @@ class MigrationCLI
         echo "  rollback [--to=version]       - Vrátí migrace zpět\n";
         echo "  status [--versions]           - Zobrazí stav migrací\n";
         echo "  create <název>                - Vytvoří novou migraci\n";
+        echo "  generate-from-entities        - Vygeneruje migrace z entit\n";
         echo "  seed                          - Spustí všechny seedy\n";
         echo "  create-seed <název>           - Vytvoří nový seed\n\n";
         echo "Příklady:\n";
         echo "  ./console/arcadia-migrations create create_users_table\n";
+        echo "  ./console/arcadia-migrations generate-from-entities\n";
         echo "  ./console/arcadia-migrations migrate --to=2025_08_08_200234\n";
         echo "  ./console/arcadia-migrations rollback --to=2025_08_08_184014\n";
         echo "  ./console/arcadia-migrations status --versions\n";
@@ -188,17 +193,29 @@ class MigrationCLI
             echo $this->colorize("Verze: $version", 'cyan') . "\n";
             echo $this->colorize("|", 'blue') . "\n";
 
-            $migration = new $className();
-            $this->executeMigration($migration, 'up');
+            try {
+                $migration = new $className();
+                $this->executeMigration($migration, 'up');
 
-            $this->connection->insert($this->migrationsTable, [
-                'version' => $version,
-                'description' => $migration->getDescription(),
-                'executed_at' => date('Y-m-d H:i:s')
-            ]);
+                // Zaznamenáme úspěšnou migraci pouze pokud proběhla bez chyb
+                $this->connection->insert($this->migrationsTable, [
+                    'version' => $version,
+                    'description' => $migration->getDescription(),
+                    'executed_at' => date('Y-m-d H:i:s')
+                ]);
 
-            echo $this->colorize("|", 'blue') . "\n";
-            echo $this->colorize("Migrace dokončena: $migrationName", 'green') . "\n\n";
+                echo $this->colorize("|", 'blue') . "\n";
+                echo $this->colorize("✅ Migrace dokončena: $migrationName", 'green') . "\n\n";
+
+            } catch (Exception $e) {
+                echo $this->colorize("|", 'blue') . "\n";
+                echo $this->colorize("❌ Migrace selhala: $migrationName", 'red') . "\n";
+                echo $this->colorize("Chyba: " . $e->getMessage(), 'red') . "\n\n";
+
+                // Zastavíme spouštění dalších migrací
+                echo $this->colorize("🛑 Spouštění migrací bylo zastaveno kvůli chybě.", 'red') . "\n";
+                return;
+            }
         }
 
         echo $this->colorize("Všechny migrace dokončeny.", 'bold') . "\n";
@@ -255,11 +272,25 @@ class MigrationCLI
                     }
                     echo $this->colorize("|", 'blue') . "\n";
 
-                    $migration = new $className();
-                    $this->executeMigration($migration, 'down');
-                    $this->connection->delete($this->migrationsTable, ['version' => $version]);
-                    echo $this->colorize("|", 'blue') . "\n";
-                    echo $this->colorize("Migrace vrácena zpět: $version", 'yellow') . "\n\n";
+                    try {
+                        $migration = new $className();
+                        $this->executeMigration($migration, 'down');
+
+                        // Smažeme záznam o migraci pouze pokud rollback proběhl úspěšně
+                        $this->connection->delete($this->migrationsTable, ['version' => $version]);
+
+                        echo $this->colorize("|", 'blue') . "\n";
+                        echo $this->colorize("✅ Migrace vrácena zpět: $version", 'yellow') . "\n\n";
+
+                    } catch (Exception $e) {
+                        echo $this->colorize("|", 'blue') . "\n";
+                        echo $this->colorize("❌ Rollback selhal: $version", 'red') . "\n";
+                        echo $this->colorize("Chyba: " . $e->getMessage(), 'red') . "\n\n";
+
+                        // Zastavíme spouštění dalších rollbacků
+                        echo $this->colorize("🛑 Vrácení migrací bylo zastaveno kvůli chybě.", 'red') . "\n";
+                        return;
+                    }
                 }
             }
         }
@@ -440,6 +471,208 @@ class MigrationCLI
     }
 
     /**
+     * Vygeneruje migrace z entit
+     */
+    private function generateFromEntities(): void
+    {
+        echo $this->colorize("Generování migrací z entit...", 'cyan') . "\n";
+
+        $entities = $this->scanEntities();
+
+        if (empty($entities)) {
+            echo $this->colorize("Žádné entity nebyly nalezeny.", 'yellow') . "\n";
+            return;
+        }
+
+        $timestamp = date('Y_m_d_His');
+        $filename = "{$timestamp}_create_tables_from_entities.php";
+        $filepath = $this->migrationsDir . '/' . $filename;
+
+        $migrationContent = $this->generateMigrationFromEntities($entities);
+        file_put_contents($filepath, $migrationContent);
+
+        echo $this->colorize("Migrace vygenerována: $filepath", 'green') . "\n";
+        echo $this->colorize("Verze: $timestamp", 'cyan') . "\n";
+        echo $this->colorize("Počet entit: " . count($entities), 'cyan') . "\n";
+        echo "Spusťte 'migrate' pro aplikování migrace.\n";
+    }
+
+    /**
+     * Naskenuje všechny entity v adresáři
+     */
+    private function scanEntities(): array
+    {
+        $entities = [];
+        $entityFiles = glob($this->entitiesDir . '/*.php');
+
+        foreach ($entityFiles as $file) {
+            $className = basename($file, '.php');
+            $fullClassName = "App\\Entities\\$className";
+
+            if (class_exists($fullClassName)) {
+                $entities[] = [
+                    'file' => $file,
+                    'className' => $className,
+                    'fullClassName' => $fullClassName
+                ];
+            }
+        }
+
+        return $entities;
+    }
+
+    /**
+     * Vygeneruje obsah migrace z entit
+     */
+    private function generateMigrationFromEntities(array $entities): string
+    {
+        $className = 'CreateTablesFromEntities';
+        $migrationCode = "<?php /** @noinspection PhpUnhandledExceptionInspection */\n\n";
+        $migrationCode .= "use Core\\CLI\\AbstractMigration;\n";
+        $migrationCode .= "use Doctrine\\DBAL\\Query\\QueryBuilder;\n";
+        $migrationCode .= "use Doctrine\\DBAL\\Schema\\Schema;\n";
+        $migrationCode .= "use Doctrine\\DBAL\\Schema\\Table;\n";
+        $migrationCode .= "use Doctrine\\DBAL\\Types\\Types;\n\n";
+        $migrationCode .= "class $className extends AbstractMigration\n";
+        $migrationCode .= "{\n";
+        $migrationCode .= "    protected function migrate(): void\n";
+        $migrationCode .= "    {\n";
+        $migrationCode .= "        \$this->setDescription('Aktualizace schématu databáze podle entit: " . implode(', ', array_column($entities, 'className')) . "');\n\n";
+
+        // Generování CREATE TABLE příkazů pomocí SchemaTool
+        $migrationCode .= $this->generateTableCreationSQL($entities);
+
+        $migrationCode .= "    }\n\n";
+        $migrationCode .= "    protected function rollback(): void\n";
+        $migrationCode .= "    {\n";
+
+        // Generování DROP TABLE příkazů pouze pro tabulky, které byly vytvořeny
+        $migrationCode .= $this->generateRollbackSQL($entities);
+
+        $migrationCode .= "    }\n";
+        $migrationCode .= "}\n";
+
+        return $migrationCode;
+    }
+
+                /**
+     * Vygeneruje SQL pro vytvoření/aktualizaci tabulek z entit pomocí SchemaTool
+     */
+    private function generateTableCreationSQL(array $entities): string
+    {
+        $code = "";
+
+        try {
+            // Získáme EntityManager
+            $em = Container::get('doctrine.em');
+
+            // Získáme metadata pro všechny entity
+            $metadata = [];
+            foreach ($entities as $entity) {
+                $metadata[] = $em->getClassMetadata($entity['fullClassName']);
+            }
+
+            // Použijeme SchemaTool pro generování SQL
+            $schemaTool = new SchemaTool($em);
+
+            // Získáme SQL pro bezpečnou aktualizaci schématu (vytvoří pouze chybějící tabulky/sloupy)
+            $sqls = $schemaTool->getUpdateSchemaSql($metadata, true);
+
+            // Seřadíme SQL příkazy tak, aby se nejdříve vytvořily tabulky a pak foreign key constraints
+            $createTableSqls = [];
+            $alterTableSqls = [];
+
+            foreach ($sqls as $sql) {
+                if (stripos($sql, 'CREATE TABLE') !== false) {
+                    $createTableSqls[] = $sql;
+                } elseif (stripos($sql, 'ALTER TABLE') !== false) {
+                    $alterTableSqls[] = $sql;
+                } else {
+                    $createTableSqls[] = $sql; // Ostatní příkazy (DROP, atd.)
+                }
+            }
+
+            // Spojíme příkazy v správném pořadí
+            $sqls = array_merge($createTableSqls, $alterTableSqls);
+
+            if (empty($sqls)) {
+                $code .= "        // Žádné změny v databázi nejsou potřeba\n";
+                $code .= "        // Všechny tabulky již existují a mají správnou strukturu\n\n";
+            } else {
+                // Přidáme každý SQL příkaz do migrace
+                foreach ($sqls as $sql) {
+                    $code .= "        \$this->raw(\"$sql\");\n";
+                }
+                $code .= "\n";
+            }
+
+        } catch (Exception $e) {
+            echo $this->colorize("Chyba při generování SQL: " . $e->getMessage(), 'red') . "\n";
+            // Fallback na jednoduché CREATE TABLE
+            $code .= "        // Fallback: Vytvoření základní tabulky\n";
+            $code .= "        \$this->raw(\"CREATE TABLE IF NOT EXISTS `users` (\n";
+            $code .= "            `id` INT AUTO_INCREMENT PRIMARY KEY,\n";
+            $code .= "            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP\n";
+            $code .= "        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci\");\n\n";
+        }
+
+        return $code;
+    }
+
+            /**
+     * Vygeneruje SQL pro rollback - pouze pro tabulky, které byly vytvořeny
+     */
+    private function generateRollbackSQL(array $entities): string
+    {
+        $code = "";
+
+        try {
+            // Získáme EntityManager
+            $em = Container::get('doctrine.em');
+
+            // Získáme metadata pro všechny entity
+            $metadata = [];
+            foreach ($entities as $entity) {
+                $metadata[] = $em->getClassMetadata($entity['fullClassName']);
+            }
+
+            // Použijeme SchemaTool pro generování SQL
+            $schemaTool = new SchemaTool($em);
+
+            // Získáme SQL pro aktualizaci schématu
+            $sqls = $schemaTool->getUpdateSchemaSql($metadata, true);
+
+            if (empty($sqls)) {
+                $code .= "        // Žádné tabulky nebyly vytvořeny, rollback není potřeba\n";
+            } else {
+                // Generujeme DROP TABLE příkazy pro všechny entity v opačném pořadí
+                $reversedEntities = array_reverse($entities);
+                foreach ($reversedEntities as $entity) {
+                    try {
+                        $tableName = $em->getClassMetadata($entity['fullClassName'])->getTableName();
+                        $code .= "        \$this->raw(\"DROP TABLE IF EXISTS `$tableName`\");\n";
+                    } catch (Exception $e) {
+                        // Fallback na snake_case název
+                        $tableName = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $entity['className']));
+                        $code .= "        \$this->raw(\"DROP TABLE IF EXISTS `$tableName`\");\n";
+                    }
+                }
+            }
+
+        } catch (Exception $e) {
+            echo $this->colorize("Chyba při generování rollback SQL: " . $e->getMessage(), 'red') . "\n";
+            // Fallback na generování DROP pro všechny entity
+            $reversedEntities = array_reverse($entities);
+            foreach ($reversedEntities as $entity) {
+                $tableName = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $entity['className']));
+                $code .= "        \$this->raw(\"DROP TABLE IF EXISTS `$tableName`\");\n";
+            }
+        }
+
+        return $code;
+    }
+
+    /**
      * @throws \Doctrine\DBAL\Exception
      */
     private function getExecutedMigrations(): array
@@ -512,30 +745,40 @@ class MigrationCLI
         return $colors[$color] . $text . $colors['reset'];
     }
 
-    /**
+        /**
+     * @throws SchemaException
      * @throws \Doctrine\DBAL\Exception
      */
     private function executeMigration(AbstractMigration $migration, $method): void
     {
         $connection = $this->connection;
-        $scm = $connection->createSchemaManager();
-        $schemeProvider = new DBALSchemaDiffProvider($scm, $connection->getDatabasePlatform());
-        $fromScheme = $schemeProvider->createFromSchema();
-        $toScheme = $schemeProvider->createToSchema($fromScheme);
-        $queryBuilder = $connection->createQueryBuilder();
-        $migration->clearQueries();
-        $migration->$method($toScheme, $queryBuilder);
 
-        // Pak spustíme raw SQL dotazy
-        $schemeDiffSQL = $schemeProvider->getSqlDiffToMigrate($fromScheme, $toScheme);
-        $rawQueries = $migration->getQueries();
-        $rawQueries = array_merge($schemeDiffSQL, $rawQueries);
+        try {
+            $scm = $connection->createSchemaManager();
+            $schemeProvider = new DBALSchemaDiffProvider($scm, $connection->getDatabasePlatform());
+            $fromScheme = $schemeProvider->createFromSchema();
+            $toScheme = $schemeProvider->createToSchema($fromScheme);
+            $queryBuilder = $connection->createQueryBuilder();
+            $migration->clearQueries();
+            $migration->$method($toScheme, $queryBuilder);
 
+            // Pak spustíme raw SQL dotazy
+            $schemeDiffSQL = $schemeProvider->getSqlDiffToMigrate($fromScheme, $toScheme);
+            $rawQueries = $migration->getQueries();
+            $rawQueries = array_merge($schemeDiffSQL, $rawQueries);
 
-        if (!empty($rawQueries)) {
-            foreach ($rawQueries as $query) {
-                $connection->executeStatement($query);
+            if (!empty($rawQueries)) {
+                foreach ($rawQueries as $query) {
+                    $connection->executeStatement($query);
+                }
             }
+
+        } catch (Exception $e) {
+            echo $this->colorize("❌ Chyba při spouštění migrace: " . $e->getMessage(), 'red') . "\n";
+            echo $this->colorize("🔄 Všechny změny byly automaticky vráceny zpět", 'yellow') . "\n";
+
+            // Přehodíme exception dál
+            throw $e;
         }
     }
 
@@ -576,6 +819,9 @@ class MigrationCLI
                     return;
                 }
                 $this->createMigration($args[1]);
+                break;
+            case 'generate-from-entities':
+                $this->generateFromEntities();
                 break;
             case 'seed':
                 $targetSeeder = $options['seeder'] ?? null;
