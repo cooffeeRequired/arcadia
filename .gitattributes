@@ -1,0 +1,21 @@
+# PHP soubory vždy CRLF
+*.php     text eol=crlf
+
+# Markdown soubory vždy CRLF
+*.md      text eol=crlf
+
+# Konfigurační soubory vždy CRLF
+*.env     text eol=crlf
+*.ini     text eol=crlf
+
+# JavaScript, CSS atd. vždy CRLF
+*.js      text eol=crlf
+*.css     text eol=crlf
+*.html    text eol=crlf
+
+# Git nebude měnit binární soubory
+*.png     binary
+*.jpg     binary
+*.gif     binary
+*.ico     binary
+*.pdf     binary
