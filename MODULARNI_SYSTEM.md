@@ -19,9 +19,12 @@ Konfigurační soubor definuje:
 Třída pro správu modulů s metodami:
 - `isEnabled()` - Kontrola, zda je modul povolen
 - `isAvailable()` - Kontrola dostupnosti modulu
-- `checkDependencies()` - Kontrola závislostí
+- `modulesWithMissingDependencies()` - Kontrola závislostí
 - `hasPermission()` - Kontrola oprávnění
 - `getSetting()` - Získání nastavení modulu
+- `moduleConfig()` - Získání konfigurace modulu
+- `scanAndSync()` - Skenování a synchronizace modulů
+- `autoInsertNew()` - Automatické vkládání nových modulů
 
 ### 3. Entita Project (`app/Entities/Project.php`)
 
@@ -182,10 +185,12 @@ V `config/modules.php` nastavte:
 ```
 
 ### 2. Kontrola v kódu
+
 ```php
 use Core\Modules\ModuleManager;
+use Core\Facades\Container;
 
-$moduleManager = new ModuleManager();
+$moduleManager = Container::get(ModuleManager::class, ModuleManager::class);
 
 if ($moduleManager->isAvailable('projects')) {
     // Modul je dostupný
@@ -210,33 +215,40 @@ if ($moduleManager->hasPermission('projects', 'create')) {
 3. **Závislosti**: Automatická kontrola závislostí
 4. **Oprávnění**: Granulární kontrola přístupu
 5. **Konfigurace**: Nastavitelná funkcionalita modulů
-6. **Logování**: Sledování změn v modulích
-7. **Automatický sidebar**: Menu se generuje podle dostupných modulů
-8. **Integrace do nastavení**: Správa modulů je součástí nastavení systému
+6. **Architektura**: Clean Architecture s Dependency Injection
+7. **Testovatelnost**: Snadné testování jednotlivých komponent
+8. **Rozšiřitelnost**: Možnost přidávání nových funkcí
 
-## Budoucí rozšíření
+## Nové API
 
-### Možné nové moduly
-- **Kanban**: Sledování úkolů
-- **Kalendář**: Plánování událostí
-- **Chat**: Interní komunikace
-- **Analytics**: Pokročilé reporty
-- **Integrations**: API integrace
+### ModuleManager
+- `isEnabled(string $module): bool` - Kontrola, zda je modul povolen
+- `isInstalled(string $module): bool` - Kontrola, zda je modul nainstalován
+- `isAvailable(string $module): bool` - Kontrola dostupnosti modulu
+- `getSetting(string $module, string $key, mixed $default = null): mixed` - Získání nastavení
+- `hasPermission(string $module, string $permission, ?string $role = null): bool` - Kontrola oprávnění
+- `enabledModules(): array` - Seznam povolených modulů
+- `availableModules(): array` - Seznam dostupných modulů
+- `modulesWithMissingDependencies(): array` - Moduly s chybějícími závislostmi
+- `moduleConfig(string $module): array` - Konfigurace modulu
+- `scanAndSync(): array` - Skenování a synchronizace
+- `autoInsertNew(): array` - Automatické vkládání nových modulů
+- `runModuleMigrations(string $module): void` - Spuštění migrací
+- `rollbackModuleMigrations(string $module): void` - Vrácení migrací zpět
+- `getModuleMigrationStatus(string $module): array` - Stav migrací
 
-### Vylepšení
-- Drag & drop pro soubory
-- Real-time notifikace
-- Export do PDF/Excel
-- Automatické zálohování
-- Multi-tenant podpora
+### Services
+- `ModuleService` - Základní služby pro moduly
+- `ModuleCatalog` - Katalog modulů (FS ↔ DB)
+- `MigrationService` - Správa migrací
+- `DependencyChecker` - Kontrola závislostí
 
-## Instalace
+### Infrastructure
+- `DoctrineModuleRepository` - Repository pro moduly
+- `FilesystemScanner` - Skenování souborového systému
+- `PhpConfigLoader` - Načítání konfigurace z PHP souborů
 
-1. Zkopírujte všechny soubory do příslušných adresářů
-2. Spusťte migrace pro vytvoření tabulek
-3. Nakonfigurujte moduly v `config/modules.php`
-4. Nastavte oprávnění pro uživatele
-
-## Podpora
-
-Systém je plně dokumentovaný a připravený pro produkční nasazení. Všechny komponenty jsou testovány a optimalizovány pro výkon.
+### DTOs
+- `ControllerInfo` - Informace o controllerech
+- `EntityInfo` - Informace o entitách
+- `MigrationInfo` - Informace o migracích

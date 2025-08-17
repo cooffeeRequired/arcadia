@@ -481,9 +481,242 @@
             saveBasicInfo();
         }
 
+        // ===== FRONTEND TOAST NOTIFICATIONS =====
+
+        // Globální proměnné pro toast systém
+        let toastContainer = null;
+        let toastCounter = 0;
+        let toastPosition = 'bottom-right';
+
+        // Inicializace toast containeru
+        function initToastContainer() {
+            if (toastContainer) return;
+
+            // Vytvoření containeru pokud neexistuje
+            toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.style.cssText = `
+                    position: fixed;
+                    z-index: 9999;
+                    bottom: 1rem;
+                    right: 1rem;
+                    max-width: 400px;
+                    pointer-events: none;
+                `;
+                document.body.appendChild(toastContainer);
+            }
+        }
+
+        // Hlavní funkce pro zobrazení toast notifikace
+        function showToastFE(message, type = 'info', duration = 5000, options = {}) {
+            initToastContainer();
+
+            const toastId = 'toast_' + Date.now() + '_' + (++toastCounter);
+            const position = options.position || toastPosition;
+
+            // Nastavení pozice containeru
+            const containerStyle = getContainerStyle(position);
+            toastContainer.style.cssText = containerStyle;
+
+            // Vytvoření toast elementu
+            const toastElement = createToastElement(toastId, type, message, position);
+            toastContainer.appendChild(toastElement);
+
+            // Animace zobrazení
+            setTimeout(() => {
+                toastElement.style.visibility = 'visible';
+                toastElement.style.transition = 'all 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)';
+
+                setTimeout(() => {
+                    toastElement.style.opacity = '1';
+                    toastElement.style.transform = 'translateY(0)';
+                }, 50);
+            }, 100);
+
+            // Auto hide
+            if (duration > 0) {
+                setTimeout(() => {
+                    removeToastFE(toastId);
+                }, duration);
+            }
+
+            // Close button event
+            const closeButton = toastElement.querySelector('.toast-close');
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    removeToastFE(toastId);
+                });
+            }
+
+            return toastId;
+        }
+
+        // Odstranění toast notifikace
+        function removeToastFE(toastId) {
+            const toastElement = document.getElementById(toastId);
+            if (!toastElement) return;
+
+            toastElement.style.transition = 'all 0.3s cubic-bezier(0.55, 0.055, 0.675, 0.19)';
+            toastElement.style.opacity = '0';
+            toastElement.style.transform = 'translateY(-20px)';
+
+            setTimeout(() => {
+                if (toastElement.parentNode) {
+                    toastElement.parentNode.removeChild(toastElement);
+                }
+            }, 300);
+        }
+
+        // Vytvoření toast elementu
+        function createToastElement(id, type, message, position) {
+            const { bgColor, borderClass, iconColor, icon, title } = getToastStyles(type);
+
+            const toastElement = document.createElement('div');
+            toastElement.id = id;
+            toastElement.className = `${bgColor} border-l-4 ${borderClass} p-4 mb-4 shadow-lg rounded-lg max-w-sm w-full`;
+            toastElement.style.cssText = `
+                visibility: hidden;
+                opacity: 0;
+                transform: translateY(-20px);
+                pointer-events: auto;
+                margin-bottom: 0.5rem;
+            `;
+            toastElement.setAttribute('data-position', position);
+
+            toastElement.innerHTML = `
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <div class="${iconColor}">
+                            ${icon}
+                        </div>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <div class="text-sm font-medium text-gray-900 mb-1">${title}</div>
+                        <div class="text-sm text-gray-600 break-words whitespace-normal">${escapeHtml(message)}</div>
+                    </div>
+                    <button class="toast-close ml-auto pl-3 -my-1.5 -mr-1.5 bg-transparent rounded-lg focus:ring-2 focus:ring-gray-400 p-1.5 hover:bg-gray-200 inline-flex h-8 w-8 text-gray-500 hover:text-gray-700 focus:outline-none">
+                        <span class="sr-only">Zavřít</span>
+                        <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+            return toastElement;
+        }
+
+        // Získání stylů podle typu toast
+        function getToastStyles(type) {
+            const styles = {
+                success: {
+                    bgColor: 'bg-green-50',
+                    borderClass: 'border-green-500',
+                    iconColor: 'text-green-600',
+                    icon: '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>',
+                    title: 'Úspěch'
+                },
+                error: {
+                    bgColor: 'bg-red-50',
+                    borderClass: 'border-red-500',
+                    iconColor: 'text-red-600',
+                    icon: '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>',
+                    title: 'Chyba'
+                },
+                warning: {
+                    bgColor: 'bg-yellow-50',
+                    borderClass: 'border-yellow-500',
+                    iconColor: 'text-yellow-500',
+                    icon: '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>',
+                    title: 'Upozornění'
+                },
+                info: {
+                    bgColor: 'bg-blue-50',
+                    borderClass: 'border-blue-500',
+                    iconColor: 'text-blue-600',
+                    icon: '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>',
+                    title: 'Informace'
+                }
+            };
+
+            return styles[type] || styles.info;
+        }
+
+        // Získání stylu containeru podle pozice
+        function getContainerStyle(position) {
+            const baseStyle = 'position: fixed; z-index: 9999; max-width: 400px; pointer-events: none;';
+
+            switch (position) {
+                case 'top-right':
+                    return baseStyle + ' top: 1rem; right: 1rem;';
+                case 'top-left':
+                    return baseStyle + ' top: 1rem; left: 1rem;';
+                case 'bottom-left':
+                    return baseStyle + ' bottom: 1rem; left: 1rem;';
+                case 'center':
+                    return baseStyle + ' top: 50%; left: 50%; transform: translate(-50%, -50%);';
+                default:
+                    return baseStyle + ' bottom: 1rem; right: 1rem;';
+            }
+        }
+
+        // Escape HTML pro bezpečné zobrazení
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Rychlé metody pro různé typy toast
+        function showToastSuccess(message, duration = 5000, options = {}) {
+            return showToastFE(message, 'success', duration, options);
+        }
+
+        function showToastError(message, duration = 5000, options = {}) {
+            return showToastFE(message, 'error', duration, options);
+        }
+
+        function showToastWarning(message, duration = 5000, options = {}) {
+            return showToastFE(message, 'warning', duration, options);
+        }
+
+        function showToastInfo(message, duration = 5000, options = {}) {
+            return showToastFE(message, 'info', duration, options);
+        }
+
+        // Rychlé aliasy
+        function showToastOk(message, duration = 5000, options = {}) {
+            return showToastSuccess(message, duration, options);
+        }
+
+        function showToastFail(message, duration = 5000, options = {}) {
+            return showToastError(message, duration, options);
+        }
+
+        function showToastWarn(message, duration = 5000, options = {}) {
+            return showToastWarning(message, duration, options);
+        }
+
+        // Nastavení pozice toast
+        function setToastPosition(position) {
+            toastPosition = position;
+            if (toastContainer) {
+                toastContainer.style.cssText = getContainerStyle(position);
+            }
+        }
+
+        // Vyčištění všech toast
+        function clearAllToasts() {
+            if (toastContainer) {
+                toastContainer.innerHTML = '';
+            }
+        }
+
+        // Kompatibilita s původní funkcí
         function showToast(message, type = 'info') {
-            // Implementovat toast notifikaci
-            alert(message);
+            return showToastFE(message, type);
         }
 
         // ===== CONTROLLERS FUNCTIONS =====
@@ -682,17 +915,11 @@
         }
 
                         // Otevření moderního file editoru s Monaco
-        function openFileEditor(controllerName, type = 'controller') {
+        function openFileEditor(name, type = 'controller') {
             const moduleName = '{{ $module->getName() }}';
             currentEditorType = type; // Nastavení typu editoru
 
-            let endpoint = `/settings/modules/${moduleName}/controllers/${controllerName}/files`;
-
-            if (type === 'entity') {
-                endpoint = `/settings/modules/${moduleName}/entities/${controllerName}/files`;
-            } else if (type === 'migration') {
-                endpoint = `/settings/modules/${moduleName}/migrations/${controllerName}/files`;
-            }
+            let endpoint = `/settings/modules/${moduleName}/${type}s/${name}/files`;
 
             $.ajax({
                 url: endpoint,
@@ -703,7 +930,7 @@
                 success: function(response) {
                     if (response.success) {
                         loadModal({
-                            title: `Moderní Editor - ${controllerName}`,
+                            title: `Moderní Editor - ${name}`,
                             content: `
                                 <div class="flex h-[80vh] bg-gray-900 rounded-lg overflow-hidden">
                                     <!-- File Tree Sidebar -->
@@ -928,7 +1155,6 @@
                     selectOnLineNumbers: true,
                     glyphMargin: true,
                     useTabStops: false,
-                    fontSize: 14,
                     tabSize: 4,
                     insertSpaces: true,
                     detectIndentation: true,
@@ -992,10 +1218,13 @@
 
                 // Načtení souboru do Monaco Editor
         function loadFileInMonaco(filePath) {
+
             if (!monacoEditor) {
                 showToast('Editor není připraven', 'error');
                 return;
             }
+
+            const startsWithUppercase = str => /^[A-Z]/.test(str);
 
             const moduleName = '{{ $module->getName() }}';
 
@@ -1007,6 +1236,11 @@
 
             event.currentTarget.classList.remove('hover:bg-gray-700');
             event.currentTarget.classList.add('bg-blue-600', 'text-white');
+
+            if (startsWithUppercase(filePath)) {
+                const first = filePath.substring(0, 1).toLowerCase();
+                filePath = first + filePath.substring(1, filePath.length)
+            }
 
             $.ajax({
                 url: `/settings/modules/${moduleName}/files/read`,

@@ -11,4 +11,5 @@ return [
     'migrations_dir' => APP_ROOT . '/database/migrations',
     'seeds_dir' =>  APP_ROOT . '/database/seeds',
     'modules_dir' => APP_ROOT . '/modules',
+    'entities_dir' => APP_ROOT . '/app/Entities',
 ];

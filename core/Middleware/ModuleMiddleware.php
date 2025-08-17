@@ -4,6 +4,7 @@ namespace Core\Middleware;
 
 use Core\Http\Request;
 use Core\Modules\ModuleManager;
+use Core\Facades\Container;
 use Exception;
 
 class ModuleMiddleware
@@ -12,7 +13,7 @@ class ModuleMiddleware
 
     public function __construct()
     {
-        $this->moduleManager = new ModuleManager();
+        $this->moduleManager = Container::get(ModuleManager::class, ModuleManager::class);
     }
 
     /**
@@ -57,7 +58,7 @@ class ModuleMiddleware
      */
     public function getAvailableModules(): array
     {
-        return $this->moduleManager->getAvailableModules();
+        return $this->moduleManager->availableModules();
     }
 
     /**

@@ -141,13 +141,20 @@
                                         <span @class([
                                             'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
                                             'bg-green-100 text-green-800' => $module['config']['is_available'] ?? false,
-                                            'bg-orange-100 text-orange-800' => ($module['config']['is_enabled'] ?? false) && !($module['config']['is_available'] ?? false),
-                                            'bg-gray-100 text-gray-800' => !($module['config']['is_enabled'] ?? false) && !($module['config']['is_available'] ?? false)
+                                            'bg-orange-100 text-orange-800' => ($module['config']['is_enabled'] ?? false) && ($module['config']['has_missing_dependencies'] ?? false),
+                                            'bg-yellow-100 text-yellow-800' => ($module['config']['is_enabled'] ?? false) && !($module['config']['is_installed'] ?? false),
+                                            'bg-gray-100 text-gray-800' => !($module['config']['is_enabled'] ?? false)
                                         ])>
                                             @if($module['config']['is_available'] ?? false)
                                                 Dostupný
                                             @elseif($module['config']['is_enabled'] ?? false)
-                                                Nedostupný
+                                                @if($module['config']['has_missing_dependencies'] ?? false)
+                                                    Nedostupný
+                                                @elseif(!($module['config']['is_installed'] ?? false))
+                                                    Nenainstalován
+                                                @else
+                                                    Nedostupný
+                                                @endif
                                             @else
                                                 Vypnutý
                                             @endif
@@ -158,7 +165,13 @@
                                                 @if($module['config']['is_available'] ?? false)
                                                     Modul je dostupný a funkční
                                                 @elseif($module['config']['is_enabled'] ?? false)
-                                                    Modul je povolen, ale má chybějící závislosti
+                                                    @if(!($module['config']['is_installed'] ?? false))
+                                                        Modul je povolen, ale není nainstalován
+                                                    @elseif($module['config']['has_missing_dependencies'] ?? false)
+                                                        Modul je povolen, ale má chybějící závislosti
+                                                    @else
+                                                        Modul je povolen, ale není dostupný
+                                                    @endif
                                                 @else
                                                     Modul je vypnutý
                                                 @endif
@@ -243,12 +256,23 @@
                 success: function(data) {
                     if (data.success) {
                         data = data.data
-                        console.log(data)
-                        $('#totalModules').text(data.modules.length);
-                        $('#availableModules').text(data.total - data.disabled - data.enabled - data.with_issues);
-                        $('#enabledModules').text(data.enabled);
-                        $('#disabledModules').text(data.disabled);
-                        $('#modulesWithIssues').text(data.with_issues);
+                        const {
+                            enabled_modules,
+                            available_modules,
+                            modules_with_issues,
+                            total_enabled,
+                            total_available,
+                            total_issues
+                        } = data;
+
+                        const Sum = total_available + total_issues;
+
+
+                        $('#totalModules').text(Sum);
+                        $('#availableModules').text(total_available);
+                        $('#enabledModules').text(total_enabled);
+                        $('#disabledModules').text(total_available - total_enabled - total_issues);
+                        $('#modulesWithIssues').text(total_issues);
                     }
                 },
                 error: function(xhr, status, error) {

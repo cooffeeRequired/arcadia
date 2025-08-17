@@ -7,6 +7,7 @@ use Core\Render\BaseController;
 use Core\Http\Response\ViewResponse;
 use Core\Http\Response\JsonResponse;
 use Core\Modules\ModuleManager;
+use Core\Facades\Container;
 use Exception;
 
 class ExampleController extends BaseController
@@ -16,7 +17,7 @@ class ExampleController extends BaseController
     public function __construct()
     {
         parent::__construct();
-        $this->moduleManager = new ModuleManager();
+        $this->moduleManager = Container::get(ModuleManager::class, ModuleManager::class);
     }
 
     /**
@@ -35,7 +36,7 @@ class ExampleController extends BaseController
 
         $data = [
             'items' => $items,
-            'title' => 'Seznam příkladů'
+            'title' => 'Seznam příkladů!!'
         ];
 
         return $this->view('modules.example.index', $data);
@@ -53,7 +54,7 @@ class ExampleController extends BaseController
         }
 
         return $this->view('modules.example.create', [
-            'title' => 'Nový příklad'
+            'title' => 'Nový příklad 3'
         ]);
     }
 
@@ -62,41 +63,34 @@ class ExampleController extends BaseController
      */
     public function store(): JsonResponse
     {
+        if (!$this->moduleManager->hasPermission('example', 'create')) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Nemáte oprávnění k vytvoření položky'
+            ], 403);
+        }
+
         try {
-            if (!$this->moduleManager->hasPermission('example', 'create')) {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => 'Nemáte oprávnění k vytvoření položky'
-                ], 403);
-            }
-
-            $name = $this->input('name');
-            $description = $this->input('description');
-
-            if (empty($name)) {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => 'Název je povinný'
-                ], 400);
-            }
+            $data = $this->request->getJson();
 
             $item = new ExampleItem();
-            $item->setName($name)
-                 ->setDescription($description)
-                 ->setStatus('active');
+            $item->setName($data['name']);
+            $item->setDescription($data['description'] ?? '');
+            $item->setStatus($data['status'] ?? 'active');
 
             $this->em->persist($item);
             $this->em->flush();
 
-            $this->toastSuccess('Položka byla úspěšně vytvořena');
-            return new JsonResponse([
+            return $this->json([
                 'success' => true,
                 'message' => 'Položka byla úspěšně vytvořena',
-                'redirect' => '/example'
+                'data' => [
+                    'id' => $item->getId(),
+                    'name' => $item->getName()
+                ]
             ]);
-
         } catch (Exception $e) {
-            return new JsonResponse([
+            return $this->json([
                 'success' => false,
                 'message' => 'Chyba při vytváření položky: ' . $e->getMessage()
             ], 500);
@@ -106,7 +100,7 @@ class ExampleController extends BaseController
     /**
      * Zobrazí detail položky
      */
-    public function show(int $id): ViewResponse
+    public function show($id): ViewResponse
     {
         if (!$this->moduleManager->hasPermission('example', 'view')) {
             $this->toastError('Nemáte oprávnění k zobrazení položky');
@@ -115,7 +109,6 @@ class ExampleController extends BaseController
         }
 
         $item = $this->em->getRepository(ExampleItem::class)->find($id);
-
         if (!$item) {
             $this->toastError('Položka nebyla nalezena');
             $this->redirect('/example');
@@ -124,14 +117,14 @@ class ExampleController extends BaseController
 
         return $this->view('modules.example.show', [
             'item' => $item,
-            'title' => 'Detail: ' . $item->getName()
+            'title' => 'Detail položky: ' . $item->getName()
         ]);
     }
 
     /**
      * Zobrazí formulář pro editaci
      */
-    public function edit(int $id): ViewResponse
+    public function edit($id): ViewResponse
     {
         if (!$this->moduleManager->hasPermission('example', 'edit')) {
             $this->toastError('Nemáte oprávnění k editaci položky');
@@ -140,7 +133,6 @@ class ExampleController extends BaseController
         }
 
         $item = $this->em->getRepository(ExampleItem::class)->find($id);
-
         if (!$item) {
             $this->toastError('Položka nebyla nalezena');
             $this->redirect('/example');
@@ -149,58 +141,46 @@ class ExampleController extends BaseController
 
         return $this->view('modules.example.edit', [
             'item' => $item,
-            'title' => 'Editace: ' . $item->getName()
+            'title' => 'Editace položky: ' . $item->getName()
         ]);
     }
 
     /**
      * Aktualizuje položku
      */
-    public function update(int $id): JsonResponse
+    public function update($id): JsonResponse
     {
+        if (!$this->moduleManager->hasPermission('example', 'edit')) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Nemáte oprávnění k editaci položky'
+            ], 403);
+        }
+
         try {
-            if (!$this->moduleManager->hasPermission('example', 'edit')) {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => 'Nemáte oprávnění k editaci položky'
-                ], 403);
-            }
-
             $item = $this->em->getRepository(ExampleItem::class)->find($id);
-
             if (!$item) {
-                return new JsonResponse([
+                return $this->json([
                     'success' => false,
                     'message' => 'Položka nebyla nalezena'
                 ], 404);
             }
 
-            $name = $this->input('name');
-            $description = $this->input('description');
-            $status = $this->input('status', 'active');
+            $data = $this->request->getJson();
 
-            if (empty($name)) {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => 'Název je povinný'
-                ], 400);
-            }
+            $item->setName($data['name']);
+            $item->setDescription($data['description'] ?? '');
+            $item->setStatus($data['status'] ?? 'active');
 
-            $item->setName($name)
-                 ->setDescription($description)
-                 ->setStatus($status);
-
+            $this->em->persist($item);
             $this->em->flush();
 
-            $this->toastSuccess('Položka byla úspěšně aktualizována');
-            return new JsonResponse([
+            return $this->json([
                 'success' => true,
-                'message' => 'Položka byla úspěšně aktualizována',
-                'redirect' => '/example'
+                'message' => 'Položka byla úspěšně aktualizována'
             ]);
-
         } catch (Exception $e) {
-            return new JsonResponse([
+            return $this->json([
                 'success' => false,
                 'message' => 'Chyba při aktualizaci položky: ' . $e->getMessage()
             ], 500);
@@ -210,20 +190,19 @@ class ExampleController extends BaseController
     /**
      * Smaže položku
      */
-    public function destroy(int $id): JsonResponse
+    public function delete($id): JsonResponse
     {
+        if (!$this->moduleManager->hasPermission('example', 'delete')) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Nemáte oprávnění ke smazání položky'
+            ], 403);
+        }
+
         try {
-            if (!$this->moduleManager->hasPermission('example', 'delete')) {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => 'Nemáte oprávnění ke smazání položky'
-                ], 403);
-            }
-
             $item = $this->em->getRepository(ExampleItem::class)->find($id);
-
             if (!$item) {
-                return new JsonResponse([
+                return $this->json([
                     'success' => false,
                     'message' => 'Položka nebyla nalezena'
                 ], 404);
@@ -232,14 +211,12 @@ class ExampleController extends BaseController
             $this->em->remove($item);
             $this->em->flush();
 
-            $this->toastSuccess('Položka byla úspěšně smazána');
-            return new JsonResponse([
+            return $this->json([
                 'success' => true,
                 'message' => 'Položka byla úspěšně smazána'
             ]);
-
         } catch (Exception $e) {
-            return new JsonResponse([
+            return $this->json([
                 'success' => false,
                 'message' => 'Chyba při mazání položky: ' . $e->getMessage()
             ], 500);

@@ -135,3 +135,53 @@ if (!function_exists('toast_for_redirect')) {
         ToastNotification::setForRedirect($notifications);
     }
 }
+
+if (!function_exists('render_toasts')) {
+    /**
+     * Vyrenderuje toast notifikace (kompatibilita)
+     */
+    function render_toasts(): string
+    {
+        return ToastNotification::render();
+    }
+}
+
+if (!function_exists('render_toast_script')) {
+    /**
+     * Vyrenderuje toast skripty (kompatibilita)
+     */
+    function render_toast_script(): string
+    {
+        return ToastNotification::renderScripts();
+    }
+}
+
+if (!function_exists('render_toast_scripts')) {
+    /**
+     * Vyrenderuje toast notification skripty (nová funkce)
+     */
+    function render_toast_scripts(): string
+    {
+        return ToastNotification::renderScripts();
+    }
+}
+
+if (!function_exists('render_flash')) {
+    /**
+     * Vyrenderuje flash notifikace (kompatibilita - přesměrováno na toast)
+     */
+    function render_flash(): string
+    {
+        return ToastNotification::render();
+    }
+}
+
+if (!function_exists('render_flash_scripts')) {
+    /**
+     * Vyrenderuje flash skripty (kompatibilita - přesměrováno na toast)
+     */
+    function render_flash_scripts(): string
+    {
+        return ToastNotification::renderScripts();
+    }
+}

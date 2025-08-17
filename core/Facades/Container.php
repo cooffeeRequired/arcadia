@@ -2,6 +2,9 @@
 
 namespace Core\Facades;
 
+use Exception;
+use RuntimeException;
+
 class Container
 {
     protected static array $services = [];
@@ -21,8 +24,21 @@ class Container
         }
     }
 
-    public static function get(string $key): mixed
+    /**
+     * @template T of object
+     * @param class-string<T>|null $castTo
+     * @param string $key
+     * @return T|mixed
+     * @IgnoredException
+     */
+    public static function get(string $key, ?string $castTo = null): mixed
     {
-        return self::$services[$key] ?? throw new \RuntimeException("Service '$key' not found.");
+        $service = self::$services[$key] ?? throw new RuntimeException("Service '$key' not found.");
+
+        if (!is_null($castTo) && !$service instanceof $castTo) {
+            throw new RuntimeException("Service '$key' is not instance of '$castTo'.");
+        }
+
+        return $service;
     }
 }

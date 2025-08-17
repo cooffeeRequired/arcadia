@@ -156,6 +156,8 @@
                     this.container.style.width = '800px';
                 } else if (size === 'xlarge') {
                     this.container.style.width = '1200px';
+                } else if (size === 'fullscreen') {
+                    this.container.style.width = '100%';
                 } else {
                     this.container.style.width = '600px';
                 }

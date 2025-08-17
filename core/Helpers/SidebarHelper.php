@@ -15,7 +15,7 @@ class SidebarHelper
     private static function getModuleManager(): ModuleManager
     {
         if (self::$moduleManager === null) {
-            self::$moduleManager = new ModuleManager();
+            self::$moduleManager = Container::get(ModuleManager::class, ModuleManager::class);
         }
         return self::$moduleManager;
     }
@@ -106,24 +106,28 @@ class SidebarHelper
 
         // Sekce Moduly s registrovánými moduly (pouze ty ze složky /modules)
         $moduleManager = self::getModuleManager();
-        $registeredModules = $moduleManager->getAllModulesConfig();
+        $availableModules = $moduleManager->availableModules();
 
-        if (!empty($registeredModules)) {
+        if (!empty($availableModules)) {
             $modulesSubmenu = [];
 
-            foreach ($registeredModules as $moduleName => $config) {
+            foreach ($availableModules as $moduleName) {
                 // Přeskočíme základní moduly, které už jsou v hlavním menu
                 if (in_array($moduleName, ['customers', 'contacts', 'deals', 'projects', 'invoices', 'reports', 'workflows', 'emails'])) {
                     continue;
                 }
 
+                $config = $moduleManager->moduleConfig($moduleName);
+                $displayName = $config['display_name'] ?? ucfirst($moduleName);
+                $isEnabled = $config['is_enabled'] ?? false;
+
                 $modulesSubmenu[] = [
-                    'name' => $config['display_name'] ?? ucfirst($moduleName),
+                    'name' => $displayName,
                     'icon' => self::getModuleIcon($moduleName),
                     'url' => '/' . $moduleName,
                     'active' => str_starts_with($currentUri, '/' . $moduleName),
                     'color' => self::getModuleColor($moduleName),
-                    'badge' => ($config['enabled'] ?? $config['is_enabled'] ?? false) ? null : ['text' => 'Vypnuto', 'color' => 'gray']
+                    'badge' => $isEnabled ? null : ['text' => 'Vypnuto', 'color' => 'gray']
                 ];
             }
 
@@ -272,7 +276,7 @@ class SidebarHelper
     private static function getModulesBadge(): ?array
     {
         $moduleManager = self::getModuleManager();
-        $modulesWithIssues = $moduleManager->getModulesWithMissingDependencies();
+        $modulesWithIssues = $moduleManager->modulesWithMissingDependencies();
 
         if (empty($modulesWithIssues)) {
             return null;

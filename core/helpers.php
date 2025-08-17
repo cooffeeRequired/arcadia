@@ -4,8 +4,8 @@
  * Helper funkce pro aplikaci
  */
 
+use Core\Cache\CacheManager;
 use Core\Facades\Container;
-use Core\Notification\Toast;
 use Core\Http\Request;
 use Random\RandomException;
 use Symfony\Component\VarDumper\VarDumper;
@@ -135,7 +135,6 @@ if (!function_exists('dump')) {
                 VarDumper::dump($var);
             }
         } else {
-            // Fallback pro případ, že Symfony Var Dumper není dostupný
             foreach ($vars as $var) {
                 var_dump($var);
             }
@@ -157,142 +156,6 @@ if (!function_exists('dd')) {
     }
 }
 
-if (!function_exists('clear_cache')) {
-    /**
-     * Vymaže všechny cache soubory (zachová složky)
-     *
-     * @return bool
-     */
-    function clear_cache(): bool
-    {
-        $cacheDir = APP_CONFIGURATION['cache_dir'];
-        $success = true;
-
-        // Funkce pro rekurzivní smazání pouze souborů (zachová složky)
-        $deleteFilesOnly = function($dir) use (&$deleteFilesOnly, &$success) {
-            if (!is_dir($dir)) {
-                return;
-            }
-
-            $files = array_diff(scandir($dir), ['.', '..']);
-
-            foreach ($files as $file) {
-                $path = $dir . DIRECTORY_SEPARATOR . $file;
-
-                if (is_dir($path)) {
-                    // Rekurzivně projít složku, ale nesmazat ji
-                    $deleteFilesOnly($path);
-                } else {
-                    // Smazat pouze soubory
-                    if (!unlink($path)) {
-                        $success = false;
-                    }
-                }
-            }
-        };
-
-        // Vymazání cache souborů (zachová složky)
-        if (is_dir($cacheDir)) {
-            $deleteFilesOnly($cacheDir);
-        }
-
-        // Vymazání Redis cache
-        try {
-            $redis = new Predis\Client('tcp://127.0.0.1:6379');
-            $redis->flushdb();
-        } catch (Exception) {
-            // Redis není dostupný, ignorujeme
-        }
-
-        // Pokročilé využití OPcache
-        if (function_exists('opcache_reset')) {
-            // Reset OPcache
-            opcache_reset();
-
-            // Pokud je OPcache dostupný, zkusíme invalidovat konkrétní soubory
-            if (function_exists('opcache_invalidate')) {
-                // Invalidovat všechny PHP soubory v cache složce
-                $invalidatePhpFiles = function($dir) use (&$invalidatePhpFiles) {
-                    if (!is_dir($dir)) {
-                        return;
-                    }
-
-                    $files = array_diff(scandir($dir), ['.', '..']);
-
-                    foreach ($files as $file) {
-                        $path = $dir . DIRECTORY_SEPARATOR . $file;
-
-                        if (is_dir($path)) {
-                            $invalidatePhpFiles($path);
-                        } elseif (pathinfo($path, PATHINFO_EXTENSION) === 'php') {
-                            // Invalidovat PHP soubory v OPcache
-                            opcache_invalidate($path, true);
-                        }
-                    }
-                };
-
-                $invalidatePhpFiles($cacheDir);
-            }
-        }
-
-        return $success;
-    }
-}
-
-if (!function_exists('optimize_opcache')) {
-    /**
-     * Optimalizuje OPcache pro lepší výkon
-     *
-     * @return bool
-     */
-    function optimize_opcache(): bool
-    {
-        if (!function_exists('opcache_compile_file')) {
-            return false;
-        }
-
-        $appRoot = APP_ROOT;
-        $success = true;
-
-        // Funkce pro kompilaci PHP souborů do OPcache
-        $compilePhpFiles = function($dir) use (&$compilePhpFiles, &$success, $appRoot) {
-            if (!is_dir($dir)) {
-                return;
-            }
-
-            $files = array_diff(scandir($dir), ['.', '..']);
-
-            foreach ($files as $file) {
-                $path = $dir . DIRECTORY_SEPARATOR . $file;
-
-                if (is_dir($path)) {
-                    $compilePhpFiles($path);
-                } elseif (pathinfo($path, PATHINFO_EXTENSION) === 'php') {
-                    // Kompilovat PHP soubory do OPcache
-                    if (!opcache_compile_file($path)) {
-                        $success = false;
-                    }
-                }
-            }
-        };
-
-        // Kompilovat hlavní složky aplikace
-        $directories = [
-            $appRoot . '/app',
-            $appRoot . '/core',
-            $appRoot . '/config'
-        ];
-
-        foreach ($directories as $dir) {
-            if (is_dir($dir)) {
-                $compilePhpFiles($dir);
-            }
-        }
-
-        return $success;
-    }
-}
-
 if (!function_exists('clear_all_cache')) {
     /**
      * Vymaže všechny typy cache (soubory, Redis, ORM, OPcache, session)
@@ -301,8 +164,8 @@ if (!function_exists('clear_all_cache')) {
      */
     function clear_all_cache(): array
     {
-        \Core\Cache\CacheManager::init();
-        return \Core\Cache\CacheManager::clearAllCache();
+        CacheManager::init();
+        return CacheManager::clearAllCache();
     }
 }
 
@@ -314,8 +177,8 @@ if (!function_exists('get_cache_stats')) {
      */
     function get_cache_stats(): array
     {
-        \Core\Cache\CacheManager::init();
-        return \Core\Cache\CacheManager::getCacheStats();
+        CacheManager::init();
+        return CacheManager::getCacheStats();
     }
 }
 
@@ -520,7 +383,7 @@ if (!function_exists('get_system_logs')) {
         }
 
         // Aplikace log
-        $appLog = APP_ROOT . '/var/log/app.log';
+        $appLog = APP_ROOT . '/log/app.log';
         if (file_exists($appLog)) {
             $logs['app'] = [
                 'name' => 'Aplikace Log',
@@ -530,7 +393,7 @@ if (!function_exists('get_system_logs')) {
         }
 
         // Tracy log
-        $tracyLog = APP_ROOT . '/var/log/tracy.log';
+        $tracyLog = APP_ROOT . '/cache/tracy/exception.log';
         if (file_exists($tracyLog)) {
             $logs['tracy'] = [
                 'name' => 'Tracy Debug Log',
@@ -824,5 +687,4 @@ if (!function_exists('method_field')) {
     }
 }
 
-require_once APP_ROOT . '/core/helpers/notification.php';
 require_once APP_ROOT . '/core/helpers/toast.php';

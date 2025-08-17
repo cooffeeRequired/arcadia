@@ -6,9 +6,7 @@ return [
     'description' => 'Tento modul slouží jako příklad struktury modulu pro Arcadia CRM',
     'version' => '1.0.0',
     'author' => 'Arcadia Team',
-    'dependencies' => [
-        'core' // Závisí na základním modulu
-    ],
+    'dependencies' => null,
     'settings' => [
         'enabled' => true,
         'debug_mode' => false,
@@ -51,12 +49,6 @@ return [
             'namespace' => 'Modules\Example\Controllers',
             'extends' => 'Core\Controllers\BaseController',
             'methods' => ['index', 'show', 'create', 'store', 'edit', 'update', 'destroy'],
-            'enabled' => true
-        ],
-        'ExampleApi' => [
-            'namespace' => 'Modules\Example\Controllers',
-            'extends' => 'Core\Controllers\ApiController',
-            'methods' => ['index', 'show', 'store', 'update', 'destroy'],
             'enabled' => true
         ]
     ],

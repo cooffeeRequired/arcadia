@@ -3,6 +3,7 @@
 namespace Core\Helpers;
 
 use Core\Modules\ModuleManager;
+use Core\Facades\Container;
 
 class ModuleHelper
 {
@@ -14,7 +15,7 @@ class ModuleHelper
     private static function getModuleManager(): ModuleManager
     {
         if (self::$moduleManager === null) {
-            self::$moduleManager = new ModuleManager();
+            self::$moduleManager = Container::get(ModuleManager::class, ModuleManager::class);
         }
         return self::$moduleManager;
     }
@@ -56,7 +57,7 @@ class ModuleHelper
      */
     public static function getAvailableModules(): array
     {
-        return self::getModuleManager()->getAvailableModules();
+        return self::getModuleManager()->availableModules();
     }
 
     /**
@@ -64,7 +65,7 @@ class ModuleHelper
      */
     public static function getModulesWithIssues(): array
     {
-        return self::getModuleManager()->getModulesWithMissingDependencies();
+        return self::getModuleManager()->modulesWithMissingDependencies();
     }
 
     /**
@@ -182,7 +183,7 @@ class ModuleHelper
     public static function getModuleDependencies(string $module): array
     {
         $manager = self::getModuleManager();
-        $config = $manager->getModuleConfig($module);
+        $config = $manager->moduleConfig($module);
 
         return $config['dependencies'] ?? [];
     }
@@ -193,9 +194,9 @@ class ModuleHelper
     public static function hasMissingDependencies(string $module): bool
     {
         $manager = self::getModuleManager();
-        $missing = $manager->checkDependencies($module);
+        $missing = $manager->modulesWithMissingDependencies();
 
-        return !empty($missing);
+        return isset($missing[$module]);
     }
 
     /**
@@ -204,47 +205,56 @@ class ModuleHelper
     public static function getMissingDependencies(string $module): array
     {
         $manager = self::getModuleManager();
-        return $manager->checkDependencies($module);
+        $missing = $manager->modulesWithMissingDependencies();
+
+        return $missing[$module] ?? [];
     }
 
     /**
-     * Získá moduly, které závisí na daném modulu
+     * Získá konfiguraci modulu
      */
-    public static function getDependentModules(string $module): array
+    public static function getModuleConfig(string $module): array
     {
         $manager = self::getModuleManager();
-        $allConfig = $manager->getAllModulesConfig();
-        $dependent = [];
-
-        foreach ($allConfig as $modName => $config) {
-            if (in_array($module, $config['dependencies'])) {
-                $dependent[] = $modName;
-            }
-        }
-
-        return $dependent;
+        return $manager->moduleConfig($module);
     }
 
     /**
-     * Získá statistiku modulů
+     * Získá verzi modulu
      */
-    public static function getModuleStats(): array
+    public static function getModuleVersion(string $module): string
     {
-        $manager = self::getModuleManager();
-        $allModules = $manager->getAllModulesConfig();
-        $availableModules = $manager->getAvailableModules();
-        $modulesWithIssues = $manager->getModulesWithMissingDependencies();
-
-        return [
-            'total' => count($allModules),
-            'available' => count($availableModules),
-            'disabled' => count($allModules) - count($availableModules),
-            'with_issues' => count($modulesWithIssues)
-        ];
+        $config = self::getModuleConfig($module);
+        return $config['version'] ?? '1.0.0';
     }
 
     /**
-     * Získá menu položky pro dostupné moduly
+     * Získá autora modulu
+     */
+    public static function getModuleAuthor(string $module): ?string
+    {
+        $config = self::getModuleConfig($module);
+        return $config['author'] ?? null;
+    }
+
+    /**
+     * Zkontroluje, zda je modul nainstalován
+     */
+    public static function isInstalled(string $module): bool
+    {
+        return self::getModuleManager()->isInstalled($module);
+    }
+
+    /**
+     * Získá seznam povolených modulů
+     */
+    public static function getEnabledModules(): array
+    {
+        return self::getModuleManager()->enabledModules();
+    }
+
+    /**
+     * Získá menu položky pro moduly
      */
     public static function getMenuItems(): array
     {
