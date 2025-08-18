@@ -109,6 +109,8 @@ return [
 
     // Profil
     'profile' => 'Profil',
+    'system' => 'Systém',
+    'home' => 'Domov',
     'logout' => 'Odhlásiť sa',
     'login' => 'Prihlásiť sa',
     'register' => 'Registrovať sa',

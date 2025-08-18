@@ -761,3 +761,40 @@ if (!function_exists('parseTimeToMilliseconds')) {
         return 1000;
     }
 }
+
+if (!function_exists('set_breadcrumbs')) {
+    /**
+     * Nastaví vlastní breadcrumbs pro stránku
+     *
+     * @param array $breadcrumbs
+     * @return void
+     */
+    function set_breadcrumbs(array $breadcrumbs): void
+    {
+        $_SESSION['custom_breadcrumbs'] = $breadcrumbs;
+    }
+}
+
+if (!function_exists('get_breadcrumbs')) {
+    /**
+     * Získá vlastní breadcrumbs pro stránku
+     *
+     * @return array|null
+     */
+    function get_breadcrumbs(): ?array
+    {
+        return $_SESSION['custom_breadcrumbs'] ?? null;
+    }
+}
+
+if (!function_exists('clear_breadcrumbs')) {
+    /**
+     * Vymaže vlastní breadcrumbs
+     *
+     * @return void
+     */
+    function clear_breadcrumbs(): void
+    {
+        unset($_SESSION['custom_breadcrumbs']);
+    }
+}

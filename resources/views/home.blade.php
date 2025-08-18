@@ -4,7 +4,6 @@
 
 @section('styles')
 <link href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet">
-<script src="//unpkg.com/alpinejs" defer></script>
 @endsection
 
 @section('content')

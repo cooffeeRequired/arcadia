@@ -109,8 +109,8 @@ final class Bootstrap
             $deps       = new DependencyChecker($repo, $cfgLoader);
 
             // Minimální runner přes require + konvenci migrate()/rollback()
-            $runner = new class($em) implements MigrationRunnerInterface {
-                public function __construct(private readonly EntityManager $em) {}
+            $runner = new readonly class($em) implements MigrationRunnerInterface {
+                public function __construct(private EntityManager $em) {}
 
                 public function run(string $moduleName, MigrationInfo $m): void
                 {

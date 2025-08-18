@@ -109,6 +109,8 @@ return [
 
     // Profil
     'profile' => 'Profil',
+    'system' => 'System',
+    'home' => 'Strona główna',
     'logout' => 'Wyloguj',
     'login' => 'Zaloguj',
     'register' => 'Zarejestruj',

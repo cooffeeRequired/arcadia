@@ -8,6 +8,10 @@
     <link href="{{ asset('app.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
+    <script src="//unpkg.com/alpinejs" defer></script>
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
     @hmrClient
     @hmr('resources/js/app.js')
     @yield('styles')
@@ -76,8 +80,11 @@
 
     <!-- Main Content -->
     <div id="main-content" class="lg:pl-80 transition-all duration-300 ease-in-out">
-        <main class="py-6 px-4 sm:px-6 lg:px-8 min-h-screen">
-            @yield('content')
+        <main class="min-h-screen">
+            @include('components.breadcrumbs')
+            <div class="py-6 px-4 sm:px-6 lg:px-8">
+                @yield('content')
+            </div>
         </main>
     </div>
 
@@ -271,6 +278,17 @@
 
     <!-- Language Switcher JavaScript -->
     <script>
+        // Reset all Alpine.js dropdowns on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Reset language switcher dropdown
+            const languageSwitchers = document.querySelectorAll('[x-data]');
+            languageSwitchers.forEach(element => {
+                if (element._x_dataStack && element._x_dataStack[0] && element._x_dataStack[0].open !== undefined) {
+                    element._x_dataStack[0].open = false;
+                }
+            });
+        });
+
         function changeLanguage(locale, flag) {
             // Zobrazit loading overlay
             const overlay = document.getElementById('language-loading-overlay');
