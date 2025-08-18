@@ -7,14 +7,14 @@
     <!-- Header -->
     <div class="flex justify-between items-center mb-8">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900">Workflow</h1>
+            <h1 class="text-3xl font-bold text-gray-900">@i18('workflows')</h1>
             <p class="text-gray-600 mt-2">Automatizace procesů a business logiky</p>
         </div>
         <a href="/workflows/create" class="btn-primary">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
-            Vytvořit workflow
+            @i18('create') @i18('workflow')
         </a>
     </div>
 
@@ -28,7 +28,7 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Celkem workflow</p>
+                    <p class="text-sm font-medium text-gray-600">@i18('total_workflows')</p>
                     <p class="text-2xl font-bold text-gray-900">{{ $stats['total'] }}</p>
                 </div>
             </div>
@@ -42,7 +42,7 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Aktivní</p>
+                    <p class="text-sm font-medium text-gray-600">@i18('active')</p>
                     <p class="text-2xl font-bold text-gray-900">{{ $stats['active'] }}</p>
                 </div>
             </div>
@@ -56,7 +56,7 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Neaktivní</p>
+                    <p class="text-sm font-medium text-gray-600">@i18('inactive')</p>
                     <p class="text-2xl font-bold text-gray-900">{{ $stats['inactive'] }}</p>
                 </div>
             </div>
@@ -66,19 +66,19 @@
     <!-- Workflows List -->
     <div class="card">
         <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-900">Seznam workflow</h2>
+            <h2 class="text-lg font-semibold text-gray-900">@i18('workflows_list')</h2>
         </div>
-        
+
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Název</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trigger</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priorita</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vytvořeno</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Akce</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">@i18('name')</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">@i18('trigger')</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">@i18('priority')</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">@i18('status')</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">@i18('created')</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">@i18('actions')</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">

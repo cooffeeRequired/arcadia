@@ -32,7 +32,7 @@ class SidebarHelper
 
         // Dashboard - první položka
         $menuItems[] = [
-            'name' => 'Dashboard',
+            'name' => TranslationHelper::__('dashboard'),
             'icon' => 'home',
             'url' => '/',
             'active' => $currentUri === '/' || $currentUri === '/home',
@@ -41,7 +41,7 @@ class SidebarHelper
 
         // Základní funkce aplikace
         $menuItems[] = [
-            'name' => 'Zákazníci',
+            'name' => TranslationHelper::__('customers'),
             'icon' => 'users',
             'url' => '/customers',
             'active' => str_starts_with($currentUri, '/customers'),
@@ -49,7 +49,7 @@ class SidebarHelper
         ];
 
         $menuItems[] = [
-            'name' => 'Kontakty',
+            'name' => TranslationHelper::__('contacts'),
             'icon' => 'user',
             'url' => '/contacts',
             'active' => str_starts_with($currentUri, '/contacts'),
@@ -57,7 +57,7 @@ class SidebarHelper
         ];
 
         $menuItems[] = [
-            'name' => 'Obchody',
+            'name' => TranslationHelper::__('deals'),
             'icon' => 'handshake',
             'url' => '/deals',
             'active' => str_starts_with($currentUri, '/deals'),
@@ -65,7 +65,7 @@ class SidebarHelper
         ];
 
         $menuItems[] = [
-            'name' => 'Projekty',
+            'name' => TranslationHelper::__('projects'),
             'icon' => 'folder',
             'url' => '/projects',
             'active' => str_starts_with($currentUri, '/projects'),
@@ -73,7 +73,7 @@ class SidebarHelper
         ];
 
         $menuItems[] = [
-            'name' => 'Faktury',
+            'name' => TranslationHelper::__('invoices'),
             'icon' => 'file-invoice',
             'url' => '/invoices',
             'active' => str_starts_with($currentUri, '/invoices'),
@@ -81,7 +81,7 @@ class SidebarHelper
         ];
 
         $menuItems[] = [
-            'name' => 'Reporty',
+            'name' => TranslationHelper::__('reports'),
             'icon' => 'chart-bar',
             'url' => '/reports',
             'active' => str_starts_with($currentUri, '/reports'),
@@ -89,7 +89,7 @@ class SidebarHelper
         ];
 
         $menuItems[] = [
-            'name' => 'Workflow',
+            'name' => TranslationHelper::__('workflows'),
             'icon' => 'sitemap',
             'url' => '/workflows',
             'active' => str_starts_with($currentUri, '/workflows'),
@@ -97,7 +97,7 @@ class SidebarHelper
         ];
 
         $menuItems[] = [
-            'name' => 'E-maily',
+            'name' => TranslationHelper::__('emails'),
             'icon' => 'envelope',
             'url' => '/emails',
             'active' => str_starts_with($currentUri, '/emails'),

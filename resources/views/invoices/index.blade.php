@@ -4,7 +4,7 @@
 <div class="px-4 sm:px-6 lg:px-8">
     <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
-            <h1 class="text-xl font-semibold text-gray-900">Faktury</h1>
+            <h1 class="text-xl font-semibold text-gray-900">@i18('invoices')</h1>
             <p class="mt-2 text-sm text-gray-700">Seznam všech faktur a jejich stavů.</p>
         </div>
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
@@ -13,7 +13,7 @@
             </a>
         </div>
     </div>
-    
+
     <div class="mt-8 flex flex-col">
         <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
@@ -80,7 +80,7 @@
                             @else
                                 <tr>
                                     <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
-                                        Žádné faktury nebyly nalezeny.
+                                        @i18('no_invoices_found').
                                     </td>
                                 </tr>
                             @endif
@@ -91,4 +91,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

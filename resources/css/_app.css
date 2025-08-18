@@ -114,6 +114,11 @@
     background-size: 1.5em 1.5em;
   }
 
+  /* Select otevírající se nahoru */
+  select.dropdown-up:not([multiple]) {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M14 12l-4-4-4 4'/%3e%3c/svg%3e");
+  }
+
   select[multiple] {
     height: auto;
     min-height: calc(var(--form-input-height) * 2);
@@ -422,4 +427,76 @@
 .module-tabs .tab-content {
   @apply transition-all duration-200 ease-in-out;
   @apply rounded-b-lg;
+}
+
+/* Language switcher loading animations */
+@keyframes flagMorph {
+    0% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+    25% {
+        transform: scale(0.8) rotate(90deg);
+        opacity: 0.3;
+    }
+    50% {
+        transform: scale(0.6) rotate(180deg);
+        opacity: 0.1;
+    }
+    75% {
+        transform: scale(0.8) rotate(270deg);
+        opacity: 0.3;
+    }
+    100% {
+        transform: scale(1) rotate(360deg);
+        opacity: 1;
+    }
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
+    }
+}
+
+.flag-morph {
+    animation: flagMorph 1.2s ease-in-out;
+}
+
+.loading-card {
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Backdrop blur animation */
+@keyframes backdropBlur {
+    0% {
+        backdrop-filter: blur(0px);
+        background-color: rgba(0, 0, 0, 0);
+    }
+    100% {
+        backdrop-filter: blur(8px);
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+}
+
+.backdrop-blur-animate {
+    animation: backdropBlur 0.3s ease-out forwards;
+}
+
+/* Language loading overlay - musí být nad vším */
+#language-loading-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+}
+
+#language-loading-overlay * {
+    pointer-events: auto !important;
 }

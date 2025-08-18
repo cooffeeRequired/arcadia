@@ -34,6 +34,7 @@ class View
 
 	    self::$compiler->directive('hmr', fn($expression) => "<script type='module' src='<?=\"http://localhost:5173/\" . trim($expression, \"'\");?>'></script>");
 	    self::$compiler->directive('hmrClient', fn() => "<script type='module' src='http://localhost:5173/@vite/client'></script>");
+	    self::$compiler->directive('i18', fn($expression) => "<?= i18($expression); ?>");
       self::$factory = new Factory(self::$resolver, self::$finder, $dispatcher);
     }
   }

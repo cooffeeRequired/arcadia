@@ -5,9 +5,9 @@ use App\Controllers\ContactController;
 use App\Controllers\CustomerController;
 use App\Controllers\DealController;
 use App\Controllers\EmailController;
-use App\Controllers\ErrorController;
 use App\Controllers\HomeController;
 use App\Controllers\InvoiceController;
+use App\Controllers\LanguageController;
 use App\Controllers\ModuleController;
 use App\Controllers\ProjectController;
 use App\Controllers\ReportController;
@@ -196,6 +196,15 @@ $router->group(['middleware' => ['auth']], function (Router $router) {
         $router->post('/{moduleName}/migrations/{migrationFile}/files/save', [ModuleController::class, 'saveMigrationFile'])->name('settings.modules.migrations.files.save');
     });
 });
+
+// Jazykové routy
+$router->get('/lang/{locale}', [LanguageController::class, 'switch'])->name('language.switch');
+$router->get('/api/languages', [LanguageController::class, 'getSupportedLanguages'])->name('api.languages');
+$router->get('/api/languages/current', [LanguageController::class, 'getCurrentLanguage'])->name('api.languages.current');
+$router->get('/api/languages/missing', [LanguageController::class, 'getMissingTranslations'])->name('api.languages.missing');
+$router->get('/api/languages/export/{locale}', [LanguageController::class, 'export'])->name('api.languages.export');
+$router->post('/api/languages/import', [LanguageController::class, 'import'])->name('api.languages.import');
+$router->post('/api/languages/set', [LanguageController::class, 'setUserLanguage'])->name('api.languages.set');
 
 // Spuštění aplikace
 $request = Request::getInstance();

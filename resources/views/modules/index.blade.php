@@ -6,7 +6,7 @@
     <div class="px-4 sm:px-6 lg:px-8">
         <div class="sm:flex sm:items-center">
             <div class="sm:flex-auto">
-                <h1 class="text-xl font-semibold text-gray-900">Správa modulů</h1>
+                <h1 class="text-xl font-semibold text-gray-900">@i18('module_management')</h1>
                 <p class="mt-2 text-sm text-gray-700">Zapínání, vypínání a konfigurace modulů systému</p>
             </div>
             <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
@@ -49,7 +49,7 @@
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dl>
-                                <dt class="text-sm font-medium text-green-500 truncate">Zapnuté</dt>
+                                <dt class="text-sm font-medium text-green-500 truncate">@i18('enabled')</dt>
                                 <dd class="text-lg font-medium text-green-900" id="enabledModules">-</dd>
                             </dl>
                         </div>
@@ -65,7 +65,7 @@
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dl>
-                                <dt class="text-sm font-medium text-red-500 truncate">Vypnuté</dt>
+                                <dt class="text-sm font-medium text-red-500 truncate">@i18('disabled')</dt>
                                 <dd class="text-lg font-medium text-red-900" id="disabledModules">-</dd>
                             </dl>
                         </div>
@@ -81,7 +81,7 @@
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dl>
-                                <dt class="text-sm font-medium text-amber-500 truncate">S problémy</dt>
+                                <dt class="text-sm font-medium text-amber-500 truncate">@i18('with_issues')</dt>
                                 <dd class="text-lg font-medium text-amber-900" id="modulesWithIssues">-</dd>
                             </dl>
                         </div>

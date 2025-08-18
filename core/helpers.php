@@ -688,3 +688,76 @@ if (!function_exists('method_field')) {
 }
 
 require_once APP_ROOT . '/core/helpers/toast.php';
+
+if (!function_exists('i18')) {
+    /**
+     * Zkrácená funkce pro překlady
+     *
+     * @param string $key
+     * @param array $replace
+     * @param string|null $locale
+     * @return string
+     */
+    function i18(string $key, array $replace = [], ?string $locale = null): string
+    {
+        return \Core\Helpers\TranslationHelper::__($key, $replace, $locale);
+    }
+}
+
+if (!function_exists('loading')) {
+    /**
+     * Generuje JavaScript pro zobrazení/skrytí loading overlay
+     *
+     * @param bool $show
+     * @param string $text
+     * @param string|null $autoHide
+     * @return string
+     */
+    function loading(bool $show, string $text = 'Načítání...', ?string $autoHide = null): string
+    {
+        if ($show) {
+            $script = "window.setLoading(true, " . json_encode($text) . ");";
+
+            // Automatické skrytí po zadaném čase
+            if ($autoHide) {
+                $milliseconds = parseTimeToMilliseconds($autoHide);
+                $script .= "setTimeout(() => window.setLoading(false), " . $milliseconds . ");";
+            }
+
+            return "<script>$script</script>";
+        } else {
+            return "<script>window.setLoading(false);</script>";
+        }
+    }
+}
+
+if (!function_exists('parseTimeToMilliseconds')) {
+    /**
+     * Převede časový řetězec na milisekundy
+     *
+     * @param string $timeString
+     * @return int
+     */
+    function parseTimeToMilliseconds(string $timeString): int
+    {
+        $timeString = trim(strtolower($timeString));
+
+        // Regex pro parsování čísla a jednotky
+        if (preg_match('/^(\d+(?:\.\d+)?)\s*(ms|s|m|h|d)$/', $timeString, $matches)) {
+            $value = (float) $matches[1];
+            $unit = $matches[2];
+
+            return match($unit) {
+                'ms' => (int) $value,
+                's' => (int) ($value * 1000),
+                'm' => (int) ($value * 60 * 1000),
+                'h' => (int) ($value * 60 * 60 * 1000),
+                'd' => (int) ($value * 24 * 60 * 60 * 1000),
+                default => 1000
+            };
+        }
+
+        // Pokud není rozpoznán formát, vrátí 1000ms jako fallback
+        return 1000;
+    }
+}

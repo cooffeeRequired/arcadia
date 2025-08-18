@@ -6,31 +6,31 @@
 <div class="bg-white shadow rounded-lg">
     <div class="px-4 py-5 sm:p-6">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-900">E-maily</h2>
+            <h2 class="text-2xl font-bold text-gray-900">@i18('emails')</h2>
             <div class="flex space-x-3">
                 <a href="/emails/templates" class="btn-secondary">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
-                    Šablony
+                    @i18('templates')
                 </a>
                 <a href="/emails/signatures" class="btn-secondary">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                     </svg>
-                    Podpisy
+                    @i18('signatures')
                 </a>
                 <a href="/emails/servers" class="btn-secondary">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>
                     </svg>
-                    Servery
+                    @i18('servers')
                 </a>
                 <a href="/emails/create" class="btn-primary">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
-                    Nový e-mail
+                    @i18('create') @i18('email')
                 </a>
             </div>
         </div>
@@ -39,14 +39,14 @@
         <div class="mb-6">
             <div class="flex flex-col sm:flex-row gap-4">
                 <div class="flex-1">
-                    <input type="text" placeholder="Hledat e-maily..." class="form-input">
+                    <input type="text" placeholder="@i18('search') @i18('emails')..." class="form-input">
                 </div>
                 <select class="form-input w-full sm:w-48">
-                    <option>Všechny stavy</option>
-                    <option>Koncept</option>
-                    <option>Odeslané</option>
-                    <option>Naplánované</option>
-                    <option>Chyba</option>
+                    <option>@i18('all_statuses')</option>
+                    <option>@i18('draft')</option>
+                    <option>@i18('sent')</option>
+                    <option>@i18('scheduled')</option>
+                    <option>@i18('error')</option>
                 </select>
             </div>
         </div>
@@ -57,19 +57,19 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Předmět
+                            @i18('subject')
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Příjemci
+                            @i18('recipients')
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Stav
+                            @i18('status')
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Vytvořeno
+                            @i18('created')
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Akce
+                            @i18('actions')
                         </th>
                     </tr>
                 </thead>

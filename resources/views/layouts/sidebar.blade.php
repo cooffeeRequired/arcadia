@@ -67,23 +67,23 @@
     <!-- Settings section - moved to bottom -->
     <div class="border-t border-gray-200 px-4 py-4">
         <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-            Nastavení
+            @i18('settings')
         </h3>
         <div class="space-y-1">
             <a href="/settings/profile"
                class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ str_starts_with($currentUri, '/settings/profile') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                 <i class="fas fa-user-cog mr-3 {{ str_starts_with($currentUri, '/settings/profile') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}"></i>
-                <span class="flex-1">Profil</span>
+                <span class="flex-1">@i18('profile')</span>
             </a>
             <a href="/settings/system"
                class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ str_starts_with($currentUri, '/settings/system') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                 <i class="fas fa-cog mr-3 {{ str_starts_with($currentUri, '/settings/system') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}"></i>
-                <span class="flex-1">Systém</span>
+                <span class="flex-1">@i18('system')</span>
             </a>
             <a href="/settings/modules"
                class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {{ str_starts_with($currentUri, '/settings/modules') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                 <i class="fas fa-puzzle-piece mr-3 {{ str_starts_with($currentUri, '/settings/modules') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}"></i>
-                <span class="flex-1">Moduly</span>
+                <span class="flex-1">@i18('modules')</span>
             </a>
         </div>
     </div>
@@ -119,8 +119,15 @@
         <div class="mt-3 space-y-1">
             <a href="/logout"
                class="block px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md">
-                <i class="fas fa-sign-out-alt mr-2"></i>Odhlásit
+                <i class="fas fa-sign-out-alt mr-2"></i>@i18('logout')
             </a>
+        </div>
+    </div>
+
+    <!-- Language Switcher -->
+    <div class="border-t border-gray-200 p-4">
+        <div class="flex justify-center">
+            @include('components.language-switcher')
         </div>
     </div>
 </div>

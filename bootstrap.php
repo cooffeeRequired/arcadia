@@ -176,6 +176,9 @@ final class Bootstrap
             View::init();
             ToastMiddleware::autoHandle();
 
+            // Inicializace překladového systému
+            \Core\Helpers\TranslationHelper::init();
+
         } catch (ORMException|\Doctrine\DBAL\Exception $e) {
             $html = View::render('errors.generic', [
                 'code'    => $e->getCode(),
@@ -214,5 +217,5 @@ function boot(): void
     [, $cache] = Bootstrap::init();
     Bootstrap::tryMakeConnection($cache);
     Bootstrap::tryLoadModules();
-    require __DIR__ . '/app/router.php';
+    require __DIR__ . '/app/routes.php';
 }

@@ -4,7 +4,7 @@
 <div class="px-4 sm:px-6 lg:px-8">
     <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
-            <h1 class="text-xl font-semibold text-gray-900">Reporty</h1>
+            <h1 class="text-xl font-semibold text-gray-900">@i18('reports')</h1>
             <p class="mt-2 text-sm text-gray-700">Přehled a analýza dat z CRM systému.</p>
         </div>
     </div>
@@ -57,7 +57,7 @@
                     </div>
                     <div class="ml-5 w-0 flex-1">
                         <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Aktivní obchody</dt>
+                            <dt class="text-sm font-medium text-gray-500 truncate">@i18('active_deals')</dt>
                             <dd class="text-lg font-medium text-gray-900">{{ $activeDealsCount ?? 0 }}</dd>
                         </dl>
                     </div>
@@ -86,7 +86,7 @@
 
     <!-- Navigace reportů -->
     <div class="mt-8">
-        <h2 class="text-lg font-medium text-gray-900 mb-4">Dostupné reporty</h2>
+                        <h2 class="text-lg font-medium text-gray-900 mb-4">@i18('available_reports')</h2>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <a href="/reports/customers" class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
                 <div class="flex-shrink-0">
@@ -96,7 +96,7 @@
                 </div>
                 <div class="flex-1 min-w-0">
                     <span class="absolute inset-0" aria-hidden="true"></span>
-                    <p class="text-sm font-medium text-gray-900">Zákazníci</p>
+                    <p class="text-sm font-medium text-gray-900">@i18('customers')</p>
                     <p class="text-sm text-gray-500">Přehled zákazníků s aktivitami</p>
                 </div>
             </a>
@@ -109,7 +109,7 @@
                 </div>
                 <div class="flex-1 min-w-0">
                     <span class="absolute inset-0" aria-hidden="true"></span>
-                    <p class="text-sm font-medium text-gray-900">Obchody</p>
+                    <p class="text-sm font-medium text-gray-900">@i18('deals')</p>
                     <p class="text-sm text-gray-500">Analýza obchodů a příležitostí</p>
                 </div>
             </a>
@@ -122,7 +122,7 @@
                 </div>
                 <div class="flex-1 min-w-0">
                     <span class="absolute inset-0" aria-hidden="true"></span>
-                    <p class="text-sm font-medium text-gray-900">Kontakty</p>
+                    <p class="text-sm font-medium text-gray-900">@i18('contacts')</p>
                     <p class="text-sm text-gray-500">Přehled kontaktů a komunikace</p>
                 </div>
             </a>
@@ -133,7 +133,7 @@
     <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div class="bg-white shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">Poslední kontakty</h3>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">@i18('recent_contacts')</h3>
                 <div class="mt-4 flow-root">
                     <ul class="-my-5 divide-y divide-gray-200">
                         @if(isset($recentContacts) && count($recentContacts) > 0)
@@ -152,7 +152,7 @@
                             </li>
                             @endforeach
                         @else
-                            <li class="py-4 text-sm text-gray-500">Žádné nedávné kontakty</li>
+                            <li class="py-4 text-sm text-gray-500">@i18('no_recent_contacts')</li>
                         @endif
                     </ul>
                 </div>
@@ -161,7 +161,7 @@
 
         <div class="bg-white shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">Poslední obchody</h3>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">@i18('recent_deals')</h3>
                 <div class="mt-4 flow-root">
                     <ul class="-my-5 divide-y divide-gray-200">
                         @if(isset($recentDeals) && count($recentDeals) > 0)
@@ -180,7 +180,7 @@
                             </li>
                             @endforeach
                         @else
-                            <li class="py-4 text-sm text-gray-500">Žádné nedávné obchody</li>
+                            <li class="py-4 text-sm text-gray-500">@i18('no_recent_deals')</li>
                         @endif
                     </ul>
                 </div>

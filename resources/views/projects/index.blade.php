@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Projekty')
+@section('title', 'Projects')
 
 @section('content')
 <div class="px-4 sm:px-6 lg:px-8">
     <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
-            <h1 class="text-xl font-semibold text-gray-900">Projekty</h1>
+            <h1 class="text-xl font-semibold text-gray-900">@i18('projects')</h1>
             <p class="mt-2 text-sm text-gray-700">Správa a přehled všech projektů</p>
         </div>
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
@@ -51,7 +51,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Zákazník</label>
                     <select name="customer_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Všichni zákazníci</option>
+                        <option value="">@i18('all_customers')</option>
                         @foreach($customers as $customer)
                         <option value="{{ $customer->getId() }}" {{ $filters['customer_id'] == $customer->getId() ? 'selected' : '' }}>
                             {{ $customer->getName() }}
@@ -172,8 +172,8 @@
                                     <td colspan="7" class="px-6 py-12 text-center">
                                         <div class="text-center">
                                             <i class="fas fa-folder-open text-4xl text-gray-400 mb-4"></i>
-                                            <h3 class="text-lg font-medium text-gray-900 mb-2">Žádné projekty</h3>
-                                            <p class="text-gray-600 mb-6">Zatím nebyly vytvořeny žádné projekty.</p>
+                                                            <h3 class="text-lg font-medium text-gray-900 mb-2">@i18('no_projects')</h3>
+                <p class="text-gray-600 mb-6">@i18('no_projects_created_yet')</p>
                                             @if($moduleManager->hasPermission('projects', 'create'))
                                             <a href="/projects/create" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors">
                                                 <i class="fas fa-plus mr-2"></i>Vytvořit první projekt
