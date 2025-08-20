@@ -23,10 +23,10 @@ class ModuleController extends BaseController
     {
         // Načti moduly ze souborů a synchronizuj s DB
         $this->moduleManager->loadModulesFromFiles();
-        
+
         // Získej všechny moduly z databáze
         $modules = $this->moduleManager->getAllModules();
-        
+
         return $this->view('settings.modules.index', [
             'modules' => $modules
         ]);
@@ -38,7 +38,7 @@ class ModuleController extends BaseController
     public function show(string $moduleName): Response\ViewResponse
     {
         $module = $this->moduleManager->getModuleByName($moduleName);
-        
+
         if (!$module) {
             $this->redirect('/settings/modules');
         }
