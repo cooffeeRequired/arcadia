@@ -2,12 +2,12 @@
 
 namespace Modules\Example\Controllers;
 
-use Doctrine\ORM\Exception\NotSupported;
-use Modules\Example\Entities\ExampleItem;
-use Core\Render\BaseController;
-use Core\Http\Response\ViewResponse;
 use Core\Http\Response\JsonResponse;
+use Core\Http\Response\ViewResponse;
+use Core\Render\BaseController;
+use Doctrine\ORM\Exception\NotSupported;
 use Exception;
+use Modules\Example\Entities\ExampleItem;
 
 class ExampleController extends BaseController
 {

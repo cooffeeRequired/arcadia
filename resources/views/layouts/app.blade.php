@@ -1,3 +1,4 @@
+@php use Core\Helpers\TranslationHelper; @endphp
 
 <!DOCTYPE html>
 <html lang="cs">
@@ -26,7 +27,7 @@
         </button>
     </div>
 
-        <!-- Sidebar -->
+    <!-- Sidebar -->
     <div id="sidebar" class="fixed inset-y-0 left-0 z-40 w-80 bg-white shadow-xl transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
         @include('layouts.sidebar')
     </div>
@@ -93,353 +94,32 @@
 
     @stack('scripts')
     @yield('scripts')
-    <?php if (getenv('APP_ENV') !== 'development'): ?>
-        <script src="{{ asset('js/main.js') }}"></script>
-    <?php endif; ?>
-    <!-- Toast Notification JavaScript -->
-    {!! render_toast_scripts() !!}
-
-    <!-- Global Modal JavaScript -->
-    <script>
-        // Global Modal System
-        class GlobalModal {
-            constructor() {
-                this.modal = document.getElementById('global-modal');
-                this.container = this.modal.querySelector('.modal-container');
-                this.title = document.getElementById('modal-title');
-                this.body = document.getElementById('modal-body');
-                this.footer = document.getElementById('modal-footer');
-                this.closeBtn = document.getElementById('modal-close');
-                this.cancelBtn = document.getElementById('modal-cancel');
-
-                this.bindEvents();
-            }
-
-            bindEvents() {
-                // Zavření modalu kliknutím na overlay
-                this.modal.addEventListener('click', (e) => {
-                    if (e.target === this.modal) {
-                        this.hide();
-                    }
-                });
-
-                // Zavření modalu kliknutím na tlačítko zavřít
-                this.closeBtn.addEventListener('click', () => this.hide());
-                this.cancelBtn.addEventListener('click', () => this.hide());
-
-                // Zavření modalu klávesou Escape
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape' && this.isVisible()) {
-                        this.hide();
-                    }
-                });
-            }
-
-            show() {
-                this.modal.classList.add('show');
-                document.body.style.overflow = 'hidden';
-            }
-
-            hide() {
-                this.modal.classList.remove('show');
-                document.body.style.overflow = '';
-            }
-
-            isVisible() {
-                return this.modal.classList.contains('show');
-            }
-
-            setTitle(title) {
-                this.title.textContent = title;
-            }
-
-            setContent(content) {
-                this.body.innerHTML = content;
-            }
-
-            setFooter(footer) {
-                this.footer.innerHTML = footer;
-            }
-
-            showLoading() {
-                this.body.innerHTML = '<div class="modal-loading">Načítání...</div>';
-            }
-
-            loadModal(options = {}) {
-                const {
-                    title = 'Název modalu',
-                    url = null,
-                    content = null,
-                    footer = null,
-                    size = 'medium',
-                    onLoad = null,
-                    onClose = null
-                } = options;
-
-                // Nastavení velikosti modalu
-                this.container.className = 'modal-container';
-                if (size === 'small') {
-                    this.container.style.width = '400px';
-                } else if (size === 'large') {
-                    this.container.style.width = '800px';
-                } else if (size === 'xlarge') {
-                    this.container.style.width = '1200px';
-                } else if (size === 'fullscreen') {
-                    this.container.style.width = '100%';
-                } else {
-                    this.container.style.width = '600px';
-                }
-
-                this.setTitle(title);
-
-                if (footer) {
-                    this.setFooter(footer);
-                } else {
-                    this.setFooter('<button type="button" class="btn-secondary" id="modal-cancel">Zavřít</button>');
-                }
-
-                if (url) {
-                    this.showLoading();
-                    this.show();
-
-                    // Načtení obsahu z URL
-                    fetch(url)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.text();
-                        })
-                        .then(html => {
-                            this.setContent(html);
-                            if (onLoad) onLoad(this);
-                        })
-                        .catch(error => {
-                            this.setContent(`<div class="text-red-600 p-4">Chyba při načítání: ${error.message}</div>`);
-                        });
-                } else if (content) {
-                    this.setContent(content);
-                    this.show();
-                    if (onLoad) onLoad(this);
-                } else {
-                    this.showLoading();
-                    this.show();
-                }
-
-                // Přidání callback pro zavření
-                if (onClose) {
-                    this.onCloseCallback = onClose;
-                }
-
-                // Přebindování tlačítek po změně obsahu
-                setTimeout(() => {
-                    const newCancelBtn = this.footer.querySelector('#modal-cancel');
-                    if (newCancelBtn) {
-                        newCancelBtn.addEventListener('click', () => {
-                            this.hide();
-                            if (this.onCloseCallback) this.onCloseCallback();
-                        });
-                    }
-                }, 100);
-            }
-        }
-
-        // Inicializace globálního modalu
-        const globalModal = new GlobalModal();
-
-        // Globální funkce pro použití v celé aplikaci
-        window.loadModal = function(options) {
-            globalModal.loadModal(options);
-        };
-
-        window.showModal = function(title, content, size = 'medium') {
-            globalModal.loadModal({
-                title: title,
-                content: content,
-                size: size
-            });
-        };
-
-        window.hideModal = function() {
-            globalModal.hide();
-        };
-
-        // Příklad použití:
-        // loadModal({
-        //     title: 'Můj modál',
-        //     url: '/api/modal-content',
-        //     size: 'large',
-        //     onLoad: (modal) => console.log('Modál načten'),
-        //     onClose: () => console.log('Modál zavřen')
-        // });
-
-        // showModal('Jednoduchý modál', '<p>Obsah modalu</p>', 'small');
-    </script>
+    <script src="{{ asset('js/main.js') }}"></script>
 
     <!-- Language Switcher JavaScript -->
-    <script>
-        // Reset all Alpine.js dropdowns on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Reset language switcher dropdown
-            const languageSwitchers = document.querySelectorAll('[x-data]');
-            languageSwitchers.forEach(element => {
-                if (element._x_dataStack && element._x_dataStack[0] && element._x_dataStack[0].open !== undefined) {
-                    element._x_dataStack[0].open = false;
-                }
-            });
-        });
-
-        function changeLanguage(locale, flag) {
-            // Zobrazit loading overlay
-            const overlay = document.getElementById('language-loading-overlay');
-            const flagAnimation = document.getElementById('flag-animation');
-            const languageText = document.getElementById('language-text');
-
-            // Ujistit se, že overlay je nad vším
-            overlay.style.zIndex = '9999';
-            overlay.style.position = 'fixed';
-            overlay.style.top = '0';
-            overlay.style.left = '0';
-            overlay.style.right = '0';
-            overlay.style.bottom = '0';
-
-            overlay.classList.remove('hidden');
-
-            // Najít název jazyka
-            const languageNames = {
-                'cs': 'čeština',
-                'en': 'angličtina',
-                'de': 'němčina',
-                'sk': 'slovenština',
-                'pl': 'polština'
-            };
-
-            languageText.textContent = `Měním na ${languageNames[locale] || locale}...`;
-
-            // Animace změny vlajky s morphing efektem
-            flagAnimation.classList.add('flag-morph');
-
-                        setTimeout(() => {
-                flagAnimation.textContent = flag;
-            }, 600); // Změna vlajky uprostřed animace
-
-            setTimeout(() => {
-                flagAnimation.classList.remove('flag-morph');
-            }, 1200);
-
-            fetch('/api/languages/set', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({ locale: locale })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                                // Delší pauza pro animaci
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
-                } else {
-                    console.error('Chyba při změně jazyka:', data.message);
-                    overlay.classList.add('hidden');
-                }
-            })
-            .catch(error => {
-                console.error('Chyba při změně jazyka:', error);
-                overlay.classList.add('hidden');
-            });
-        }
-    </script>
+    <script src="{{ asset('js/language-switcher.js') }}"></script>
+    <!-- Global Modal JavaScript -->
+    <script src="{{ asset('js/modals.js') }}"></script>
 
     <!-- Global Loading JavaScript -->
-    <script>
-        // Globální loading state
-        window.setLoading = function(show, text = 'Načítání...') {
-            const overlay = document.getElementById('global-loading-overlay');
-            const loadingText = document.getElementById('global-loading-text');
-
-            if (show) {
-                // Ujistit se, že overlay je nad vším
-                overlay.style.zIndex = '9999';
-                overlay.style.position = 'fixed';
-                overlay.style.top = '0';
-                overlay.style.left = '0';
-                overlay.style.right = '0';
-                overlay.style.bottom = '0';
-
-                loadingText.textContent = text;
-                overlay.classList.remove('hidden');
-            } else {
-                overlay.classList.add('hidden');
-            }
-        };
-
-        // Helper funkce pro rychlé použití
-        window.showLoading = function(text = 'Načítání...', autoHide = null) {
-            window.setLoading(true, text);
-
-            // Automatické skrytí
-            if (autoHide) {
-                const milliseconds = parseTimeToMilliseconds(autoHide);
-                setTimeout(() => window.setLoading(false), milliseconds);
-            }
-        };
-
-        window.hideLoading = function() {
-            window.setLoading(false);
-        };
-
-        // Funkce pro parsování času (stejná jako v PHP)
-        function parseTimeToMilliseconds(timeString) {
-            timeString = timeString.trim().toLowerCase();
-
-            // Regex pro parsování čísla a jednotky
-            const match = timeString.match(/^(\d+(?:\.\d+)?)\s*(ms|s|m|h|d)$/);
-            if (match) {
-                const value = parseFloat(match[1]);
-                const unit = match[2];
-
-                switch(unit) {
-                    case 'ms': return Math.floor(value);
-                    case 's': return Math.floor(value * 1000);
-                    case 'm': return Math.floor(value * 60 * 1000);
-                    case 'h': return Math.floor(value * 60 * 60 * 1000);
-                    case 'd': return Math.floor(value * 24 * 60 * 60 * 1000);
-                    default: return 1000;
-                }
-            }
-
-            // Fallback
-            return 1000;
-        }
-    </script>
+    <script src="{{ asset('js/loading.js') }}"></script>
 
     <!-- Mobile menu JavaScript -->
+    <script src="{{ asset('js/mobile.js') }}"></script>
+
+    {!! render_toast_scripts() !!}
+
+    @php $langs = TranslationHelper::getAllTranslations(); @endphp
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebar-overlay');
-
-            if (mobileMenuButton && sidebar) {
-                mobileMenuButton.addEventListener('click', function() {
-                    sidebar.classList.toggle('-translate-x-full');
-                    if (sidebarOverlay) {
-                        sidebarOverlay.classList.toggle('hidden');
-                    }
-                });
-
-                if (sidebarOverlay) {
-                    sidebarOverlay.addEventListener('click', function() {
-                        sidebar.classList.add('-translate-x-full');
-                        sidebarOverlay.classList.add('hidden');
-                    });
-                }
-            }
-        });
+        function format(str, ...args) {
+            return (str + '').replace(/{(\d+)}/g, (match, index) => args[index] ?? match);
+        }
+        window['__i18'] = @json($langs);
+        window['i18'] = function(translate, ...params) {
+            const __ = window['__i18'][translate];
+            return format(__, ...params);
+        }
     </script>
+    @yield('scripts')
 </body>
 </html>

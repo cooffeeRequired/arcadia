@@ -13,6 +13,11 @@ return [
     'workflows' => 'Workflows',
     'emails' => 'Emails',
     'modules' => 'Modules',
+    'auth.login-desc' => 'Log in to your account',
+    'auth.doenst-have-account' => 'Don\'t have an account? Register',
+    'auth.login' => 'Log in',
+    'password' => 'Password',
+    'theme-changer.changing' => 'Changing to {0}...',
 
     // Actions
     'create' => 'Create',

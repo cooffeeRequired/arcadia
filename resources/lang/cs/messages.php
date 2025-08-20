@@ -13,6 +13,11 @@ return [
     'workflows' => 'Workflow',
     'emails' => 'E-maily',
     'modules' => 'Moduly',
+    'auth.login-desc' => 'Přihlášení do účtu',
+    'auth.doenst-have-account' => 'Nemáte účet? Registrujte se',
+    'auth.login' => 'Přihlásit se',
+    'password' => 'Heslo',
+    'theme-changer.changing' => 'Měním na {0}...',
 
     // Akce
     'create' => 'Vytvořit',

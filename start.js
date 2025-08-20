@@ -13,7 +13,7 @@ class OutputFormatter {
             info: 'log/info.log'
         };
         this.logWatchers = new Map();
-        this.filePositions = new Map(); // Sleduje pozici v každém souboru
+        this.filePositions = new Map();
         this.setupLogWatchers();
     }
 
@@ -25,12 +25,10 @@ class OutputFormatter {
 
     watchLogFile(type, filePath) {
         if (!fs.existsSync(filePath)) {
-            // Vytvoř soubor, pokud neexistuje
             ensureDirForFile(filePath);
             fs.writeFileSync(filePath, '');
         }
 
-        // Inicializuj pozici na konec souboru
         try {
             const stats = fs.statSync(filePath);
             this.filePositions.set(filePath, stats.size);
@@ -38,8 +36,7 @@ class OutputFormatter {
             this.filePositions.set(filePath, 0);
         }
 
-        // Sleduj změny v souboru
-        const watcher = fs.watch(filePath, (eventType, filename) => {
+        const watcher = fs.watch(filePath, (eventType) => {
             if (eventType === 'change') {
                 this.readAndDisplayLog(type, filePath);
             }
@@ -55,13 +52,10 @@ class OutputFormatter {
 
             const currentPosition = this.filePositions.get(filePath) || 0;
 
-            // Pokud se soubor zmenšil (byl vyčištěn), resetuj pozici
             if (stats.size < currentPosition) {
                 this.filePositions.set(filePath, 0);
                 return;
             }
-
-            // Přečti pouze nové řádky od poslední pozice
             const stream = fs.createReadStream(filePath, {
                 start: currentPosition,
                 encoding: 'utf8'
@@ -84,16 +78,13 @@ class OutputFormatter {
                         }
                     });
                 }
-                // Aktualizuj pozici na konec souboru
                 this.filePositions.set(filePath, stats.size);
             });
 
-            stream.on('error', (error) => {
-                // Ignoruj chyby při čtení logu
-            });
+            stream.on('error', (error) => null);
 
         } catch (error) {
-            // Ignoruj chyby při čtení logu
+            // Ignoruj chyby při čtení log
         }
     }
 
@@ -149,8 +140,8 @@ class OutputFormatter {
     parsePHPOutput(data) {
         const text = data.toString().trim();
 
-        const requestRegex = /\[(.+?)\]\s+(\d+\.\d+\.\d+\.\d+):(\d+)\s+\[(\d+)\]:\s+(\w+)\s+(.+)/;
-        const connectRegex = /\[(.+?)\]\s+(\d+\.\d+\.\d+\.\d+):(\d+)\s+(Accepted|Closing)/;
+        const requestRegex = /\[(.+?)]\s+(\d+\.\d+\.\d+\.\d+):(\d+)\s+\[(\d+)]:\s+(\w+)\s+(.+)/;
+        const connectRegex = /\[(.+?)]\s+(\d+\.\d+\.\d+\.\d+):(\d+)\s+(Accepted|Closing)/;
 
         const requestMatch = text.match(requestRegex);
         if (requestMatch) {
@@ -168,6 +159,7 @@ class OutputFormatter {
         if (connectMatch) {
             const [, timestamp, ip, port, action] = connectMatch;
             const color = action === 'Accepted' ? chalk.green : chalk.gray;
+            return null;
             return `${chalk.white.bold(timestamp)} ${chalk.dim(`${ip}:${port}`)} ${color(action)}`;
         }
 

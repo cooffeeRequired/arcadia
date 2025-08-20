@@ -5,7 +5,7 @@
     <div class="max-w-md w-full space-y-8">
         <div>
             <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Přihlášení do účtu
+                @i18('auth.login-desc')
             </h2>
         </div>
 
@@ -17,16 +17,16 @@
                     'name' => 'email',
                     'label' => 'Email',
                     'type' => 'email',
-                    'placeholder' => 'vas@email.cz',
+                    'placeholder' => 'any@email.com',
                     'required' => true,
                     'autocomplete' => 'email'
                 ])
 
                 @include('auth.comps.simple-input', [
                     'name' => 'password',
-                    'label' => 'Heslo',
+                    'label' => i18('password'),
                     'type' => 'password',
-                    'placeholder' => 'Vaše heslo',
+                    'placeholder' => '*******',
                     'required' => true,
                     'autocomplete' => 'current-password'
                 ])
@@ -39,13 +39,13 @@
                             <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
                         </svg>
                     </span>
-                    Přihlásit se
+                    @i18('auth.login')
                 </button>
             </div>
 
             <div class="text-center">
                 <a href="/register" class="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
-                    Nemáte účet? Registrujte se
+                    @i18('auth.doenst-have-account')
                 </a>
             </div>
         </form>

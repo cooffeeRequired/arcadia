@@ -6,6 +6,7 @@
 
 use Core\Cache\CacheManager;
 use Core\Facades\Container;
+use Core\Helpers\TranslationHelper;
 use Core\Http\Request;
 use Random\RandomException;
 use Symfony\Component\VarDumper\VarDumper;
@@ -700,7 +701,7 @@ if (!function_exists('i18')) {
      */
     function i18(string $key, array $replace = [], ?string $locale = null): string
     {
-        return \Core\Helpers\TranslationHelper::__($key, $replace, $locale);
+        return TranslationHelper::__($key, $replace, $locale);
     }
 }
 

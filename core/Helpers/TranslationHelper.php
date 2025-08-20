@@ -2,7 +2,9 @@
 
 namespace Core\Helpers;
 
+use Core\Authorization\Session;
 use Core\Facades\Container;
+use DateTime;
 use Illuminate\Translation\Translator;
 use Illuminate\Translation\FileLoader;
 use Illuminate\Filesystem\Filesystem;
@@ -19,12 +21,14 @@ class TranslationHelper
     public static function init(): void
     {
         if (self::$translator === null) {
-            // Nastavení locale z session nebo config
             $session = Container::get('session');
             $userLocale = $session->get('user_locale');
+            $cookieLocale = CookieHelper::get('cookie_locale', castTo: 'string');
 
             if ($userLocale && self::isLocaleSupported($userLocale)) {
                 self::$currentLocale = $userLocale;
+            } else if ($cookieLocale && self::isLocaleSupported($cookieLocale)) {
+                self::$currentLocale = $cookieLocale;
             } else {
                 self::$currentLocale = APP_CONFIGURATION['app_locale'] ?? 'cs';
             }
@@ -34,9 +38,6 @@ class TranslationHelper
 
             self::$translator = new Translator($loader, self::$currentLocale);
             self::$translator->setFallback(self::$fallbackLocale);
-
-            debug_log("TranslationHelper: Inicializován translator pro jazyk '" . self::$currentLocale . "'");
-            debug_log("TranslationHelper: Lang path: " . APP_ROOT . '/resources/lang');
         }
     }
 
@@ -45,25 +46,19 @@ class TranslationHelper
      */
     public static function trans(string $key, array $replace = [], ?string $locale = null): string
     {
-        self::init();
-
-        // Kontrola aktuálního jazyka z session při každém volání
-        $session = Container::get('session');
-        $userLocale = $session->get('user_locale');
+        $session = Container::get('session', Session::class);
+        $userLocale = $session->get('user_locale') ?? CookieHelper::get('cookie_locale', castTo: 'string');
 
         if ($userLocale && self::isLocaleSupported($userLocale) && $userLocale !== self::$currentLocale) {
-            debug_log("TranslationHelper: Změna jazyka z " . self::$currentLocale . " na {$userLocale}");
             self::setLocale($userLocale);
         }
 
-                // Zkusím nejdříve Laravel translator
         $result = $locale && self::isLocaleSupported($locale)
             ? self::$translator->get($key, $replace, $locale)
             : self::$translator->get($key, $replace);
 
-        // Pokud Laravel translator nefunguje, načtu překlad přímo
         if ($result === $key) {
-            $filePath = APP_ROOT . "/resources/lang/" . self::$currentLocale . "/messages.php";
+            $filePath = resources('/lang/' . self::$currentLocale . '/messages.php');
             if (file_exists($filePath)) {
                 $translations = require $filePath;
                 if (isset($translations[$key])) {
@@ -71,12 +66,6 @@ class TranslationHelper
                 }
             }
         }
-
-                // Debug log pro chybějící překlady
-        if ($result === $key) {
-            debug_log("TranslationHelper: Chybějící překlad pro klíč '{$key}' v jazyce '" . self::$currentLocale . "'");
-        }
-
         return $result;
     }
 
@@ -94,22 +83,19 @@ class TranslationHelper
     public static function setLocale(string $locale): void
     {
         if (self::isLocaleSupported($locale)) {
-            debug_log("TranslationHelper: Nastavuji jazyk na '{$locale}'");
             self::$currentLocale = $locale;
 
-            // Uložení do session
-            $session = Container::get('session');
-            $session->set('user_locale', $locale);
+            $session = Container::get('session', Session::class);
+            CookieHelper::set('cookie_locale', $locale);
+            if ($session->has('user')) {
+                $session->set('user_locale', $locale);
+            }
 
-            // Reinicializace translatoru s novým jazykem
+
             $filesystem = new Filesystem();
             $loader = new FileLoader($filesystem, APP_ROOT . '/resources/lang');
-
             self::$translator = new Translator($loader, $locale);
             self::$translator->setFallback(self::$fallbackLocale);
-            debug_log("TranslationHelper: Translator reinicializován pro jazyk '{$locale}'");
-        } else {
-            debug_log("TranslationHelper: Neplatný jazyk '{$locale}'");
         }
     }
 
@@ -120,7 +106,7 @@ class TranslationHelper
     {
         // Kontrola aktuálního jazyka z session
         $session = Container::get('session');
-        $userLocale = $session->get('user_locale');
+        $userLocale = $session->get('user_locale') ?? CookieHelper::get('cookie_locale', castTo: 'string');
 
         if ($userLocale && self::isLocaleSupported($userLocale)) {
             if ($userLocale !== self::$currentLocale) {
@@ -192,7 +178,7 @@ class TranslationHelper
     /**
      * Formátování data podle locale
      */
-    public static function formatDate(\DateTime $date, string $format = 'medium', ?string $locale = null): string
+    public static function formatDate(DateTime $date, string $format = 'medium', ?string $locale = null): string
     {
         $locale = $locale ?: self::getLocale();
 
@@ -219,9 +205,6 @@ class TranslationHelper
         return $date->format($dateFormat);
     }
 
-    /**
-     * Formátování čísla podle locale
-     */
     public static function formatNumber(float $number, int $decimals = 2, ?string $locale = null): string
     {
         $locale = $locale ?: self::getLocale();
@@ -239,9 +222,6 @@ class TranslationHelper
         return number_format($number, $decimals, $formatter['decimal'], $formatter['thousands']);
     }
 
-    /**
-     * Formátování měny podle locale
-     */
     public static function formatCurrency(float $amount, string $currency = 'CZK', ?string $locale = null): string
     {
         $locale = $locale ?: self::getLocale();
@@ -261,9 +241,6 @@ class TranslationHelper
         return str_replace(['{amount}', '{currency}'], [$formattedNumber, $currency], $format);
     }
 
-    /**
-     * Získání směru textu (LTR/RTL)
-     */
     public static function getTextDirection(?string $locale = null): string
     {
         $locale = $locale ?: self::getLocale();
@@ -286,8 +263,7 @@ class TranslationHelper
     public static function getAllTranslations(string $namespace = 'messages', ?string $locale = null): array
     {
         $locale = $locale ?: self::getLocale();
-
-        $filePath = APP_ROOT . "/resources/lang/{$locale}/{$namespace}.php";
+        $filePath = resources("/lang/{$locale}/{$namespace}.php");
 
         if (file_exists($filePath)) {
             return require $filePath;

@@ -85,7 +85,7 @@
 @endphp
 
 @if(count($breadcrumbs) > 0)
-<div class="mb-6 mx-[2rem] py-[2rem]">
+<div class="mb-6 mx-[2rem] py-[2rem] !mb-0">
     <nav class="flex items-center space-x-1 text-sm" aria-label="Breadcrumb">
         @foreach($breadcrumbs as $index => $breadcrumb)
             @if($index > 0)

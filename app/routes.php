@@ -112,12 +112,12 @@ $router->group(['middleware' => ['auth']], function (Router $router) {
     // Moduly
     $router->group(['prefix' => '/settings/modules'], function (Router $router) {
         $router->get('/', [SettingsController::class, 'modules'])->name('settings.modules.index');
-        $router->get('/{moduleName}', [SettingsController::class, 'moduleDetail'])->name('settings.modules.show');
-        $router->post('/{moduleName}/install', [SettingsController::class, 'installModule'])->name('settings.modules.install');
-        $router->post('/{moduleName}/uninstall', [SettingsController::class, 'uninstallModule'])->name('settings.modules.uninstall');
-        $router->post('/{moduleName}/enable', [SettingsController::class, 'enableModule'])->name('settings.modules.enable');
-        $router->post('/{moduleName}/disable', [SettingsController::class, 'disableModule'])->name('settings.modules.disable');
-        $router->post('/sync', [SettingsController::class, 'syncModules'])->name('settings.modules.sync');
+        $router->any('/{moduleName}', [SettingsController::class, 'moduleDetail'])->name('settings.modules.show');
+        $router->any('/{moduleName}/install', [SettingsController::class, 'installModule'])->name('settings.modules.install');
+        $router->any('/{moduleName}/uninstall', [SettingsController::class, 'uninstallModule'])->name('settings.modules.uninstall');
+        $router->any('/{moduleName}/enable', [SettingsController::class, 'enableModule'])->name('settings.modules.enable');
+        $router->any('/{moduleName}/disable', [SettingsController::class, 'disableModule'])->name('settings.modules.disable');
+        $router->any('/sync', [SettingsController::class, 'syncModules'])->name('settings.modules.sync');
     });
 
     // Šablony

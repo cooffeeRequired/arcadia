@@ -59,11 +59,6 @@ class ModuleServiceProvider
 
         // Logování do souboru
         error_log($logMessage);
-
-        // Pokud je development prostředí, vypíšeme i do konzole
-        if (getenv('APP_ENV') === 'development') {
-            echo "[ModuleServiceProvider] {$logMessage}\n";
-        }
     }
 
     /**
@@ -105,11 +100,6 @@ class ModuleServiceProvider
             // Toto je placeholder pro budoucí implementaci
             $controllerName = $controller->getName();
             $namespace = $controller->getNamespace();
-
-            // Logování pro debugging
-            if (getenv('APP_ENV') === 'development') {
-                echo "[ModuleServiceProvider] Registrován controller: {$controllerName} ({$namespace})\n";
-            }
         }
     }
 
@@ -151,12 +141,6 @@ class ModuleServiceProvider
 
             if (file_exists($translationFile)) {
                 $translations = require $translationFile;
-
-                // Registrace překladů do TranslationHelper
-                // Toto je placeholder pro budoucí implementaci
-                if (getenv('APP_ENV') === 'development') {
-                    echo "[ModuleServiceProvider] Načteny překlady pro modul {$moduleName} ({$lang})\n";
-                }
             }
         }
     }
@@ -193,11 +177,7 @@ class ModuleServiceProvider
         foreach ($migrations as $migration) {
             if ($migration->getStatus() === 'pending') {
                 try {
-                    // Spuštění migrace
-                    // Toto je placeholder pro budoucí implementaci
-                    if (getenv('APP_ENV') === 'development') {
-                        echo "[ModuleServiceProvider] Spuštěna migrace: {$migration->getName()} pro modul {$module->getName()}\n";
-                    }
+                    //
                 } catch (\Exception $e) {
                     error_log("Chyba při spouštění migrace {$migration->getName()}: " . $e->getMessage());
                 }

@@ -49,16 +49,11 @@ final class Bootstrap
      */
     public static function init(): array
     {
+        $redis = new Predis\Client('tcp://127.0.0.1:6379', ['cluster' => 'redis','parameters'  => ['database' => 2]]);
         Tracy::init();
-
-        $redis = new Predis\Client('tcp://127.0.0.1:6379', [
-            'cluster'     => 'redis',
-            'parameters'  => ['database' => 2],
-        ]);
-
         Session::init();
-        $session = new Session($redis, null, 'arcadia');
 
+        $session = new Session($redis, null, 'arcadia');
         $cache = new RedisAdapter($redis);
 
         Container::set('redis', $redis);
@@ -85,11 +80,10 @@ final class Bootstrap
 
         try {
             /** @var array<string,mixed> $dbParams */
-            $dbParams   = require __DIR__ . '/config/doctrine.php';
-            $connection = DriverManager::getConnection($dbParams, $config);
-            $em         = new EntityManager($connection, $config);
+            $dbParams       = require __DIR__ . '/config/doctrine.php';
+            $connection     = DriverManager::getConnection($dbParams, $config);
+            $em             = new EntityManager($connection, $config);
 
-            // Základní služby
             $renderer = new Renderer();
             Container::set(Connection::class, $connection, ['doctrine.connection']);
             Container::set(EntityManager::class, $em, ['doctrine.em']);
@@ -100,10 +94,7 @@ final class Bootstrap
             ToastMiddleware::autoHandle();
             TranslationHelper::init();
 
-            // Načtení modulů při bootu aplikace
             ModuleServiceProvider::boot();
-
-            // Spuštění middleware pro moduly
             ModuleMiddleware::handle();
 
         } catch (ORMException|\Doctrine\DBAL\Exception $e) {
