@@ -8,10 +8,10 @@ use App\Controllers\EmailController;
 use App\Controllers\HomeController;
 use App\Controllers\InvoiceController;
 use App\Controllers\LanguageController;
-use App\Controllers\ModuleController;
 use App\Controllers\ProjectController;
 use App\Controllers\ReportController;
 use App\Controllers\SettingsController;
+use App\Controllers\TemplateController;
 use App\Controllers\WorkflowController;
 use Core\Facades\Container;
 use Core\Http\Request;
@@ -109,6 +109,27 @@ $router->group(['middleware' => ['auth']], function (Router $router) {
         $router->post('/check-integrity', [SettingsController::class, 'checkIntegrity'])->name('settings.check-integrity');
     });
 
+    // Moduly
+    $router->group(['prefix' => '/settings/modules'], function (Router $router) {
+        $router->get('/', [SettingsController::class, 'modules'])->name('settings.modules.index');
+        $router->get('/{moduleName}', [SettingsController::class, 'moduleDetail'])->name('settings.modules.show');
+        $router->post('/{moduleName}/install', [SettingsController::class, 'installModule'])->name('settings.modules.install');
+        $router->post('/{moduleName}/uninstall', [SettingsController::class, 'uninstallModule'])->name('settings.modules.uninstall');
+        $router->post('/{moduleName}/enable', [SettingsController::class, 'enableModule'])->name('settings.modules.enable');
+        $router->post('/{moduleName}/disable', [SettingsController::class, 'disableModule'])->name('settings.modules.disable');
+        $router->post('/sync', [SettingsController::class, 'syncModules'])->name('settings.modules.sync');
+    });
+
+    // Šablony
+    $router->group(['prefix' => '/settings/templates'], function (Router $router) {
+        $router->get('/{moduleName}', [TemplateController::class, 'index'])->name('settings.templates.index');
+        $router->get('/{moduleName}/controller', [TemplateController::class, 'controller'])->name('settings.templates.controller');
+        $router->get('/{moduleName}/entity', [TemplateController::class, 'entity'])->name('settings.templates.entity');
+        $router->get('/{moduleName}/migration', [TemplateController::class, 'migration'])->name('settings.templates.migration');
+        $router->get('/{moduleName}/view', [TemplateController::class, 'view'])->name('settings.templates.view');
+        $router->get('/{moduleName}/translation', [TemplateController::class, 'translation'])->name('settings.templates.translation');
+    });
+
     // Workflow
     $router->group(['prefix' => '/workflows'], function (Router $router) {
         $router->get('/', [WorkflowController::class, 'index'])->name('workflows.index');
@@ -149,62 +170,20 @@ $router->group(['middleware' => ['auth']], function (Router $router) {
         $router->get('/{id}/api', [ProjectController::class, 'apiShow'])->name('projects.api.show');
         $router->get('/mini/{slug}', [ProjectController::class, 'miniPage'])->name('projects.mini-page');
     });
-
-    // Moduly (přesunuto do nastavení)
-    $router->group(['prefix' => '/settings/modules'], function (Router $router) {
-        $router->get('/', [ModuleController::class, 'index'])->name('settings.modules.index');
-        $router->get('/api/status', [ModuleController::class, 'apiStatus'])->name('settings.modules.api.status');
-        $router->get('/api/scan', [ModuleController::class, 'scan'])->name('settings.modules.api.scan');
-        $router->post('/api/auto-insert', [ModuleController::class, 'autoInsert'])->name('settings.modules.api.auto-insert');
-        $router->get('/log', [ModuleController::class, 'log'])->name('settings.modules.log');
-        $router->get('/{moduleName}', [ModuleController::class, 'show'])->name('settings.modules.show');
-        $router->get('/{moduleName}/edit', [ModuleController::class, 'edit'])->name('settings.modules.edit');
-        $router->post('/{moduleName}', [ModuleController::class, 'update'])->name('settings.modules.update');
-        $router->post('/{moduleName}/toggle', [ModuleController::class, 'toggle'])->name('settings.modules.toggle');
-        $router->get('/{moduleName}/dependencies', [ModuleController::class, 'dependencies'])->name('settings.modules.dependencies');
-
-        // Controllers
-        $router->get('/{moduleName}/controllers', [ModuleController::class, 'getControllers'])->name('settings.modules.controllers.index');
-        $router->post('/{moduleName}/controllers', [ModuleController::class, 'createController'])->name('settings.modules.controllers.create');
-        $router->delete('/{moduleName}/controllers/{controllerName}', [ModuleController::class, 'deleteController'])->name('settings.modules.controllers.delete');
-
-        // Entities
-        $router->get('/{moduleName}/entities', [ModuleController::class, 'getEntities'])->name('settings.modules.entities.index');
-        $router->post('/{moduleName}/entities', [ModuleController::class, 'createEntity'])->name('settings.modules.entities.create');
-        $router->delete('/{moduleName}/entities/{entityName}', [ModuleController::class, 'deleteEntity'])->name('settings.modules.entities.delete');
-
-        // Migrations
-        $router->get('/{moduleName}/migrations', [ModuleController::class, 'getMigrations'])->name('settings.modules.migrations.index');
-        $router->post('/{moduleName}/migrations', [ModuleController::class, 'createMigration'])->name('settings.modules.migrations.create');
-        $router->post('/{moduleName}/migrations/{migrationFile}/run', [ModuleController::class, 'runMigration'])->name('settings.modules.migrations.run');
-        $router->post('/{moduleName}/migrations/{migrationFile}/rollback', [ModuleController::class, 'rollbackMigration'])->name('settings.modules.migrations.rollback');
-        $router->get('/{moduleName}/migrations/{migrationFile}/log', [ModuleController::class, 'getMigrationLog'])->name('settings.modules.migrations.log');
-        $router->delete('/{moduleName}/migrations/{migrationFile}', [ModuleController::class, 'deleteMigration'])->name('settings.modules.migrations.delete');
-
-        // Files
-        $router->post('/{moduleName}/files/read', [ModuleController::class, 'readFile'])->name('settings.modules.files.read');
-        $router->post('/{moduleName}/files/write', [ModuleController::class, 'writeFile'])->name('settings.modules.files.write');
-
-        // File operations for controllers, entities, migrations
-        $router->get('/{moduleName}/controllers/{controllerName}/files', [ModuleController::class, 'getControllerFiles'])->name('settings.modules.controllers.files');
-        $router->get('/{moduleName}/entities/{entityName}/files', [ModuleController::class, 'getEntityFiles'])->name('settings.modules.entities.files');
-        $router->get('/{moduleName}/migrations/{migrationFile}/files', [ModuleController::class, 'getMigrationFiles'])->name('settings.modules.migrations.files');
-
-        // File save operations
-        $router->post('/{moduleName}/controllers/{controllerName}/files/save', [ModuleController::class, 'saveControllerFile'])->name('settings.modules.controllers.files.save');
-        $router->post('/{moduleName}/entities/{entityName}/files/save', [ModuleController::class, 'saveEntityFile'])->name('settings.modules.entities.files.save');
-        $router->post('/{moduleName}/migrations/{migrationFile}/files/save', [ModuleController::class, 'saveMigrationFile'])->name('settings.modules.migrations.files.save');
-    });
 });
 
-// Jazykové routy
+
 $router->get('/lang/{locale}', [LanguageController::class, 'switch'])->name('language.switch');
-$router->get('/api/languages', [LanguageController::class, 'getSupportedLanguages'])->name('api.languages');
-$router->get('/api/languages/current', [LanguageController::class, 'getCurrentLanguage'])->name('api.languages.current');
-$router->get('/api/languages/missing', [LanguageController::class, 'getMissingTranslations'])->name('api.languages.missing');
-$router->get('/api/languages/export/{locale}', [LanguageController::class, 'export'])->name('api.languages.export');
-$router->post('/api/languages/import', [LanguageController::class, 'import'])->name('api.languages.import');
-$router->post('/api/languages/set', [LanguageController::class, 'setUserLanguage'])->name('api.languages.set');
+
+$router->group(['prefix' => '/api'], function (Router $router) {
+    $router->get('/languages', [LanguageController::class, 'getSupportedLanguages'])->name('api.languages');
+    $router->get('/languages/current', [LanguageController::class, 'getCurrentLanguage'])->name('api.languages.current');
+    $router->get('/languages/missing', [LanguageController::class, 'getMissingTranslations'])->name('api.languages.missing');
+    $router->get('/languages/export/{locale}', [LanguageController::class, 'export'])->name('api.languages.export');
+    $router->post('/languages/import', [LanguageController::class, 'import'])->name('api.languages.import');
+    $router->post('/languages/set', [LanguageController::class, 'setUserLanguage'])->name('api.languages.set');
+});
+
 
 // Spuštění aplikace
 $request = Request::getInstance();

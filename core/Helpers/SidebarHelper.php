@@ -2,23 +2,10 @@
 
 namespace Core\Helpers;
 
-use Core\Modules\ModuleManager;
-use Core\Facades\Container;
+use Core\Http\Request;
 
 class SidebarHelper
 {
-    private static ?ModuleManager $moduleManager = null;
-
-    /**
-     * Získá instanci ModuleManager
-     */
-    private static function getModuleManager(): ModuleManager
-    {
-        if (self::$moduleManager === null) {
-            self::$moduleManager = Container::get(ModuleManager::class, ModuleManager::class);
-        }
-        return self::$moduleManager;
-    }
 
     /**
      * Získá menu položky pro sidebar
@@ -28,11 +15,11 @@ class SidebarHelper
         $menuItems = [];
 
         // Získáme aktuální URI
-        $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
+        $currentUri = Request::getInstance()->getUri() ?? '/';
 
         // Dashboard - první položka
         $menuItems[] = [
-            'name' => TranslationHelper::__('dashboard'),
+            'name' => i18('dashboard'),
             'icon' => 'home',
             'url' => '/',
             'active' => $currentUri === '/' || $currentUri === '/home',
@@ -41,7 +28,7 @@ class SidebarHelper
 
         // Základní funkce aplikace
         $menuItems[] = [
-            'name' => TranslationHelper::__('customers'),
+            'name' => i18('customers'),
             'icon' => 'users',
             'url' => '/customers',
             'active' => str_starts_with($currentUri, '/customers'),
@@ -49,7 +36,7 @@ class SidebarHelper
         ];
 
         $menuItems[] = [
-            'name' => TranslationHelper::__('contacts'),
+            'name' => i18('contacts'),
             'icon' => 'user',
             'url' => '/contacts',
             'active' => str_starts_with($currentUri, '/contacts'),
@@ -57,7 +44,7 @@ class SidebarHelper
         ];
 
         $menuItems[] = [
-            'name' => TranslationHelper::__('deals'),
+            'name' => i18('deals'),
             'icon' => 'handshake',
             'url' => '/deals',
             'active' => str_starts_with($currentUri, '/deals'),
@@ -65,7 +52,7 @@ class SidebarHelper
         ];
 
         $menuItems[] = [
-            'name' => TranslationHelper::__('projects'),
+            'name' => i18('projects'),
             'icon' => 'folder',
             'url' => '/projects',
             'active' => str_starts_with($currentUri, '/projects'),
@@ -73,7 +60,7 @@ class SidebarHelper
         ];
 
         $menuItems[] = [
-            'name' => TranslationHelper::__('invoices'),
+            'name' => i18('invoices'),
             'icon' => 'file-invoice',
             'url' => '/invoices',
             'active' => str_starts_with($currentUri, '/invoices'),
@@ -81,7 +68,7 @@ class SidebarHelper
         ];
 
         $menuItems[] = [
-            'name' => TranslationHelper::__('reports'),
+            'name' => i18('reports'),
             'icon' => 'chart-bar',
             'url' => '/reports',
             'active' => str_starts_with($currentUri, '/reports'),
@@ -89,7 +76,7 @@ class SidebarHelper
         ];
 
         $menuItems[] = [
-            'name' => TranslationHelper::__('workflows'),
+            'name' => i18('workflows'),
             'icon' => 'sitemap',
             'url' => '/workflows',
             'active' => str_starts_with($currentUri, '/workflows'),
@@ -97,295 +84,117 @@ class SidebarHelper
         ];
 
         $menuItems[] = [
-            'name' => TranslationHelper::__('emails'),
+            'name' => i18('emails'),
             'icon' => 'envelope',
             'url' => '/emails',
             'active' => str_starts_with($currentUri, '/emails'),
             'color' => 'pink'
         ];
 
-        // Sekce Moduly s registrovánými moduly (pouze ty ze složky /modules)
-        $moduleManager = self::getModuleManager();
-        $availableModules = $moduleManager->availableModules();
+// TODO -> implement moduiles
 
-        if (!empty($availableModules)) {
-            $modulesSubmenu = [];
-
-            foreach ($availableModules as $moduleName) {
-                // Přeskočíme základní moduly, které už jsou v hlavním menu
-                if (in_array($moduleName, ['customers', 'contacts', 'deals', 'projects', 'invoices', 'reports', 'workflows', 'emails'])) {
-                    continue;
-                }
-
-                $config = $moduleManager->moduleConfig($moduleName);
-                $displayName = $config['display_name'] ?? ucfirst($moduleName);
-                $isEnabled = $config['is_enabled'] ?? false;
-
-                $modulesSubmenu[] = [
-                    'name' => $displayName,
-                    'icon' => self::getModuleIcon($moduleName),
-                    'url' => '/' . $moduleName,
-                    'active' => str_starts_with($currentUri, '/' . $moduleName),
-                    'color' => self::getModuleColor($moduleName),
-                    'badge' => $isEnabled ? null : ['text' => 'Vypnuto', 'color' => 'gray']
-                ];
-            }
-
-            if (!empty($modulesSubmenu)) {
-                $menuItems[] = [
-                    'name' => 'Moduly',
-                    'icon' => 'puzzle-piece',
-                    'url' => '#',
-                    'active' => self::isAnyModuleActive($modulesSubmenu),
-                    'color' => 'yellow',
-                    'submenu' => $modulesSubmenu
-                ];
-            }
-        }
+//        // Sekce Moduly s registrovánými moduly (pouze ty ze složky /modules)
+//        $moduleManager = self::getModuleManager();
+//        $availableModules = $moduleManager->availableModules();
+//
+//        if (!empty($availableModules)) {
+//            $modulesSubmenu = [];
+//
+//            foreach ($availableModules as $moduleName) {
+//                // Přeskočíme základní moduly, které už jsou v hlavním menu
+//                if (in_array($moduleName, ['customers', 'contacts', 'deals', 'projects', 'invoices', 'reports', 'workflows', 'emails'])) {
+//                    continue;
+//                }
+//
+//                $config = $moduleManager->moduleConfig($moduleName);
+//                $displayName = $config['display_name'] ?? ucfirst($moduleName);
+//                $isEnabled = $config['is_enabled'] ?? false;
+//
+//                $modulesSubmenu[] = [
+//                    'name' => $displayName,
+//                    'icon' => self::getModuleIcon($moduleName),
+//                    'url' => '/' . $moduleName,
+//                    'active' => str_starts_with($currentUri, '/' . $moduleName),
+//                    'color' => self::getModuleColor($moduleName),
+//                    'badge' => $isEnabled ? null : ['text' => 'Vypnuto', 'color' => 'gray']
+//                ];
+//            }
+//
+//            if (!empty($modulesSubmenu)) {
+//                $menuItems[] = [
+//                    'name' => 'Moduly',
+//                    'icon' => 'puzzle-piece',
+//                    'url' => '#',
+//                    'active' => self::isAnyModuleActive($modulesSubmenu),
+//                    'color' => 'yellow',
+//                    'submenu' => $modulesSubmenu
+//                ];
+//            }
+//        }
 
         return $menuItems;
     }
 
-    /**
-     * Získá ikonu modulu
-     */
-    private static function getModuleIcon(string $module): string
-    {
-        $icons = [
-            'projects' => 'folder',
-            'reports' => 'chart-bar',
-            'email_workflow' => 'envelope',
-            'invoices' => 'file-invoice',
-            'customers' => 'users',
-            'contacts' => 'user',
-            'deals' => 'handshake',
-            'activities' => 'calendar',
-            'workflows' => 'sitemap',
-            'emails' => 'envelope'
-        ];
-
-        // Fallback ikony pro případ, že modul není v poli
-        $fallbackIcons = [
-            'reports' => 'chart-bar',
-            'email-workflow' => 'envelope',
-            'email_workflow' => 'envelope',
-            'invoices' => 'file-invoice',
-            'deals' => 'handshake',
-            'activities' => 'calendar'
-        ];
-
-        // Nejdříve zkusíme hlavní pole
-        if (isset($icons[$module])) {
-            return $icons[$module];
-        }
-
-        // Pak zkusíme fallback pole
-        if (isset($fallbackIcons[$module])) {
-            return $fallbackIcons[$module];
-        }
-
-        // Nakonec vrátíme výchozí ikonu
-        return 'box';
-    }
-
-    /**
-     * Získá barvu modulu
-     */
-    private static function getModuleColor(string $module): string
-    {
-        $colors = [
-            'projects' => 'blue',
-            'reports' => 'green',
-            'email_workflow' => 'purple',
-            'invoices' => 'orange',
-            'customers' => 'indigo',
-            'contacts' => 'pink',
-            'deals' => 'teal',
-            'activities' => 'yellow',
-            'workflows' => 'cyan',
-            'emails' => 'purple'
-        ];
-
-        return $colors[$module] ?? 'gray';
-    }
-
-    /**
-     * Získá badge pro modul (počet položek, notifikace, atd.)
-     */
-    private static function getModuleBadge(string $module): ?array
-    {
-        $moduleManager = self::getModuleManager();
-
-        // Kontrola oprávnění
-        if (!$moduleManager->hasPermission($module, 'view')) {
-            return null;
-        }
-
-        // Zde můžete přidat logiku pro získání počtu položek
-        // Například: počet nových projektů, nevyřízených faktur, atd.
-
-        return null;
-    }
 
     /**
      * Získá submenu pro nastavení
+     * @noinspection PhpUnusedPrivateMethodInspection
      */
     private static function getSettingsSubmenu(): array
     {
-        $moduleManager = self::getModuleManager();
-        $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
+         // $currentUri = Request::getInstance()->getUri() ?? '/';
 
-        $submenu = [
-            [
-                'name' => 'Obecné',
-                'url' => '/settings',
-                'active' => $currentUri === '/settings',
-                'icon' => 'settings'
-            ],
-            [
-                'name' => 'Profil',
-                'url' => '/settings/profile',
-                'active' => str_starts_with($currentUri, '/settings/profile'),
-                'icon' => 'user'
-            ],
-            [
-                'name' => 'Systém',
-                'url' => '/settings/system',
-                'active' => str_starts_with($currentUri, '/settings/system'),
-                'icon' => 'server'
-            ]
-        ];
+//        $submenu = [
+//            [
+//                'name' => 'Obecné',
+//                'url' => '/settings',
+//                'active' => $currentUri === '/settings',
+//                'icon' => 'settings'
+//            ],
+//            [
+//                'name' => 'Profil',
+//                'url' => '/settings/profile',
+//                'active' => str_starts_with($currentUri, '/settings/profile'),
+//                'icon' => 'user'
+//            ],
+//            [
+//                'name' => 'Systém',
+//                'url' => '/settings/system',
+//                'active' => str_starts_with($currentUri, '/settings/system'),
+//                'icon' => 'server'
+//            ]
+//        ];
 
-        // Přidání správy modulů, pokud má uživatel oprávnění
-        if ($moduleManager->hasPermission('settings', 'view', 'admin')) {
-            $submenu[] = [
-                'name' => 'Moduly',
-                'url' => '/settings/modules',
-                'active' => str_starts_with($currentUri, '/settings/modules'),
-                'icon' => 'cube',
-                'badge' => self::getModulesBadge()
-            ];
-        }
+//        // Přidání správy modulů, pokud má uživatel oprávnění
+//        if ($moduleManager->hasPermission('settings', 'view', 'admin')) {
+//            $submenu[] = [
+//                'name' => 'Moduly',
+//                'url' => '/settings/modules',
+//                'active' => str_starts_with($currentUri, '/settings/modules'),
+//                'icon' => 'cube',
+//                'badge' => self::getModulesBadge()
+//            ];
+//        }
 
-        return $submenu;
+        return [];
     }
 
-    /**
-     * Získá badge pro moduly (počet problémů)
-     */
-    private static function getModulesBadge(): ?array
-    {
-        $moduleManager = self::getModuleManager();
-        $modulesWithIssues = $moduleManager->modulesWithMissingDependencies();
 
-        if (empty($modulesWithIssues)) {
-            return null;
-        }
 
-        return [
-            'text' => count($modulesWithIssues),
-            'color' => 'red',
-            'tooltip' => 'Moduly s problémy'
-        ];
-    }
-
-    /**
-     * Zkontroluje, zda je modul aktivní v sidebar
-     */
-    public static function isModuleActive(string $module): bool
+    public static function isLinkActive(string $module): bool
     {
         $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
         return str_starts_with($currentUri, '/' . $module);
     }
 
-    /**
-     * Zkontroluje, zda je některý z modulů v submenu aktivní
-     */
-    private static function isAnyModuleActive(array $modulesSubmenu): bool
+    /** @noinspection PhpUnusedPrivateMethodInspection */
+    private static function isAnyLinkActive(array $linksModules): bool
     {
-        $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
-
-        // Kontrola, zda jsme na stránce nastavení modulů - v tom případě nechceme označit sekci Moduly
+        $currentUri = Request::getInstance()->getUri() ?? '/';
         if (str_starts_with($currentUri, '/settings/modules')) {
             return false;
         }
+        return array_any($linksModules, fn($link) => $link['active']);
 
-        // Kontrola, zda je některý z modulů aktivní
-        foreach ($modulesSubmenu as $module) {
-            if ($module['active']) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Získá CSS třídy pro aktivní položku
-     */
-    public static function getActiveClasses(string $module): string
-    {
-        return self::isModuleActive($module) ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900';
-    }
-
-    /**
-     * Získá kompletní sidebar HTML
-     */
-    public static function renderSidebar(): string
-    {
-        $menuItems = self::getSidebarMenu();
-        $html = '<nav class="space-y-1">';
-
-        foreach ($menuItems as $item) {
-            $html .= self::renderMenuItem($item);
-        }
-
-        $html .= '</nav>';
-        return $html;
-    }
-
-    /**
-     * Vykreslí jednotlivou položku menu
-     */
-    private static function renderMenuItem(array $item): string
-    {
-        $activeClass = $item['active'] ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900';
-        $iconColor = 'text-' . $item['color'] . '-600';
-
-        $html = '<a href="' . $item['url'] . '" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md ' . $activeClass . '">';
-        $html .= '<i class="fas fa-' . $item['icon'] . ' mr-3 ' . $iconColor . '"></i>';
-        $html .= $item['name'];
-
-        if (isset($item['badge']) && $item['badge']) {
-            $badgeColor = 'bg-' . $item['badge']['color'] . '-100 text-' . $item['badge']['color'] . '-800';
-            $html .= '<span class="ml-auto inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' . $badgeColor . '">';
-            $html .= $item['badge']['text'];
-            $html .= '</span>';
-        }
-
-        $html .= '</a>';
-
-        // Submenu
-        if (isset($item['submenu'])) {
-            $html .= '<div class="ml-4 space-y-1">';
-            foreach ($item['submenu'] as $subItem) {
-                $subActiveClass = $subItem['active'] ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900';
-                $html .= '<a href="' . $subItem['url'] . '" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md ' . $subActiveClass . '">';
-                $html .= '<i class="fas fa-' . $subItem['icon'] . ' mr-3 text-gray-400"></i>';
-                $html .= $subItem['name'];
-
-                if (isset($subItem['badge']) && $subItem['badge']) {
-                    $badgeColor = 'bg-' . $subItem['badge']['color'] . '-100 text-' . $subItem['badge']['color'] . '-800';
-                    $html .= '<span class="ml-auto inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' . $badgeColor . '">';
-                    $html .= $subItem['badge']['text'];
-                    $html .= '</span>';
-                }
-
-                $html .= '</a>';
-            }
-            $html .= '</div>';
-        }
-
-        return $html;
     }
 }

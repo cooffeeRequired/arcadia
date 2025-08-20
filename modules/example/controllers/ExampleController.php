@@ -2,44 +2,21 @@
 
 namespace Modules\Example\Controllers;
 
+use Doctrine\ORM\Exception\NotSupported;
 use Modules\Example\Entities\ExampleItem;
 use Core\Render\BaseController;
 use Core\Http\Response\ViewResponse;
 use Core\Http\Response\JsonResponse;
-use Core\Modules\ModuleManager;
-use Core\Facades\Container;
 use Exception;
 
 class ExampleController extends BaseController
 {
-    private ModuleManager $moduleManager;
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->moduleManager = Container::get(ModuleManager::class, ModuleManager::class);
-    }
-
     /**
      * Zobrazí seznam položek
      */
     public function index(): ViewResponse
     {
-        // Kontrola, zda je modul dostupný
-        if (!$this->moduleManager->isAvailable('example')) {
-            $this->toastError('Modul Example není dostupný');
-            $this->redirect('/');
-            return $this->view('home.index', []);
-        }
-
-        $items = $this->em->getRepository(ExampleItem::class)->findAll();
-
-        $data = [
-            'items' => $items,
-            'title' => 'Seznam příkladů!!'
-        ];
-
-        return $this->view('modules.example.index', $data);
+        return $this->view('modules.example.index');
     }
 
     /**
@@ -47,12 +24,6 @@ class ExampleController extends BaseController
      */
     public function create(): ViewResponse
     {
-        if (!$this->moduleManager->hasPermission('example', 'create')) {
-            $this->toastError('Nemáte oprávnění k vytvoření položky');
-            $this->redirect('/example');
-            return $this->view('modules.example.index', ['items' => []]);
-        }
-
         return $this->view('modules.example.create', [
             'title' => 'Nový příklad 3'
         ]);
@@ -63,12 +34,6 @@ class ExampleController extends BaseController
      */
     public function store(): JsonResponse
     {
-        if (!$this->moduleManager->hasPermission('example', 'create')) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Nemáte oprávnění k vytvoření položky'
-            ], 403);
-        }
 
         try {
             $data = $this->request->getJson();
@@ -99,14 +64,10 @@ class ExampleController extends BaseController
 
     /**
      * Zobrazí detail položky
+     * @throws NotSupported
      */
     public function show($id): ViewResponse
     {
-        if (!$this->moduleManager->hasPermission('example', 'view')) {
-            $this->toastError('Nemáte oprávnění k zobrazení položky');
-            $this->redirect('/example');
-            return $this->view('modules.example.index', ['items' => []]);
-        }
 
         $item = $this->em->getRepository(ExampleItem::class)->find($id);
         if (!$item) {
@@ -123,14 +84,10 @@ class ExampleController extends BaseController
 
     /**
      * Zobrazí formulář pro editaci
+     * @throws NotSupported
      */
     public function edit($id): ViewResponse
     {
-        if (!$this->moduleManager->hasPermission('example', 'edit')) {
-            $this->toastError('Nemáte oprávnění k editaci položky');
-            $this->redirect('/example');
-            return $this->view('modules.example.index', ['items' => []]);
-        }
 
         $item = $this->em->getRepository(ExampleItem::class)->find($id);
         if (!$item) {
@@ -150,12 +107,6 @@ class ExampleController extends BaseController
      */
     public function update($id): JsonResponse
     {
-        if (!$this->moduleManager->hasPermission('example', 'edit')) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Nemáte oprávnění k editaci položky'
-            ], 403);
-        }
 
         try {
             $item = $this->em->getRepository(ExampleItem::class)->find($id);
@@ -192,13 +143,6 @@ class ExampleController extends BaseController
      */
     public function delete($id): JsonResponse
     {
-        if (!$this->moduleManager->hasPermission('example', 'delete')) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Nemáte oprávnění ke smazání položky'
-            ], 403);
-        }
-
         try {
             $item = $this->em->getRepository(ExampleItem::class)->find($id);
             if (!$item) {

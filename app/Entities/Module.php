@@ -67,6 +67,21 @@ class Module implements JsonSerializable
     #[ORM\Column(name: 'is_installed', type: 'boolean')]
     protected bool $isInstalled = false;
 
+    #[ORM\OneToMany(targetEntity: ModuleController::class, mappedBy: 'module', cascade: ['persist', 'remove'])]
+    protected $controllers;
+
+    #[ORM\OneToMany(targetEntity: ModuleEntity::class, mappedBy: 'module', cascade: ['persist', 'remove'])]
+    protected $entities;
+
+    #[ORM\OneToMany(targetEntity: ModuleMigration::class, mappedBy: 'module', cascade: ['persist', 'remove'])]
+    protected $migrations;
+
+    #[ORM\OneToMany(targetEntity: ModuleView::class, mappedBy: 'module', cascade: ['persist', 'remove'])]
+    protected $views;
+
+    #[ORM\OneToMany(targetEntity: ModuleTranslation::class, mappedBy: 'module', cascade: ['persist', 'remove'])]
+    protected $translations;
+
     public function __construct()
     {
         $this->createdAt = new DateTime();
@@ -162,6 +177,31 @@ class Module implements JsonSerializable
     public function getUpdatedAt(): DateTime
     {
         return $this->updatedAt;
+    }
+
+    public function getControllers()
+    {
+        return $this->controllers;
+    }
+
+    public function getEntities()
+    {
+        return $this->entities;
+    }
+
+    public function getMigrations()
+    {
+        return $this->migrations;
+    }
+
+    public function getViews()
+    {
+        return $this->views;
+    }
+
+    public function getTranslations()
+    {
+        return $this->translations;
     }
 
     // Setters

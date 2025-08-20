@@ -26,6 +26,8 @@ class MigrationCLI
     private ?string $migrationsTable = 'migrations';
     private ?string $entitiesDir;
 
+    private ConsoleUI $ui;
+
     /**
      * @throws SchemaException
      * @noinspection PhpDeprecationInspection
@@ -38,6 +40,8 @@ class MigrationCLI
         $this->migrationsDir = APP_CONFIGURATION['migrations_dir'];
         $this->seedsDir = APP_CONFIGURATION['seeds_dir'];
         $this->entitiesDir = APP_CONFIGURATION['entities_dir'] ?? 'app/Entities';
+
+        $this->ui = new ConsoleUI();
 
         if (! is_dir($this->migrationsDir)) mkdir($this->migrationsDir, 0755, true);
         if (! is_dir($this->seedsDir)) mkdir($this->seedsDir, 0755, true);
@@ -78,26 +82,31 @@ class MigrationCLI
         }
     }
 
+
     private function showHelp(): void
     {
-        echo "Použití: ./console/arcadia-migrations <příkaz> [parametry]\n\n";
-        echo "Dostupné příkazy:\n";
-        echo "  migrate [--to=version]        - Spustí všechny neaplikované migrace\n";
-        echo "  rollback [--to=version]       - Vrátí migrace zpět\n";
-        echo "  status [--versions]           - Zobrazí stav migrací\n";
-        echo "  create <název>                - Vytvoří novou migraci\n";
-        echo "  generate-from-entities        - Vygeneruje migrace z entit\n";
-        echo "  seed                          - Spustí všechny seedy\n";
-        echo "  create-seed <název>           - Vytvoří nový seed\n\n";
-        echo "Příklady:\n";
-        echo "  ./console/arcadia-migrations create create_users_table\n";
-        echo "  ./console/arcadia-migrations generate-from-entities\n";
-        echo "  ./console/arcadia-migrations migrate --to=2025_08_08_200234\n";
-        echo "  ./console/arcadia-migrations rollback --to=2025_08_08_184014\n";
-        echo "  ./console/arcadia-migrations status --versions\n";
-        echo "  ./console/arcadia-migrations create-seed UsersSeeder\n";
-        echo "  ./console/arcadia-migrations migrate\n";
-        echo "  ./console/arcadia-migrations seed\n";
+        ConsoleUI::box('Arcadia Migrations – Help', [
+            ConsoleUI::strong('Použití:') . ' ./console/arcadia-migrations <příkaz> [parametry]',
+            '',
+            ConsoleUI::strong('Příkazy:'),
+            '  migrate [--to=version]        Spustí všechny neaplikované migrace (nebo do verze)',
+            '  rollback [--to=version]       Vrátí migrace zpět (poslední nebo do verze)',
+            '  status [--versions]           Zobrazí stav migrací',
+            '  create <název>                Vytvoří novou migraci (soubor)',
+            '  generate-from-entities        Vygeneruje migraci z entit (SchemaTool)',
+            '  seed [--seeder=ClassName]     Spustí seedy (vše nebo konkrétní)',
+            '  create-seed <název>           Vytvoří nový seed',
+            '',
+            ConsoleUI::subtle('Příklady:'),
+            '  ./arcadia-migrations create create_users_table',
+            '  ./arcadia-migrations generate-from-entities',
+            '  ./arcadia-migrations migrate --to=2025_08_08_200234',
+            '  ./arcadia-migrations rollback --to=2025_08_08_184014',
+            '  ./arcadia-migrations status --versions',
+            '  ./arcadia-migrations create-seed UsersSeeder',
+            '  ./arcadia-migrations migrate',
+            '  ./arcadia-migrations seed',
+        ], 'info', 2, 1);
     }
 
     private function createMigration($name): void
@@ -106,25 +115,27 @@ class MigrationCLI
         $filename = "{$timestamp}_$name.php";
         $filepath = $this->migrationsDir . '/' . $filename;
 
-        $template = $this->getMigrationTemplate($name);
-        file_put_contents($filepath, $template);
+        file_put_contents($filepath, $this->getMigrationTemplate($name));
 
-        echo "Migrace vytvořena: $filepath\n";
-        echo "Verze: $timestamp\n";
-        echo "Upravte soubor podle vašich potřeb a pak spusťte 'migrate'\n";
+        ConsoleUI::box('Nová migrace', [
+            ConsoleUI::ok('Soubor vytvořen'),
+            "Cesta: {$filepath}",
+            "Verze: {$timestamp}",
+            ConsoleUI::subtle("Upravte soubor a poté spusťte: migrate"),
+        ], 'success', 2);
     }
+
 
     private function createSeed($name): void
     {
-        $seedsDir = $this->seedsDir;
-        $filename = "$name.php";
-        $filepath = $seedsDir . '/' . $filename;
+        $filepath = $this->seedsDir . '/' . "$name.php";
+        file_put_contents($filepath, $this->getSeedTemplate($name));
 
-        $template = $this->getSeedTemplate($name);
-        file_put_contents($filepath, $template);
-
-        echo "Seed vytvořen: $filepath\n";
-        echo "Upravte soubor podle vašich potřeb a pak spusťte 'seed'\n";
+        ConsoleUI::box('Nový seed', [
+            ConsoleUI::ok('Soubor vytvořen'),
+            "Cesta: {$filepath}",
+            ConsoleUI::subtle("Upravte soubor a poté spusťte: seed"),
+        ], 'success', 2);
     }
 
     private function getSeedTemplate($name): array|false|string
@@ -180,7 +191,7 @@ class MigrationCLI
         }
 
         if (empty($migrationsToRun)) {
-            echo $this->colorize("Žádné migrace k spuštění.", 'yellow') . "\n";
+            ConsoleUI::box('Migrace', [ConsoleUI::warn('Žádné migrace k spuštění.')], 'warning', 2);
             return;
         }
 
@@ -189,36 +200,28 @@ class MigrationCLI
             $className = $migrationInfo['class'];
             $version = $migrationInfo['version'];
 
-            echo $this->colorize("Spuštěna migrace: $migrationName", 'green') . "\n";
-            echo $this->colorize("Verze: $version", 'cyan') . "\n";
-            echo $this->colorize("|", 'blue') . "\n";
+            $title = "{$migrationInfo['version']} — {$migrationInfo['name']}";
+            ConsoleUI::box('Spouštím migraci', [$title], 'info', 2);
 
             try {
                 $migration = new $className();
                 $this->executeMigration($migration, 'up');
-
-                // Zaznamenáme úspěšnou migraci pouze pokud proběhla bez chyb
                 $this->connection->insert($this->migrationsTable, [
                     'version' => $version,
                     'description' => $migration->getDescription(),
                     'executed_at' => date('Y-m-d H:i:s')
                 ]);
-
-                echo $this->colorize("|", 'blue') . "\n";
-                echo $this->colorize("✅ Migrace dokončena: $migrationName", 'green') . "\n\n";
-
+                ConsoleUI::box('OK', [ConsoleUI::ok("Migrace dokončena: {$migrationName}")], 'success', 2);
             } catch (Exception $e) {
-                echo $this->colorize("|", 'blue') . "\n";
-                echo $this->colorize("❌ Migrace selhala: $migrationName", 'red') . "\n";
-                echo $this->colorize("Chyba: " . $e->getMessage(), 'red') . "\n\n";
-
-                // Zastavíme spouštění dalších migrací
-                echo $this->colorize("🛑 Spouštění migrací bylo zastaveno kvůli chybě.", 'red') . "\n";
+                ConsoleUI::box('Chyba migrace', [
+                    ConsoleUI::err("{$migrationName}"),
+                    ConsoleUI::subtle($e->getMessage()),
+                ], 'error', 2);
+                ConsoleUI::box('Stop', [ConsoleUI::warn('Spouštění migrací bylo zastaveno kvůli chybě.')], 'warning', 2);
                 return;
             }
         }
-
-        echo $this->colorize("Všechny migrace dokončeny.", 'bold') . "\n";
+        ConsoleUI::box('Migrace', [ConsoleUI::ok('Všechny migrace dokončeny.')], 'success', 2);
     }
 
     /**
@@ -230,14 +233,13 @@ class MigrationCLI
         $executedMigrations = $this->getExecutedMigrationsWithDetails();
 
         if (empty($executedMigrations)) {
-            echo "Žádné migrace k vrácení zpět.\n";
+            ConsoleUI::box('Rollback', [ConsoleUI::warn('Žádné migrace k vrácení zpět.')], 'warning', 2);
             return;
         }
 
         $migrationsToRollback = [];
 
         if ($targetVersion) {
-            // Vrácení na konkrétní verzi
             foreach (array_reverse($executedMigrations) as $migration) {
                 if (strcmp($migration['version'], $targetVersion) > 0) {
                     $migrationsToRollback[] = $migration;
@@ -246,12 +248,12 @@ class MigrationCLI
                 }
             }
         } else {
-            // Vrácení poslední migrace
             $migrationsToRollback = [end($executedMigrations)];
         }
 
+
         if (empty($migrationsToRollback)) {
-            echo "Žádné migrace k vrácení zpět.\n";
+            ConsoleUI::box('Rollback', [ConsoleUI::warn('Žádné migrace k vrácení zpět.')], 'warning', 2);
             return;
         }
 
@@ -266,29 +268,24 @@ class MigrationCLI
                 $className = $this->getClassNameFromFile($file);
 
                 if (class_exists($className)) {
-                    echo $this->colorize("Vrácení migrace: $version", 'yellow') . "\n";
-                    if ($description) {
-                        echo $this->colorize("Popis: $description", 'cyan') . "\n";
-                    }
-                    echo $this->colorize("|", 'blue') . "\n";
+                    ConsoleUI::box('Rollback', [
+                        ConsoleUI::strong($version),
+                        $description ? ConsoleUI::subtle($description) : '',
+                    ], 'warning', 2);
 
                     try {
                         $migration = new $className();
                         $this->executeMigration($migration, 'down');
-
-                        // Smažeme záznam o migraci pouze pokud rollback proběhl úspěšně
                         $this->connection->delete($this->migrationsTable, ['version' => $version]);
 
-                        echo $this->colorize("|", 'blue') . "\n";
-                        echo $this->colorize("✅ Migrace vrácena zpět: $version", 'yellow') . "\n\n";
+                        ConsoleUI::box('OK', [ConsoleUI::ok("Migrace vrácena: {$version}")], 'success', 2);
 
                     } catch (Exception $e) {
-                        echo $this->colorize("|", 'blue') . "\n";
-                        echo $this->colorize("❌ Rollback selhal: $version", 'red') . "\n";
-                        echo $this->colorize("Chyba: " . $e->getMessage(), 'red') . "\n\n";
-
-                        // Zastavíme spouštění dalších rollbacků
-                        echo $this->colorize("🛑 Vrácení migrací bylo zastaveno kvůli chybě.", 'red') . "\n";
+                        ConsoleUI::box('Chyba rollbacku', [
+                            ConsoleUI::err($version),
+                            ConsoleUI::subtle($e->getMessage()),
+                        ], 'error', 2);
+                        ConsoleUI::box('Stop', [ConsoleUI::warn('Vrácení migrací bylo zastaveno kvůli chybě.')], 'warning', 2);
                         return;
                     }
                 }
@@ -301,95 +298,86 @@ class MigrationCLI
     {
         try {
             $connection = $this->connection;
-
-            // Kontrola tabulky migrací
             $schemaManager = $connection->createSchemaManager();
-            $migrationsTableExists = $schemaManager->tablesExist([$this->migrationsTable ?? 'migrations']);
+            $migrationsTable = $this->migrationsTable ?? 'migrations';
+            $exists = $schemaManager->tablesExist([$migrationsTable]);
 
-            echo "=== Stav databáze ===\n";
-            echo "Databáze: " . ($_ENV['DB_DATABASE'] ?? 'arcadia') . "\n";
-            echo "Host: " . ($_ENV['DB_HOST'] ?? 'localhost') . "\n";
-            echo "Připojení: ✓ OK\n\n";
+            ConsoleUI::box('Stav databáze', [
+                // Hlava
+            ], 'info', 2);
 
-            if ($migrationsTableExists) {
-                $executedMigrations = $connection->fetchAllAssociative("SELECT version, description, executed_at FROM migrations ORDER BY id");
-                $migrationFiles = glob($this->migrationsDir . '/*.php');
+            ConsoleUI::section('Připojení');
+            ConsoleUI::kv('Databáze:', $_ENV['DB_DATABASE'] ?? 'arcadia');
+            ConsoleUI::kv('Host:', $_ENV['DB_HOST'] ?? 'localhost');
+            ConsoleUI::kv('Stav:', ConsoleUI::ok('OK'));
 
-                echo "=== Stav migrací ===\n";
-                echo "Spuštěné migrace: " . count($executedMigrations) . "\n";
-                echo "Celkem souborů: " . count($migrationFiles) . "\n\n";
+            if (!$exists) {
+                ConsoleUI::box('Migrace', [ConsoleUI::warn('Tabulka migrací neexistuje. Spusťte první migraci.')], 'warning', 2);
+                return;
+            }
 
-                if ($showVersions && !empty($executedMigrations)) {
-                    echo "Historie verzí:\n";
-                    foreach ($executedMigrations as $migration) {
-                        $description = $migration['description'] ? " - {$migration['description']}" : "";
-                        echo "  - Verze {$migration['version']}{$description}\n";
-                    }
-                    echo "\n";
+            $executed = $connection->fetchAllAssociative("SELECT version, description, executed_at FROM {$migrationsTable} ORDER BY id");
+            $files = glob($this->migrationsDir . '/*.php');
+
+            ConsoleUI::section('Migrace – Souhrn');
+            ConsoleUI::kv('Spuštěné:', (string)count($executed));
+            ConsoleUI::kv('Souborů:', (string)count($files));
+
+            if ($showVersions && !empty($executed)) {
+                ConsoleUI::section('Historie verzí');
+                $rows = [['Version', 'Description']];
+                foreach ($executed as $m) {
+                    $rows[] = [$m['version'], $m['description'] ?? ''];
                 }
+                ConsoleUI::table($rows, array_shift($rows));
+            }
 
-                if (!empty($executedMigrations)) {
-                    echo "Poslední spuštěné migrace:\n";
-                    foreach (array_slice($executedMigrations, -5) as $migration) {
-                        $description = $migration['description'] ? " ({$migration['description']})" : "";
-                        echo "  - {$migration['version']}{$description} ({$migration['executed_at']})\n";
+            if (!empty($executed)) {
+                ConsoleUI::section('Poslední migrace');
+                $last = array_slice($executed, -5);
+                $rows = [['Version', 'Executed at', 'Description']];
+                foreach ($last as $m) {
+                    $rows[] = [$m['version'], $m['executed_at'] ?? '', $m['description'] ?? ''];
+                }
+                ConsoleUI::table($rows, array_shift($rows));
+            }
+
+            // Pending
+            $pending = [];
+            foreach ($files as $file) {
+                $migrationName = basename($file, '.php');
+                $version = $this->extractVersionFromFilename($migrationName);
+                $isExecuted = false;
+                foreach ($executed as $e) {
+                    if ($e['version'] === $version) { $isExecuted = true; break; }
+                }
+                if (!$isExecuted) {
+                    require_once $file;
+                    $className = $this->getClassNameFromFile($file);
+                    if (class_exists($className)) {
+                        $migration = new $className();
+                        $d = method_exists($migration, 'getDescription') ? $migration->getDescription() : '';
+                        $pending[] = [$version, $d];
+                    } else {
+                        $pending[] = [$version, ''];
                     }
                 }
+            }
 
-                $pendingMigrations = [];
-                foreach ($migrationFiles as $file) {
-                    $migrationName = basename($file, '.php');
-                    $version = $this->extractVersionFromFilename($migrationName);
-
-                    $executed = false;
-                    foreach ($executedMigrations as $executedMigration) {
-                        if ($executedMigration['version'] === $version) {
-                            $executed = true;
-                            break;
-                        }
-                    }
-
-                    if (!$executed) {
-                        require_once $file;
-                        $className = $this->getClassNameFromFile($file);
-                        if (class_exists($className)) {
-                            $migration = new $className();
-                            $description = $migration->getDescription();
-                            $descriptionInfo = $description ? " - $description" : "";
-                            $pendingMigrations[] = $version . $descriptionInfo;
-                        } else {
-                            $pendingMigrations[] = $version;
-                        }
-                    }
-                }
-
-                if (!empty($pendingMigrations)) {
-                    echo "\nČekající migrace:\n";
-                    foreach ($pendingMigrations as $migration) {
-                        echo "  - $migration\n";
-                    }
-                } else {
-                    echo "\nVšechny migrace jsou spuštěny ✓\n";
-                }
+            if (!empty($pending)) {
+                ConsoleUI::section('Čekající migrace');
+                $rows = [['Version', 'Description'], ...$pending];
+                ConsoleUI::table($rows, array_shift($rows));
             } else {
-                echo "Tabulka migrací neexistuje. Spusťte první migraci.\n";
+                ConsoleUI::box('Migrace', [ConsoleUI::ok('Všechny migrace jsou spuštěny')], 'success', 2);
             }
-
-            // Kontrola seedů
-            $seedsDir = $this->seedsDir;
-            $seedFiles = glob($seedsDir . '/*.php');
-            echo "\n=== Seedy ===\n";
-            echo "Dostupné seedy: " . count($seedFiles) . "\n";
-            if (!empty($seedFiles)) {
-                foreach ($seedFiles as $file) {
-                    echo "  - " . basename($file, '.php') . "\n";
-                }
-            }
-
-        } catch (Exception $e) {
-            echo "Chyba připojení k databázi: " . $e->getMessage() . "\n";
+        } catch (\Exception $e) {
+            ConsoleUI::box('Chyba připojení', [
+                ConsoleUI::err($e->getMessage())
+            ], 'error', 2);
         }
     }
+
 
     /**
      * @throws SchemaException
@@ -400,87 +388,57 @@ class MigrationCLI
         $seedsDir = $this->seedsDir;
 
         if (!is_dir($seedsDir)) {
-            echo "Adresář seeds neexistuje.\n";
+            ConsoleUI::box('Seedy', [ConsoleUI::warn('Adresář seeds neexistuje.')], 'warning', 2);
             return;
         }
 
         if ($targetSeeder) {
-            // Spustíme pouze konkrétní seeder
             $seedFile = $seedsDir . '/' . $targetSeeder . '.php';
             if (!file_exists($seedFile)) {
-                echo "❌ Seeder '$targetSeeder' neexistuje: $seedFile\n";
+                ConsoleUI::box('Seedy', [ConsoleUI::err("Seeder '{$targetSeeder}' neexistuje: {$seedFile}")], 'error', 2);
                 return;
             }
 
-            echo "Spouštím seeder: $targetSeeder\n";
+            ConsoleUI::box('Seeder', ["{$targetSeeder}"], 'info', 2);
             require_once $seedFile;
 
             if (class_exists($targetSeeder)) {
                 $seed = new $targetSeeder();
                 $builder = $this->connection->createQueryBuilder();
                 $seed->run($this->connection, $builder);
-                echo "✅ Seeder '$targetSeeder' dokončen.\n";
+                ConsoleUI::box('OK', [ConsoleUI::ok("Seeder '{$targetSeeder}' dokončen.")], 'success', 2);
             } else {
-                echo "❌ Třída '$targetSeeder' neexistuje.\n";
+                ConsoleUI::box('Seedy', [ConsoleUI::err("Třída '{$targetSeeder}' neexistuje.")], 'error', 2);
             }
             return;
         }
 
-        $files = glob($seedsDir . '/*.php');
-        // Seřadíme seedy podle priority (závislosti)
-        $seedOrder = [
-            'UserSeeder.php',
-            'CustomerSeeder.php',
-            'ContactSeeder.php',
-            'DealSeeder.php',
-            'ActivitySeeder.php',
-            'EmailTemplateSeeder.php',
-            'EmailSignatureSeeder.php',
-            'EmailServerSeeder.php',
-            'InvoiceSeeder.php'
-        ];
+        $filteredFiles = glob($seedsDir . '/*.php');
 
-        // Filtrujeme pouze seedy v definovaném pořadí
-        $filteredFiles = [];
-        foreach ($seedOrder as $seedName) {
-            $seedPath = $seedsDir . '/' . $seedName;
-            if (file_exists($seedPath)) {
-                $filteredFiles[] = $seedPath;
-            }
-        }
-
-        // Debug: vypíšeme pořadí seedů
-        echo "Spouštím seedy v pořadí:\n";
-        foreach ($filteredFiles as $file) {
-            echo "- " . basename($file) . "\n";
-        }
-        echo "\n";
+        ConsoleUI::section('Pořadí seedů');
+        ConsoleUI::items(array_map(fn($p) => basename($p), $filteredFiles));
 
         foreach ($filteredFiles as $file) {
-            require_once $file;
             $className = basename($file, '.php');
-
+            ConsoleUI::box('Seeder', [$className], 'info', 2);
+            require_once $file;
             if (class_exists($className)) {
                 $seed = new $className();
                 $builder = $this->connection->createQueryBuilder();
                 $seed->run($this->connection, $builder);
+                echo ConsoleUI::ok("Hotovo: {$className}") . "\n\n";
             }
         }
-
-        echo "Všechny seedy dokončeny.\n";
+        ConsoleUI::box('Seedy', [ConsoleUI::ok('Všechny seedy dokončeny.')], 'success', 2);
     }
 
-    /**
-     * Vygeneruje migrace z entit
-     */
     private function generateFromEntities(): void
     {
-        echo $this->colorize("Generování migrací z entit...", 'cyan') . "\n";
+        ConsoleUI::box('Generování z entit', [ConsoleUI::info('Start…')], 'info', 2);
 
         $entities = $this->scanEntities();
-
         if (empty($entities)) {
-            echo $this->colorize("Žádné entity nebyly nalezeny.", 'yellow') . "\n";
+            ConsoleUI::box('Generování z entit', [ConsoleUI::warn('Žádné entity nebyly nalezeny.')], 'warning', 2);
             return;
         }
 
@@ -488,13 +446,20 @@ class MigrationCLI
         $filename = "{$timestamp}_create_tables_from_entities.php";
         $filepath = $this->migrationsDir . '/' . $filename;
 
-        $migrationContent = $this->generateMigrationFromEntities($entities);
-        file_put_contents($filepath, $migrationContent);
+        try {
+            $migrationContent = $this->generateMigrationFromEntities($entities);
+            file_put_contents($filepath, $migrationContent);
 
-        echo $this->colorize("Migrace vygenerována: $filepath", 'green') . "\n";
-        echo $this->colorize("Verze: $timestamp", 'cyan') . "\n";
-        echo $this->colorize("Počet entit: " . count($entities), 'cyan') . "\n";
-        echo "Spusťte 'migrate' pro aplikování migrace.\n";
+            ConsoleUI::section('Výsledek');
+            ConsoleUI::kv('Soubor:', $filepath);
+            ConsoleUI::kv('Verze:', $timestamp);
+            ConsoleUI::kv('Počet entit:', (string)count($entities));
+            ConsoleUI::box('Pokračování', ['Spusťte příkaz: ./console/arcadia-migrations migrate'], 'info', 2);
+        } catch (\Throwable $e) {
+            ConsoleUI::box('Chyba generování', [
+                ConsoleUI::err($e->getMessage())
+            ], 'error', 2);
+        }
     }
 
     /**
@@ -565,20 +530,12 @@ class MigrationCLI
         try {
             // Získáme EntityManager
             $em = Container::get('doctrine.em');
-
-            // Získáme metadata pro všechny entity
             $metadata = [];
             foreach ($entities as $entity) {
                 $metadata[] = $em->getClassMetadata($entity['fullClassName']);
             }
-
-            // Použijeme SchemaTool pro generování SQL
             $schemaTool = new SchemaTool($em);
-
-            // Získáme SQL pro bezpečnou aktualizaci schématu (vytvoří pouze chybějící tabulky/sloupy)
             $sqls = $schemaTool->getUpdateSchemaSql($metadata, true);
-
-            // Seřadíme SQL příkazy tak, aby se nejdříve vytvořily tabulky a pak foreign key constraints
             $createTableSqls = [];
             $alterTableSqls = [];
 
@@ -607,7 +564,9 @@ class MigrationCLI
             }
 
         } catch (Exception $e) {
-            echo $this->colorize("Chyba při generování SQL: " . $e->getMessage(), 'red') . "\n";
+            ConsoleUI::box('Chyba při generování SQL', [
+                ConsoleUI::err($e->getMessage())
+            ], 'error', 2);
             // Fallback na jednoduché CREATE TABLE
             $code .= "        // Fallback: Vytvoření základní tabulky\n";
             $code .= "        \$this->raw(\"CREATE TABLE IF NOT EXISTS `users` (\n";
@@ -619,7 +578,7 @@ class MigrationCLI
         return $code;
     }
 
-            /**
+    /**
      * Vygeneruje SQL pro rollback - pouze pro tabulky, které byly vytvořeny
      */
     private function generateRollbackSQL(array $entities): string
@@ -660,13 +619,18 @@ class MigrationCLI
             }
 
         } catch (Exception $e) {
-            echo $this->colorize("Chyba při generování rollback SQL: " . $e->getMessage(), 'red') . "\n";
-            // Fallback na generování DROP pro všechny entity
+            ConsoleUI::box('Chyba při generování rollback SQL', [
+                ConsoleUI::err($e->getMessage()),
+                ConsoleUI::subtle('Použiji fallback DROP pro všechny odvozené názvy tabulek.')
+            ], 'error', 2);
+
+            $code .= "        \$this->raw(\"SET FOREIGN_KEY_CHECKS = 0;\");\n";
             $reversedEntities = array_reverse($entities);
             foreach ($reversedEntities as $entity) {
                 $tableName = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $entity['className']));
-                $code .= "        \$this->raw(\"DROP TABLE IF EXISTS `$tableName`\");\n";
+                $code .= "        \$this->raw(\"DROP TABLE IF EXISTS `{$tableName}`;\");\n";
             }
+            $code .= "        \$this->raw(\"SET FOREIGN_KEY_CHECKS = 1;\");\n";
         }
 
         return $code;
@@ -728,24 +692,8 @@ class MigrationCLI
         return str_replace(' ', '', ucwords(str_replace('_', ' ', $string)));
     }
 
-    private function colorize($text, $color): string
-    {
-        $colors = [
-            'red' => "\033[31m",
-            'green' => "\033[32m",
-            'yellow' => "\033[33m",
-            'blue' => "\033[34m",
-            'magenta' => "\033[35m",
-            'cyan' => "\033[36m",
-            'white' => "\033[37m",
-            'bold' => "\033[1m",
-            'reset' => "\033[0m"
-        ];
 
-        return $colors[$color] . $text . $colors['reset'];
-    }
-
-        /**
+    /**
      * @throws SchemaException
      * @throws \Doctrine\DBAL\Exception
      */
@@ -774,10 +722,10 @@ class MigrationCLI
             }
 
         } catch (Exception $e) {
-            echo $this->colorize("❌ Chyba při spouštění migrace: " . $e->getMessage(), 'red') . "\n";
-            echo $this->colorize("🔄 Všechny změny byly automaticky vráceny zpět", 'yellow') . "\n";
-
-            // Přehodíme exception dál
+            ConsoleUI::box('Chyba při migraci', [
+                ConsoleUI::err($e->getMessage()),
+                ConsoleUI::subtle('Změny budou vráceny zpět.'),
+            ], 'error', 2);
             throw $e;
         }
     }
@@ -843,7 +791,7 @@ class MigrationCLI
     {
         $options = [];
         foreach ($args as $arg) {
-            if (strpos($arg, '--') === 0) {
+            if (str_starts_with($arg, '--')) {
                 $parts = explode('=', substr($arg, 2), 2);
                 if (count($parts) === 2) {
                     $options[$parts[0]] = $parts[1];

@@ -4,8 +4,16 @@
 use Core\CLI\MigrationCLI;
 use Doctrine\DBAL\Schema\SchemaException;
 
+require_once __DIR__ . "/../vendor/autoload.php";
 require_once __DIR__ . '/../bootstrap.php';
 /**
  * @throw Exception
  */
-new MigrationCLI()->run(array_slice($argv, 1));
+try {
+    Bootstrap::autoload();
+    [, $cache] = Bootstrap::init();
+    Bootstrap::tryMakeConnection($cache);
+    new MigrationCLI()->run(array_slice($argv, 1));
+} catch (SchemaException|\Doctrine\DBAL\Exception $e) {
+
+}

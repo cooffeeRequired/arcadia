@@ -7,11 +7,6 @@ return [
     'version' => '1.0.0',
     'author' => 'Arcadia Team',
     'dependencies' => null,
-    'settings' => [
-        'enabled' => true,
-        'debug_mode' => false,
-        'max_items' => 100
-    ],
     'permissions' => [
         'view' => ['admin', 'manager', 'user'],
         'create' => ['admin', 'manager'],
@@ -19,13 +14,13 @@ return [
         'delete' => ['admin']
     ],
     'routes' => [
-        'GET /example' => 'ExampleController@index',
-        'GET /example/create' => 'ExampleController@create',
-        'POST /example' => 'ExampleController@store',
-        'GET /example/{id}' => 'ExampleController@show',
-        'GET /example/{id}/edit' => 'ExampleController@edit',
-        'PUT /example/{id}' => 'ExampleController@update',
-        'DELETE /example/{id}' => 'ExampleController@destroy'
+        'GET /example' => ['ExampleController@index', 'example.index'],
+        'GET /example/create' => ['ExampleController@create', 'example.create'],
+        'POST /example' => ['ExampleController@store', 'example.store'],
+        'GET /example/{id}' => ['ExampleController@show', 'example.show'],
+        'GET /example/{id}/edit' => ['ExampleController@edit', 'example.edit'],
+        'PUT /example/{id}' => ['ExampleController@update', 'example.update'],
+        'DELETE /example/{id}' => ['ExampleController@destroy', 'example.destroy']
     ],
     'menu' => [
         'title' => 'Příklad',
@@ -44,36 +39,12 @@ return [
             ]
         ]
     ],
-    'controllers' => [
-        'Example' => [
-            'namespace' => 'Modules\Example\Controllers',
-            'extends' => 'Core\Controllers\BaseController',
-            'methods' => ['index', 'show', 'create', 'store', 'edit', 'update', 'destroy'],
-            'enabled' => true
-        ]
-    ],
-    'entities' => [
-        'Example' => [
-            'table' => 'examples',
-            'namespace' => 'Modules\Example\Models',
-            'extends' => 'Core\Models\BaseModel',
-            'properties' => ['name', 'description', 'status', 'created_at', 'updated_at']
-        ],
-        'ExampleCategory' => [
-            'table' => 'example_categories',
-            'namespace' => 'Modules\Example\Models',
-            'extends' => 'Core\Models\BaseModel',
-            'properties' => ['name', 'description', 'parent_id']
-        ]
-    ],
+    'controllers' => 'controllers',
+    'entities' => 'entities',
+    'views' => 'views',
     'migrations' => [
-        'create_examples_table' => [
-            'type' => 'create_table',
-            'table' => 'examples'
-        ],
-        'create_example_categories_table' => [
-            'type' => 'create_table',
-            'table' => 'example_categories'
-        ]
+        'install' => 'install.php',
+        'uninstall' => 'uninstall.php',
+        '_' => '*.php'
     ]
 ];

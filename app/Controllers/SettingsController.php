@@ -3,10 +3,9 @@
 namespace App\Controllers;
 
 use Core\Cache\CacheManager;
-use Core\Facades\Container;
 use Core\Http\Response;
 use Core\Render\BaseController;
-use Core\State\RedisContainer;
+use Core\Services\ModuleManager;
 
 class SettingsController extends BaseController
 {
@@ -190,5 +189,150 @@ class SettingsController extends BaseController
         }
 
         $this->redirect('/settings/system');
+    }
+
+    // ===== MODULE MANAGEMENT METHODS =====
+
+    /**
+     * Zobrazí seznam modulů
+     */
+    public function modules(): Response\ViewResponse
+    {
+        // Použití helper funkce pro získání modulů
+        $modules = modules();
+
+        return $this->view('settings.modules.index', [
+            'modules' => $modules
+        ]);
+    }
+
+    /**
+     * Zobrazí detail modulu
+     */
+    public function moduleDetail(string $moduleName): Response\ViewResponse
+    {
+        // Použití helper funkce pro získání modulu
+        $module = module($moduleName);
+
+        if (!$module) {
+            $this->redirect('/settings/modules');
+        }
+
+        return $this->view('settings.modules.show', [
+            'module' => $module
+        ]);
+    }
+
+    /**
+     * Nainstaluje modul
+     */
+    public function installModule(string $moduleName): void
+    {
+        if (!$this->hasPermission('admin')) {
+            $this->redirect('/settings/modules');
+        }
+
+        $moduleManager = new ModuleManager();
+        $success = $moduleManager->installModule($moduleName);
+
+        if ($success) {
+            $this->toastSuccess("Modul {$moduleName} byl úspěšně nainstalován");
+        } else {
+            $this->toastError("Chyba při instalaci modulu {$moduleName}");
+        }
+
+        $this->redirect('/settings/modules');
+    }
+
+    /**
+     * Odinstaluje modul
+     */
+    public function uninstallModule(string $moduleName): void
+    {
+        if (!$this->hasPermission('admin')) {
+            $this->redirect('/settings/modules');
+        }
+
+        $moduleManager = new ModuleManager();
+        $success = $moduleManager->uninstallModule($moduleName);
+
+        if ($success) {
+            $this->toastSuccess("Modul {$moduleName} byl úspěšně odinstalován");
+        } else {
+            $this->toastError("Chyba při odinstalaci modulu {$moduleName}");
+        }
+
+        $this->redirect('/settings/modules');
+    }
+
+    /**
+     * Zapne modul
+     */
+    public function enableModule(string $moduleName): void
+    {
+        if (!$this->hasPermission('admin')) {
+            $this->redirect('/settings/modules');
+        }
+
+        $moduleManager = new ModuleManager();
+        $success = $moduleManager->toggleModule($moduleName, true);
+
+        if ($success) {
+            $this->toastSuccess("Modul {$moduleName} byl zapnut");
+        } else {
+            $this->toastError("Chyba při zapnutí modulu {$moduleName}");
+        }
+
+        $this->redirect('/settings/modules');
+    }
+
+    /**
+     * Vypne modul
+     */
+    public function disableModule(string $moduleName): void
+    {
+        if (!$this->hasPermission('admin')) {
+            $this->redirect('/settings/modules');
+        }
+
+        $moduleManager = new ModuleManager();
+        $success = $moduleManager->toggleModule($moduleName, false);
+
+        if ($success) {
+            $this->toastSuccess("Modul {$moduleName} byl vypnut");
+        } else {
+            $this->toastError("Chyba při vypnutí modulu {$moduleName}");
+        }
+
+        $this->redirect('/settings/modules');
+    }
+
+    /**
+     * Synchronizuje moduly
+     */
+    public function syncModules(): void
+    {
+        if (!$this->hasPermission('admin')) {
+            $this->redirect('/settings/modules');
+        }
+
+        try {
+            $moduleManager = new ModuleManager();
+            $moduleManager->loadModulesFromFiles();
+            $this->toastSuccess("Moduly byly úspěšně synchronizovány");
+        } catch (\Exception $e) {
+            $this->toastError("Chyba při synchronizaci modulů: " . $e->getMessage());
+        }
+
+        $this->redirect('/settings/modules');
+    }
+
+    /**
+     * Kontrola oprávnění
+     */
+    private function hasPermission(string $permission): bool
+    {
+        $user = $this->session('user');
+        return $user && in_array($permission, $user['permissions'] ?? []);
     }
 }

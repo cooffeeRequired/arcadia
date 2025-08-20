@@ -2,78 +2,109 @@
 
 namespace Core\Middleware;
 
-use Core\Http\Request;
-use Core\Modules\ModuleManager;
 use Core\Facades\Container;
-use Exception;
+use Core\Services\ModuleManager;
 
 class ModuleMiddleware
 {
-    private ModuleManager $moduleManager;
-
-    public function __construct()
-    {
-        $this->moduleManager = Container::get(ModuleManager::class, ModuleManager::class);
-    }
-
     /**
-     * Kontroluje, zda je modul dostupný
+     * Spustí middleware pro načítání modulů
      */
-    public function checkModule(string $moduleName): void
+    public static function handle(): void
     {
-        if (!$this->moduleManager->isAvailable($moduleName)) {
-            throw new Exception("Modul '{$moduleName}' není dostupný nebo není povolen.");
+        try {
+            // Kontrola, zda jsou moduly již načteny
+            if (!Container::get('modules')) {
+                // Pokud nejsou načteny, načteme je
+                $moduleManager = new ModuleManager();
+                $modules = $moduleManager->loadModulesFromFiles();
+
+                Container::set('modules', $modules, ['app.modules']);
+
+                // Načtení aktivních modulů
+                $activeModules = $moduleManager->getActiveModules();
+                Container::set('active_modules', $activeModules, ['app.active_modules']);
+
+                // Logování pro debugging
+                if (getenv('APP_ENV') === 'development') {
+                    error_log("Moduly načteny v middleware: " . count($modules) . " celkem, " . count($activeModules) . " aktivních");
+                }
+            }
+
+        } catch (\Exception $e) {
+            // Logování chyby, ale neukončení requestu
+            error_log("Chyba v ModuleMiddleware: " . $e->getMessage());
         }
     }
 
     /**
-     * Kontroluje, zda má uživatel oprávnění pro modul
+     * Zkontroluje, zda je modul aktivní pro aktuální request
      */
-    public function checkPermission(string $moduleName, string $permission, ?string $userRole = null): void
+    public static function checkModuleAccess(string $moduleName): bool
     {
-        if (!$this->moduleManager->hasPermission($moduleName, $permission, $userRole)) {
-            throw new Exception("Nemáte oprávnění pro modul '{$moduleName}' a akci '{$permission}'.");
+        try {
+            $activeModules = Container::get('active_modules') ?? [];
+
+            foreach ($activeModules as $module) {
+                if ($module->getName() === $moduleName) {
+                    return $module->isInstalled() && $module->isEnabled();
+                }
+            }
+
+            return false;
+
+        } catch (\Exception $e) {
+            error_log("Chyba při kontrole přístupu k modulu {$moduleName}: " . $e->getMessage());
+            return false;
         }
     }
 
     /**
-     * Middleware pro kontrolu modulu v route
+     * Získá seznam aktivních modulů pro aktuální request
      */
-    public function handle(Request $request, string $moduleName): void
+    public static function getActiveModules(): array
     {
-        $this->checkModule($moduleName);
+        try {
+            return Container::get('active_modules') ?? [];
+        } catch (\Exception $e) {
+            error_log("Chyba při získávání aktivních modulů: " . $e->getMessage());
+            return [];
+        }
     }
 
     /**
-     * Middleware pro kontrolu modulu a oprávnění
+     * Zkontroluje, zda má uživatel oprávnění pro modul
      */
-    public function handleWithPermission(Request $request, string $moduleName, string $permission): void
+    public static function checkModulePermission(string $moduleName, string $action): bool
     {
-        $this->checkModule($moduleName);
-        $this->checkPermission($moduleName, $permission);
-    }
+        try {
+            $modules = Container::get('modules') ?? [];
 
-    /**
-     * Získá seznam dostupných modulů
-     */
-    public function getAvailableModules(): array
-    {
-        return $this->moduleManager->availableModules();
-    }
+            foreach ($modules as $module) {
+                if ($module->getName() === $moduleName) {
+                    $permissions = $module->getPermissions();
 
-    /**
-     * Zkontroluje, zda je modul povolen
-     */
-    public function isModuleEnabled(string $moduleName): bool
-    {
-        return $this->moduleManager->isEnabled($moduleName);
-    }
+                    if (!$permissions) {
+                        return true; // Pokud nejsou definována oprávnění, povolíme přístup
+                    }
 
-    /**
-     * Zkontroluje, zda je modul nainstalován
-     */
-    public function isModuleInstalled(string $moduleName): bool
-    {
-        return $this->moduleManager->isInstalled($moduleName);
+                    if (isset($permissions[$action])) {
+                        $requiredRoles = $permissions[$action];
+
+                        // Zde by byla kontrola role uživatele
+                        // Prozatím vrátíme true
+                        return true;
+                    }
+
+                    return false;
+                }
+            }
+
+            return false;
+
+        } catch (\Exception $e) {
+            error_log("Chyba při kontrole oprávnění pro modul {$moduleName}: " . $e->getMessage());
+            return false;
+        }
     }
 }

@@ -798,3 +798,109 @@ if (!function_exists('clear_breadcrumbs')) {
         unset($_SESSION['custom_breadcrumbs']);
     }
 }
+
+// ===== MODULE HELPERS =====
+
+if (!function_exists('modules')) {
+    /**
+     * Získá všechny moduly
+     *
+     * @return array
+     */
+    function modules(): array
+    {
+        try {
+            return Container::get('modules') ?? [];
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+}
+
+if (!function_exists('active_modules')) {
+    /**
+     * Získá aktivní moduly
+     *
+     * @return array
+     */
+    function active_modules(): array
+    {
+        try {
+            return Container::get('active_modules') ?? [];
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+}
+
+if (!function_exists('module')) {
+    /**
+     * Získá konkrétní modul podle názvu
+     *
+     * @param string $name
+     * @return mixed|null
+     */
+    function module(string $name)
+    {
+        $modules = modules();
+        return $modules[$name] ?? null;
+    }
+}
+
+if (!function_exists('module_manager')) {
+    /**
+     * Získá instance ModuleManager
+     *
+     * @return \Core\Services\ModuleManager|null
+     */
+    function module_manager()
+    {
+        try {
+            return Container::get(\Core\Services\ModuleManager::class);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+}
+
+if (!function_exists('is_module_active')) {
+    /**
+     * Zkontroluje, zda je modul aktivní
+     *
+     * @param string $name
+     * @return bool
+     */
+    function is_module_active(string $name): bool
+    {
+        $module = module($name);
+        return $module && $module->isInstalled() && $module->isEnabled();
+    }
+}
+
+if (!function_exists('module_asset')) {
+    /**
+     * Generuje URL pro asset soubory modulu
+     *
+     * @param string $moduleName
+     * @param string $path
+     * @return string
+     */
+    function module_asset(string $moduleName, string $path): string
+    {
+        return "/modules/{$moduleName}/assets/" . ltrim($path, '/');
+    }
+}
+
+if (!function_exists('module_view')) {
+    /**
+     * Generuje cestu k view souboru modulu
+     *
+     * @param string $moduleName
+     * @param string $view
+     * @return string
+     */
+    function module_view(string $moduleName, string $view): string
+    {
+        return APP_ROOT . "/modules/{$moduleName}/views/{$view}.blade.php";
+    }
+}

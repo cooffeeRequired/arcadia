@@ -23,8 +23,6 @@
     "dompdf/dompdf": "^2.0",
     "ext-pdo": "*",
     "ext-zend-opcache": "*",
-    "illuminate/validation": "^10.48",
-    "doctrine/migrations": "^3.9",
-    "ext-dba": "*"
+    "doctrine/migrations": "^3.9"
   }
 }

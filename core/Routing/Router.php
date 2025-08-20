@@ -167,23 +167,14 @@ class Router
 
         try {
             $route = $this->findRoute($request);
-            //dump($request, $route);
 
             if (!$route) {
                 $this->handleNotFound($request);
                 return;
             }
-
-            // Aplikuj middleware
             $this->applyMiddleware($route, $request);
-
-            // Zpracuj route
             $result = $this->executeRoute($route, $request);
-
-            // Loguj zpracování
             RenderLogger::logRender('route', $startTime, $result);
-
-            // Odešli response
             if ($result instanceof AbstractResponse) {
                 $result->send();
             } else {
@@ -318,12 +309,9 @@ class Router
      */
     private function handleException(Exception $e, Request $request): void
     {
-        // V development módu zobrazíme TracyException
         if (getenv('APP_ENV') === 'development') {
-            // Necháme Tracy zpracovat výjimku
             \Tracy\Debugger::log($e, \Tracy\ILogger::EXCEPTION);
 
-            // Vytvoříme Tracy error stránku
             $html = \Tracy\Debugger::getBlueScreen()->render($e);
 
             if ($html) {
@@ -332,11 +320,7 @@ class Router
                 exit;
             }
         }
-
-        // Loguj chybu
-        error_log("Router Exception: " . $e->getMessage());
-
-        $errorController = new \App\Controllers\ErrorController();
+        $errorController = new ErrorController();
         $response = $errorController->showServerError($e);
 
         if ($response instanceof AbstractResponse) {
@@ -375,7 +359,6 @@ class Router
 
         $uri = $route->getUri();
 
-        // Nahraď parametry v URI
         foreach ($parameters as $key => $value) {
             $uri = str_replace("{{$key}}", $value, $uri);
         }
