@@ -2,100 +2,43 @@
 
 namespace App\Controllers;
 
+use App\Services\TableUI;
 use Core\Http\Response;
-use Core\Render\BaseController;
 
-class ExampleController extends BaseController
+class ExampleController
 {
-    /**
-     * Příklad GET endpointu s view
-     */
-    public function index(): Response\ViewResponse
+    public function showTable(): Response\ViewResponse
     {
-        // Použití middleware
-        \Core\Routing\Middleware::auth($this->request);
+        // Příklad dat
+        $data = [
+            ['id' => 1, 'name' => 'Jan Novák', 'email' => 'jan@example.com', 'phone' => '+420 123 456 789', 'status' => 'Aktivní'],
+            ['id' => 2, 'name' => 'Marie Svobodová', 'email' => 'marie@example.com', 'phone' => '+420 987 654 321', 'status' => 'Aktivní'],
+            ['id' => 3, 'name' => 'Petr Černý', 'email' => 'petr@example.com', 'phone' => '+420 555 123 456', 'status' => 'Neaktivní'],
+            ['id' => 4, 'name' => 'Anna Veselá', 'email' => 'anna@example.com', 'phone' => '+420 777 888 999', 'status' => 'Aktivní'],
+            ['id' => 5, 'name' => 'Tomáš Malý', 'email' => 'tomas@example.com', 'phone' => '+420 111 222 333', 'status' => 'Neaktivní'],
+        ];
 
-        // Sdílení dat s view
-        $this->share('title', 'Příklad stránka');
-
-        // Renderování view s daty
-        return $this->view('example.index', [
-            'message' => 'Ahoj světe!',
-            'users' => $this->em->getRepository('App\Entities\User')->findAll()
+        // Vytvoření tabulky programově s PHP 8.4 funkcionalitami
+        $tableUI = new TableUI('customers-table', [
+            'headers' => ['ID', 'Jméno', 'Email', 'Telefon', 'Stav'],
+            'data' => $data,
+            'searchable' => true,
+            'sortable' => true,
+            'pagination' => true,
+            'perPage' => 3,
+            'title' => 'Seznam zákazníků',
+            'icon' => 'fas fa-users',
+            'emptyMessage' => 'Žádní zákazníci nebyli nalezeni'
         ]);
-    }
 
-    /**
-     * Příklad POST endpointu s JSON odpovědí
-     */
-    public function api(): Response\JsonResponse
-    {
-        // Kontrola, zda je AJAX request
-        if (!$this->isAjax()) {
-            return $this->json(['error' => 'Pouze AJAX requesty'], 400);
-        }
+        $tableUI->addAction('Upravit', fn($row) => "editCustomer({$row['id']})")
+                ->addAction('Smazat', fn($row) => "deleteCustomer({$row['id']})", ['type' => 'danger'])
+                ->setSortableColumns([0, 1, 2, 3, 4])
+                ->setSearchableColumns([1, 2, 3]);
 
-        // Získání POST dat
-        $name = $this->input('name', '');
-        $email = $this->input('email', '');
-
-        if (empty($name) || empty($email)) {
-            return $this->json(['error' => 'Chybí povinná pole'], 422);
-        }
-
-        // Úspěšná odpověď
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'name' => $name,
-                'email' => $email
-            ]
-        ]);
-    }
-
-    /**
-     * Příklad redirectu
-     */
-    public function redirectExample(): void
-    {
-        $this->session('info', 'Byl jste přesměrován');
-        $this->redirect('/example');
-    }
-
-    /**
-     * Příklad s custom headers
-     */
-    public function download(): Response\HtmlResponse
-    {
-        // Simulace PDF obsahu
-        $pdfContent = '%PDF-1.4...'; // Zde by byl skutečný PDF obsah
-
-        return new Response\HtmlResponse($pdfContent, 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="example.pdf"'
-        ]);
-    }
-
-    /**
-     * Příklad s query parametry
-     */
-    public function search(): Response\ViewResponse
-    {
-        $query = $this->query('q', '');
-        $page = (int) $this->query('page', 1);
-
-        if (empty($query)) {
-            $this->session('error', 'Zadejte vyhledávací dotaz');
-            $this->redirect('/example');
-        }
-
-        // Zde by byla logika vyhledávání
-        $results = []; // Simulace výsledků
-
-        return $this->view('example.search', [
-            'query' => $query,
-            'page' => $page,
-            'results' => $results
+        return view('example.table', [
+            'tableHTML' => $tableUI->render(),
+            'tableData' => $data
         ]);
     }
 }

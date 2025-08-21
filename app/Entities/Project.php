@@ -28,40 +28,40 @@ class Project implements JsonSerializable
     #[ORM\Column(type: 'string', length: 20, name: 'priority')]
     protected string $priority = 'medium'; // low, medium, high, urgent
 
-    #[ORM\Column(type: 'datetime', nullable: true, name: 'start_date')]
+    #[ORM\Column(type: 'datetime', nullable: true, name: 'startDate')]
     protected ?\DateTime $startDate = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true, name: 'end_date')]
+    #[ORM\Column(type: 'datetime', nullable: true, name: 'endDate')]
     protected ?\DateTime $endDate = null;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true, name: 'budget')]
     protected ?float $budget = null;
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true, name: 'actual_cost')]
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true, name: 'actualCost')]
     protected ?float $actualCost = null;
 
-    #[ORM\Column(type: 'integer', nullable: true, name: 'estimated_hours')]
+    #[ORM\Column(type: 'integer', nullable: true, name: 'estimatedHours')]
     protected ?int $estimatedHours = null;
 
-    #[ORM\Column(type: 'integer', nullable: true, name: 'actual_hours')]
+    #[ORM\Column(type: 'integer', nullable: true, name: 'actualHours')]
     protected ?int $actualHours = null;
 
     #[ORM\Column(type: 'decimal', precision: 5, scale: 2, nullable: true, name: 'progress')]
     protected ?float $progress = 0.0;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, name: 'mini_page_slug')]
+    #[ORM\Column(type: 'string', length: 255, nullable: true, name: 'miniPageSlug')]
     protected ?string $miniPageSlug = null;
 
-    #[ORM\Column(type: 'text', nullable: true, name: 'mini_page_content')]
+    #[ORM\Column(type: 'text', nullable: true, name: 'miniPageContent')]
     protected ?string $miniPageContent = null;
 
     #[ORM\Column(type: 'json', nullable: true, name: 'settings')]
     protected ?array $settings = null;
 
-    #[ORM\Column(type: 'datetime', name: 'created_at')]
+    #[ORM\Column(type: 'datetime', name: 'createdAt')]
     protected \DateTime $createdAt;
 
-    #[ORM\Column(type: 'datetime', name: 'updated_at')]
+    #[ORM\Column(type: 'datetime', name: 'updatedAt')]
     protected \DateTime $updatedAt;
 
     #[ORM\ManyToOne(targetEntity: Customer::class, inversedBy: 'projects')]

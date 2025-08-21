@@ -28,12 +28,13 @@ class View
       self::$resolver = new EngineResolver();
       self::$resolver->register('php', fn() => new PhpEngine($filesystem));
       self::$compiler = new BladeCompiler($filesystem, APP_ROOT . '/cache/views');
-			self::$resolver->register('blade', fn() => new CompilerEngine(self::$compiler));
+        self::$resolver->register('blade', fn() => new CompilerEngine(self::$compiler));
       self::$finder = new FileViewFinder($filesystem, [APP_ROOT . '/resources/views']);
 
 
 	    self::$compiler->directive('hmr', fn($expression) => "<script type='module' src='<?=\"http://localhost:5173/\" . trim($expression, \"'\");?>'></script>");
 	    self::$compiler->directive('hmrClient', fn() => "<script type='module' src='http://localhost:5173/@vite/client'></script>");
+	    self::$compiler->directive('table', fn() => '{!! $tableHTML !!}');
 	    self::$compiler->directive('i18', fn($expression) => "<?= i18($expression); ?>");
       self::$factory = new Factory(self::$resolver, self::$finder, $dispatcher);
     }
@@ -75,4 +76,23 @@ class View
     self::init();
     return self::$factory;
   }
+
+    public static function html(string $html, $params = []): string
+    {
+        self::init();
+        $tempFile = APP_ROOT . '/cache/views/temp_' . uniqid() . '.blade.php';
+        if (!is_dir(dirname($tempFile))) mkdir(dirname($tempFile), 0755, true);
+        file_put_contents($tempFile, $html);
+
+        try {
+            // ✅ render přímo ze souboru, ne přes make(name)
+            $output = self::$factory->file($tempFile, $params)->render();
+            unlink($tempFile);
+            return $output;
+        } catch (\Exception $e) {
+            if (file_exists($tempFile)) unlink($tempFile);
+            // volitelně zalogujte $e
+            return $html;
+        }
+    }
 }

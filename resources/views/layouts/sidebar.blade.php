@@ -3,7 +3,7 @@
     <div class="flex items-center justify-center h-16 px-4 border-b border-gray-200">
         <div class="flex items-center">
             <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <i class="fas fa-cube text-white"></i>
+                <img src="{{ asset('/images/arcadia logo white.png') }}" alt="" class="w-8 h-8"/>
             </div>
             <span class="ml-2 text-lg font-semibold text-gray-900">Arcadia CRM</span>
         </div>

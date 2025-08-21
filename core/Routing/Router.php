@@ -320,7 +320,7 @@ class Router
                 exit;
             }
         }
-        $errorController = new ErrorController();
+        $errorController = new \App\Controllers\ErrorController();
         $response = $errorController->showServerError($e);
 
         if ($response instanceof AbstractResponse) {

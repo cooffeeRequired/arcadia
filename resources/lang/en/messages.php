@@ -19,6 +19,11 @@ return [
     'password' => 'Password',
     'theme-changer.changing' => 'Changing to {0}...',
 
+    // Table
+    'records' => 'records',
+    'reset_sorting' => 'Reset sorting',
+    'items_per_page' => 'Items per page',
+
     // Actions
     'create' => 'Create',
     'edit' => 'Edit',

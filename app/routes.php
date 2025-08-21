@@ -13,6 +13,8 @@ use App\Controllers\ReportController;
 use App\Controllers\SettingsController;
 use App\Controllers\TemplateController;
 use App\Controllers\WorkflowController;
+use App\Controllers\AjaxController;
+use App\Controllers\DemoController;
 use Core\Facades\Container;
 use Core\Http\Request;
 use Core\Routing\Router;
@@ -170,6 +172,13 @@ $router->group(['middleware' => ['auth']], function (Router $router) {
         $router->get('/{id}/api', [ProjectController::class, 'apiShow'])->name('projects.api.show');
         $router->get('/mini/{slug}', [ProjectController::class, 'miniPage'])->name('projects.mini-page');
     });
+
+    // AJAX routy pro TableUI
+    $router->any('/__render', [AjaxController::class, 'render'])->name('ajax.render');
+
+    // Demo routy pro TableUI
+    $router->get('/demo/table', [DemoController::class, 'tableDemo'])->name('demo.table');
+    $router->get('/demo/ajax-table', [DemoController::class, 'ajaxTableDemo'])->name('demo.ajax-table');
 });
 
 

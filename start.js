@@ -319,6 +319,11 @@ function startServer() {
         '--optimize',
         '-m'
     ], spawnOptions);
+
+    tailwind.stdout.on('data', d => {
+        console.log(chalk.red(`${d.toString()}`));
+    })
+
     processes.push(tailwind);
 
         // Clean exit

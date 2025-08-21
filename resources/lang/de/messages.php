@@ -14,6 +14,11 @@ return [
     'emails' => 'E-Mails',
     'modules' => 'Module',
 
+    // Tabelle
+    'records' => 'Datensätze',
+    'reset_sorting' => 'Sortierung zurücksetzen',
+    'items_per_page' => 'Einträge pro Seite',
+
     // Aktionen
     'create' => 'Erstellen',
     'edit' => 'Bearbeiten',

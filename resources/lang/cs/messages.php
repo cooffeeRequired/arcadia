@@ -19,6 +19,11 @@ return [
     'password' => 'Heslo',
     'theme-changer.changing' => 'Měním na {0}...',
 
+    // Tabulka
+    'records' => 'záznamů',
+    'reset_sorting' => 'Resetovat řazení',
+    'items_per_page' => 'Položek na stránku',
+
     // Akce
     'create' => 'Vytvořit',
     'edit' => 'Upravit',

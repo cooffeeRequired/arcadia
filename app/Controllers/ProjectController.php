@@ -9,15 +9,15 @@ use App\Entities\ProjectFile;
 use App\Entities\Customer;
 use App\Entities\User;
 use Core\Http\Response\ViewResponse;
-use Core\Modules\ModuleManager;
 use Core\Facades\Container;
 use Core\Render\BaseController;
+use Core\Services\TableUI;
+use Core\Services\HeaderUI;
 use Doctrine\ORM\EntityRepository;
 use Exception;
 
 class ProjectController extends BaseController
 {
-    private ModuleManager $moduleManager;
     private EntityRepository $projectRepository;
     private EntityRepository $customerRepository;
     private EntityRepository $userRepository;
@@ -25,15 +25,6 @@ class ProjectController extends BaseController
     public function __construct()
     {
         parent::__construct();
-
-        $this->moduleManager = Container::get(ModuleManager::class, ModuleManager::class);
-
-        // Kontrola, zda je modul projektů povolen
-        if (!$this->moduleManager->isAvailable('projects')) {
-            $this->redirect('/');
-            return;
-        }
-
         $this->projectRepository = $this->em->getRepository(Project::class);
         $this->customerRepository = $this->em->getRepository(Customer::class);
         $this->userRepository = $this->em->getRepository(User::class);
@@ -44,237 +35,178 @@ class ProjectController extends BaseController
      */
     public function index(): ViewResponse
     {
-        // Kontrola oprávnění
-        if (!$this->moduleManager->hasPermission('projects', 'view')) {
-            $this->toastError('Nemáte oprávnění k zobrazení projektů');
-            $this->redirect('/');
-            return $this->view('home.index', []);
-        }
-
         $projects = $this->projectRepository->findAll();
 
-        $data = [
+        // Převod na asociativní pole pro TableUI
+        $projectsData = array_map(function($project) {
+            return [
+                'id' => $project->getId(),
+                'name' => $project->getName(),
+                'customer_name' => $project->getCustomer() ? $project->getCustomer()->getName() : 'N/A',
+                'manager_name' => $project->getManager() ? $project->getManager()->getName() : 'N/A',
+                'status' => $project->getStatus(),
+                'budget' => $project->getBudget() ? number_format($project->getBudget(), 0, ',', ' ') . ' Kč' : 'N/A',
+                'start_date' => $project->getStartDate() ? $project->getStartDate()->format('d.m.Y') : 'N/A',
+                'end_date' => $project->getEndDate() ? $project->getEndDate()->format('d.m.Y') : 'N/A',
+                'description' => $project->getDescription() ? substr($project->getDescription(), 0, 50) . '...' : ''
+            ];
+        }, $projects);
+
+        // Vytvoření moderního headeru s HeaderUI komponentem
+        $headerUI = new HeaderUI('projects-header', [
+            'title' => 'Seznam projektů',
+            'icon' => 'fas fa-project-diagram',
+            'subtitle' => 'Správa projektů a jejich realizace'
+        ]);
+
+        // Přidání statistik
+        $headerUI->setStats([
+            'total' => [
+                'label' => 'Celkem',
+                'count' => count($projects) . ' projektů',
+                'type' => 'blue'
+            ],
+            'active' => [
+                'label' => 'Aktivní',
+                'count' => count(array_filter($projects, fn($p) => $p->getStatus() === 'active')) . ' projektů',
+                'type' => 'green'
+            ],
+            'completed' => [
+                'label' => 'Dokončené',
+                'count' => count(array_filter($projects, fn($p) => $p->getStatus() === 'completed')) . ' projektů',
+                'type' => 'purple'
+            ],
+            'total_budget' => [
+                'label' => 'Celkový rozpočet',
+                'count' => number_format(array_sum(array_map(fn($p) => $p->getBudget() ?? 0, $projects)), 0, ',', ' ') . ' Kč',
+                'type' => 'yellow'
+            ]
+        ]);
+
+        // Přidání poslední aktualizace
+        $headerUI->setLastUpdate('Poslední aktualizace: ' . date('d.m.Y H:i'));
+
+        // Přidání tlačítek
+        $headerUI->addButton(
+            'create-project',
+            '<i class="fas fa-plus mr-2"></i>Nový projekt',
+            function() {
+                return "window.location.href='/projects/create'";
+            },
+            ['type' => 'primary']
+        );
+
+        // Vytvoření moderní tabulky s TableUI komponentem
+        $tableUI = new TableUI('projects', [
+            'headers' => ['ID', 'Název', 'Zákazník', 'Manažer', 'Stav', 'Rozpočet', 'Začátek', 'Konec', 'Popis'],
+            'data' => $projectsData,
+            'searchable' => true,
+            'sortable' => true,
+            'pagination' => true,
+            'perPage' => 15,
+            'title' => 'Seznam projektů',
+            'icon' => 'fas fa-project-diagram',
+            'emptyMessage' => 'Žádné projekty nebyly nalezeny',
+            'search_controller' => 'App\\Controllers\\ProjectController',
+            'search_method' => 'ajaxSearch'
+        ]);
+
+        // Přidání sloupců
+        $tableUI->addColumn('id', 'ID', ['sortable' => true])
+                ->addColumn('name', 'Název', ['sortable' => true])
+                ->addColumn('customer_name', 'Zákazník', ['sortable' => true])
+                ->addColumn('manager_name', 'Manažer', ['sortable' => true])
+                ->addColumn('status', 'Stav', ['sortable' => true, 'position' => 'center'])
+                ->addColumn('budget', 'Rozpočet', ['sortable' => true, 'position' => 'right', 'format' => 'currency'])
+                ->addColumn('start_date', 'Začátek', ['sortable' => true, 'format' => 'date', 'position' => 'center'])
+                ->addColumn('end_date', 'Konec', ['sortable' => true, 'format' => 'date', 'position' => 'center'])
+                ->addColumn('description', 'Popis', ['sortable' => false]);
+
+        // Přidání akcí pro řádky
+        $tableUI->addAction('Zobrazit', function($params) {
+            return "window.location.href='/projects/' + {$params['row']}.id";
+        }, ['type' => 'primary'])
+        ->addAction('Upravit', function($params) {
+            return "window.location.href='/projects/' + {$params['row']}.id + '/edit'";
+        }, ['type' => 'default'])
+        ->addAction('Smazat', function($params) {
+            return "if(confirm('Opravdu smazat projekt?')) window.location.href='/projects/' + {$params['row']}.id + '/delete'";
+        }, ['type' => 'danger']);
+
+        // Přidání vyhledávání
+        $tableUI->addSearchPanel('Vyhledat projekt...', function() {
+            return "searchProjects()";
+        });
+
+        // Přidání vlastních tlačítek
+        $tableUI->addButtonToHeader(
+            'export-projects',
+            '<i class="fas fa-download mr-2"></i>Export CSV',
+            'pointer',
+            function($params) {
+                return "exportProjects({$params['filteredData']})";
+            },
+            ['type' => 'success']
+        );
+
+        // Přidání hromadných akcí
+        $tableUI->addBulkActions([
+            'delete' => [
+                'label' => 'Smazat vybrané',
+                'icon' => 'fas fa-trash',
+                'type' => 'danger',
+                'callback' => function($params) {
+                    return "if(confirm('Opravdu smazat vybrané projekty?')) deleteSelectedProjects({$params['filteredData']})";
+                }
+            ],
+            'export' => [
+                'label' => 'Exportovat vybrané',
+                'icon' => 'fas fa-download',
+                'type' => 'primary',
+                'callback' => function($params) {
+                    return "exportSelectedProjects({$params['filteredData']})";
+                }
+            ]
+        ]);
+
+        return $this->view('projects.index', [
             'projects' => $projects,
+            'projectsData' => $projectsData,
+            'headerHTML' => $headerUI->render(),
+            'tableHTML' => $tableUI->render(),
             'title' => 'Seznam projektů'
-        ];
-
-        return $this->view('projects.index', $data);
-    }
-
-    /**
-     * Zobrazí formulář pro vytvoření projektu
-     */
-    public function create(): ViewResponse
-    {
-        if (!$this->moduleManager->hasPermission('projects', 'create')) {
-            $this->toastError('Nemáte oprávnění k vytvoření projektu');
-            $this->redirect('/projects');
-            return $this->view('projects.index', ['projects' => []]);
-        }
-
-        $customers = $this->customerRepository->findAll();
-        $users = $this->userRepository->findAll();
-
-        return $this->view('projects.create', [
-            'customers' => $customers,
-            'users' => $users,
-            'title' => 'Nový projekt'
         ]);
     }
 
-    /**
-     * Uloží nový projekt
-     */
-    public function store(): ViewResponse
-    {
-        if (!$this->moduleManager->hasPermission('projects', 'create')) {
-            $this->toastError('Nemáte oprávnění k vytvoření projektu');
-            $this->redirect('/projects');
-            return $this->view('projects.index', ['projects' => []]);
-        }
-
-        try {
-            $data = $this->request->getJson();
-
-            $project = new Project();
-            $project->setName($data['name']);
-            $project->setDescription($data['description'] ?? '');
-            $project->setStatus($data['status'] ?? 'active');
-            $project->setStartDate(new \DateTime($data['start_date']));
-            $project->setEndDate(isset($data['end_date']) ? new \DateTime($data['end_date']) : null);
-            $project->setBudget($data['budget'] ?? 0);
-
-            // Přiřazení zákazníka
-            if (isset($data['customer_id'])) {
-                $customer = $this->customerRepository->find($data['customer_id']);
-                if ($customer) {
-                    $project->setCustomer($customer);
-                }
-            }
-
-            // Přiřazení manažera
-            if (isset($data['manager_id'])) {
-                $manager = $this->userRepository->find($data['manager_id']);
-                if ($manager) {
-                    $project->setManager($manager);
-                }
-            }
-
-            $this->em->persist($project);
-            $this->em->flush();
-
-            $this->toastSuccess('Projekt byl úspěšně vytvořen');
-            $this->redirect('/projects/' . $project->getId());
-
-            return $this->view('projects.show', ['project' => $project]);
-        } catch (Exception $e) {
-            $this->toastError('Chyba při vytváření projektu: ' . $e->getMessage());
-            $this->redirect('/projects/create');
-            return $this->view('projects.create', []);
-        }
-    }
 
     /**
-     * Zobrazí detail projektu
+     * AJAX vyhledávání projektů
      */
-    public function show($id): ViewResponse
+    public function ajaxSearch(string $query): array
     {
-        if (!$this->moduleManager->hasPermission('projects', 'view')) {
-            $this->toastError('Nemáte oprávnění k zobrazení projektu');
-            $this->redirect('/projects');
-            return $this->view('projects.index', ['projects' => []]);
-        }
+        $qb = $this->em->createQueryBuilder();
+        $qb->select('p', 'c', 'm')
+           ->from(Project::class, 'p')
+           ->leftJoin('p.customer', 'c')
+           ->leftJoin('p.manager', 'm')
+           ->where('p.name LIKE :query OR p.status LIKE :query OR c.name LIKE :query OR m.name LIKE :query')
+           ->setParameter('query', '%' . $query . '%')
+           ->orderBy('p.startDate', 'DESC');
 
-        $project = $this->projectRepository->find($id);
-        if (!$project) {
-            $this->toastError('Projekt nebyl nalezen');
-            $this->redirect('/projects');
-            return $this->view('projects.index', ['projects' => []]);
-        }
+        $projects = $qb->getQuery()->getResult();
 
-        return $this->view('projects.show', [
-            'project' => $project,
-            'title' => 'Detail projektu: ' . $project->getName()
-        ]);
-    }
-
-    /**
-     * Zobrazí formulář pro editaci projektu
-     */
-    public function edit($id): ViewResponse
-    {
-        if (!$this->moduleManager->hasPermission('projects', 'edit')) {
-            $this->toastError('Nemáte oprávnění k editaci projektu');
-            $this->redirect('/projects');
-            return $this->view('projects.index', ['projects' => []]);
-        }
-
-        $project = $this->projectRepository->find($id);
-        if (!$project) {
-            $this->toastError('Projekt nebyl nalezen');
-            $this->redirect('/projects');
-            return $this->view('projects.index', ['projects' => []]);
-        }
-
-        $customers = $this->customerRepository->findAll();
-        $users = $this->userRepository->findAll();
-
-        return $this->view('projects.edit', [
-            'project' => $project,
-            'customers' => $customers,
-            'users' => $users,
-            'title' => 'Editace projektu: ' . $project->getName()
-        ]);
-    }
-
-    /**
-     * Aktualizuje projekt
-     */
-    public function update($id): ViewResponse
-    {
-        if (!$this->moduleManager->hasPermission('projects', 'edit')) {
-            $this->toastError('Nemáte oprávnění k editaci projektu');
-            $this->redirect('/projects');
-            return $this->view('projects.index', ['projects' => []]);
-        }
-
-        try {
-            $project = $this->projectRepository->find($id);
-            if (!$project) {
-                $this->toastError('Projekt nebyl nalezen');
-                $this->redirect('/projects');
-                return $this->view('projects.index', ['projects' => []]);
-            }
-
-            $data = $this->request->getJson();
-
-            $project->setName($data['name']);
-            $project->setDescription($data['description'] ?? '');
-            $project->setStatus($data['status'] ?? 'active');
-            $project->setStartDate(new \DateTime($data['start_date']));
-            $project->setEndDate(isset($data['end_date']) ? new \DateTime($data['end_date']) : null);
-            $project->setBudget($data['budget'] ?? 0);
-
-            // Přiřazení zákazníka
-            if (isset($data['customer_id'])) {
-                $customer = $this->customerRepository->find($data['customer_id']);
-                if ($customer) {
-                    $project->setCustomer($customer);
-                }
-            }
-
-            // Přiřazení manažera
-            if (isset($data['manager_id'])) {
-                $manager = $this->userRepository->find($data['manager_id']);
-                if ($manager) {
-                    $project->setManager($manager);
-                }
-            }
-
-            $this->em->persist($project);
-            $this->em->flush();
-
-            $this->toastSuccess('Projekt byl úspěšně aktualizován');
-            $this->redirect('/projects/' . $project->getId());
-
-            return $this->view('projects.show', ['project' => $project]);
-        } catch (Exception $e) {
-            $this->toastError('Chyba při aktualizaci projektu: ' . $e->getMessage());
-            $this->redirect('/projects/' . $id . '/edit');
-            return $this->view('projects.edit', []);
-        }
-    }
-
-    /**
-     * Smaže projekt
-     */
-    public function delete($id): ViewResponse
-    {
-        if (!$this->moduleManager->hasPermission('projects', 'delete')) {
-            $this->toastError('Nemáte oprávnění ke smazání projektu');
-            $this->redirect('/projects');
-            return $this->view('projects.index', ['projects' => []]);
-        }
-
-        try {
-            $project = $this->projectRepository->find($id);
-            if (!$project) {
-                $this->toastError('Projekt nebyl nalezen');
-                $this->redirect('/projects');
-                return $this->view('projects.index', ['projects' => []]);
-            }
-
-            $this->em->remove($project);
-            $this->em->flush();
-
-            $this->toastSuccess('Projekt byl úspěšně smazán');
-            $this->redirect('/projects');
-
-            return $this->view('projects.index', ['projects' => []]);
-        } catch (Exception $e) {
-            $this->toastError('Chyba při mazání projektu: ' . $e->getMessage());
-            $this->redirect('/projects');
-            return $this->view('projects.index', ['projects' => []]);
-        }
+        return array_map(function($project) {
+            return [
+                'id' => $project->getId(),
+                'name' => $project->getName(),
+                'customer_name' => $project->getCustomer() ? $project->getCustomer()->getName() : 'N/A',
+                'manager_name' => $project->getManager() ? $project->getManager()->getName() : 'N/A',
+                'status' => $project->getStatus(),
+                'budget' => $project->getBudget() ? number_format($project->getBudget(), 0, ',', ' ') . ' Kč' : 'N/A',
+                'start_date' => $project->getStartDate() ? $project->getStartDate()->format('d.m.Y') : 'N/A',
+                'end_date' => $project->getEndDate() ? $project->getEndDate()->format('d.m.Y') : 'N/A',
+                'description' => $project->getDescription() ? substr($project->getDescription(), 0, 50) . '...' : ''
+            ];
+        }, $projects);
     }
 }

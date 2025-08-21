@@ -11,6 +11,8 @@ use App\Entities\EmailTemplate;
 use App\Entities\User;
 use Core\Http\Response;
 use Core\Render\BaseController;
+use Core\Services\TableUI;
+use Core\Services\HeaderUI;
 
 class EmailController extends BaseController
 {
@@ -23,18 +25,162 @@ class EmailController extends BaseController
             50
         );
 
-        // Simulace paginace
-        $pagination = (object) [
-            'from' => 1,
-            'to' => count($emails),
-            'total' => count($emails),
-            'currentPage' => 1,
-            'lastPage' => 1
-        ];
+        // Převod na asociativní pole pro TableUI
+        $emailsData = array_map(function($email) {
+            return [
+                'id' => $email->getId(),
+                'subject' => $email->getSubject(),
+                'from_email' => $email->getFromEmail(),
+                'from_name' => $email->getFromName(),
+                'to_emails' => $email->getToEmails(),
+                'status' => $email->getStatus(),
+                'customer_name' => $email->getCustomer() ? $email->getCustomer()->getName() : 'N/A',
+                'deal_title' => $email->getDeal() ? $email->getDeal()->getTitle() : 'N/A',
+                'created_at' => $email->getCreatedAt()->format('d.m.Y H:i'),
+                'sent_at' => $email->getSentAt() ? $email->getSentAt()->format('d.m.Y H:i') : 'N/A'
+            ];
+        }, $emails);
+
+        // Vytvoření moderního headeru s HeaderUI komponentem
+        $headerUI = new HeaderUI('emails-header', [
+            'title' => 'Seznam e-mailů',
+            'icon' => 'fas fa-envelope',
+            'subtitle' => 'Správa e-mailové komunikace'
+        ]);
+
+        // Přidání statistik
+        $headerUI->setStats([
+            'total' => [
+                'label' => 'Celkem',
+                'count' => count($emails) . ' e-mailů',
+                'type' => 'blue'
+            ],
+            'sent' => [
+                'label' => 'Odeslané',
+                'count' => count(array_filter($emails, fn($e) => $e->getStatus() === 'sent')) . ' e-mailů',
+                'type' => 'green'
+            ],
+            'draft' => [
+                'label' => 'Koncepty',
+                'count' => count(array_filter($emails, fn($e) => $e->getStatus() === 'draft')) . ' e-mailů',
+                'type' => 'yellow'
+            ],
+            'failed' => [
+                'label' => 'Chyby',
+                'count' => count(array_filter($emails, fn($e) => $e->getStatus() === 'failed')) . ' e-mailů',
+                'type' => 'red'
+            ]
+        ]);
+
+        // Přidání poslední aktualizace
+        $headerUI->setLastUpdate('Poslední aktualizace: ' . date('d.m.Y H:i'));
+
+        // Přidání tlačítek
+        $headerUI->addButton(
+            'create-email',
+            '<i class="fas fa-plus mr-2"></i>Nový e-mail',
+            function() {
+                return "window.location.href='/emails/create'";
+            },
+            ['type' => 'primary']
+        );
+
+        // Vytvoření moderní tabulky s TableUI komponentem
+        $tableUI = new TableUI('emails', [
+            'headers' => ['ID', 'Předmět', 'Od', 'Komu', 'Stav', 'Zákazník', 'Obchod', 'Vytvořeno', 'Odesláno'],
+            'data' => $emailsData,
+            'searchable' => true,
+            'sortable' => true,
+            'pagination' => true,
+            'perPage' => 15,
+            'title' => 'Seznam e-mailů',
+            'icon' => 'fas fa-envelope',
+            'emptyMessage' => 'Žádné e-maily nebyly nalezeny',
+            'search_controller' => 'App\\Controllers\\EmailController',
+            'search_method' => 'ajaxSearch'
+        ]);
+
+        // Přidání sloupců
+        $tableUI->addColumn('id', 'ID', ['sortable' => true])
+                ->addColumn('subject', 'Předmět', ['sortable' => true])
+                ->addColumn('from_email', 'Od', ['sortable' => true])
+                ->addColumn('to_emails', 'Komu', ['sortable' => true])
+                ->addColumn('status', 'Stav', ['sortable' => true, 'position' => 'center'])
+                ->addColumn('customer_name', 'Zákazník', ['sortable' => true])
+                ->addColumn('deal_title', 'Obchod', ['sortable' => true])
+                ->addColumn('created_at', 'Vytvořeno', ['sortable' => true, 'format' => 'datetime', 'position' => 'center'])
+                ->addColumn('sent_at', 'Odesláno', ['sortable' => true, 'format' => 'datetime', 'position' => 'center']);
+
+        // Přidání akcí pro řádky
+        $tableUI->addAction('Zobrazit', function($params) {
+            return "window.location.href='/emails/' + {$params['row']}.id";
+        }, ['type' => 'primary'])
+        ->addAction('Upravit', function($params) {
+            return "window.location.href='/emails/' + {$params['row']}.id + '/edit'";
+        }, ['type' => 'default'])
+        ->addAction('Odeslat', function($params) {
+            return "if(confirm('Opravdu odeslat e-mail?')) window.location.href='/emails/' + {$params['row']}.id + '/send'";
+        }, ['type' => 'success'])
+        ->addAction('Smazat', function($params) {
+            return "if(confirm('Opravdu smazat e-mail?')) window.location.href='/emails/' + {$params['row']}.id + '/delete'";
+        }, ['type' => 'danger']);
+
+        // Přidání vyhledávání
+        $tableUI->addSearchPanel('Vyhledat e-mail...', function() {
+            return "searchEmails()";
+        });
+
+        // Přidání vlastních tlačítek
+        $tableUI->addButtonToHeader(
+            'export-emails',
+            '<i class="fas fa-download mr-2"></i>Export CSV',
+            'pointer',
+            function($params) {
+                return "exportEmails({$params['filteredData']})";
+            },
+            ['type' => 'success']
+        );
+
+        // Přidání hromadných akcí
+        $tableUI->addBulkActions([
+            'delete' => [
+                'label' => 'Smazat vybrané',
+                'icon' => 'fas fa-trash',
+                'type' => 'danger',
+                'callback' => function($params) {
+                    return "if(confirm('Opravdu smazat vybrané e-maily?')) deleteSelectedEmails({$params['filteredData']})";
+                }
+            ],
+            'send' => [
+                'label' => 'Odeslat vybrané',
+                'icon' => 'fas fa-paper-plane',
+                'type' => 'success',
+                'callback' => function($params) {
+                    return "if(confirm('Opravdu odeslat vybrané e-maily?')) sendSelectedEmails({$params['filteredData']})";
+                }
+            ],
+            'export' => [
+                'label' => 'Exportovat vybrané',
+                'icon' => 'fas fa-download',
+                'type' => 'primary',
+                'callback' => function($params) {
+                    return "exportSelectedEmails({$params['filteredData']})";
+                }
+            ]
+        ]);
 
         return $this->view('emails.index', [
             'emails' => $emails,
-            'pagination' => $pagination
+            'emailsData' => $emailsData,
+            'headerHTML' => $headerUI->render(),
+            'tableHTML' => $tableUI->render(),
+            'pagination' => (object) [
+                'from' => 1,
+                'to' => count($emails),
+                'total' => count($emails),
+                'currentPage' => 1,
+                'lastPage' => 1
+            ]
         ]);
     }
 
@@ -262,5 +408,37 @@ class EmailController extends BaseController
         return $this->view('emails.servers', [
             'servers' => $servers
         ]);
+    }
+
+    /**
+     * AJAX vyhledávání e-mailů
+     */
+    public function ajaxSearch(string $query): array
+    {
+        $qb = $this->em->createQueryBuilder();
+        $qb->select('e', 'c', 'd')
+           ->from(Email::class, 'e')
+           ->leftJoin('e.customer', 'c')
+           ->leftJoin('e.deal', 'd')
+           ->where('e.subject LIKE :query OR e.fromEmail LIKE :query OR e.toEmails LIKE :query OR c.name LIKE :query OR d.title LIKE :query')
+           ->setParameter('query', '%' . $query . '%')
+           ->orderBy('e.createdAt', 'DESC');
+
+        $emails = $qb->getQuery()->getResult();
+
+        return array_map(function($email) {
+            return [
+                'id' => $email->getId(),
+                'subject' => $email->getSubject(),
+                'from_email' => $email->getFromEmail(),
+                'from_name' => $email->getFromName(),
+                'to_emails' => $email->getToEmails(),
+                'status' => $email->getStatus(),
+                'customer_name' => $email->getCustomer() ? $email->getCustomer()->getName() : 'N/A',
+                'deal_title' => $email->getDeal() ? $email->getDeal()->getTitle() : 'N/A',
+                'created_at' => $email->getCreatedAt()->format('d.m.Y H:i'),
+                'sent_at' => $email->getSentAt() ? $email->getSentAt()->format('d.m.Y H:i') : 'N/A'
+            ];
+        }, $emails);
     }
 }

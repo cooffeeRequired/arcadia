@@ -7,6 +7,8 @@ use App\Entities\Invoice;
 use App\Entities\InvoiceItem;
 use Core\Http\Response;
 use Core\Render\BaseController;
+use Core\Services\TableUI;
+use Core\Services\HeaderUI;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Endroid\QrCode\QrCode;
@@ -18,17 +20,161 @@ class InvoiceController extends BaseController
     {
         $invoices = $this->em->getRepository(Invoice::class)->findAll();
 
-        $pagination = (object) [
-            'from' => 1,
-            'to' => count($invoices),
-            'total' => count($invoices),
-            'currentPage' => 1,
-            'lastPage' => 1
-        ];
+        // Převod na asociativní pole pro TableUI
+        $invoicesData = array_map(function($invoice) {
+            return [
+                'id' => $invoice->getId(),
+                'invoice_number' => $invoice->getInvoiceNumber(),
+                'customer_name' => $invoice->getCustomer() ? $invoice->getCustomer()->getName() : 'N/A',
+                'issue_date' => $invoice->getIssueDate()->format('d.m.Y'),
+                'due_date' => $invoice->getDueDate()->format('d.m.Y'),
+                'total' => number_format($invoice->getTotal(), 0, ',', ' ') . ' ' . $invoice->getCurrency(),
+                'status' => $invoice->getStatus(),
+                'currency' => $invoice->getCurrency(),
+                'items_count' => count($invoice->getItems())
+            ];
+        }, $invoices);
+
+        // Vytvoření moderního headeru s HeaderUI komponentem
+        $headerUI = new HeaderUI('invoices-header', [
+            'title' => 'Seznam faktur',
+            'icon' => 'fas fa-file-invoice',
+            'subtitle' => 'Správa faktur a platebních dokladů'
+        ]);
+
+        // Přidání statistik
+        $headerUI->setStats([
+            'total' => [
+                'label' => 'Celkem',
+                'count' => count($invoices) . ' faktur',
+                'type' => 'blue'
+            ],
+            'paid' => [
+                'label' => 'Zaplacené',
+                'count' => count(array_filter($invoices, fn($i) => $i->getStatus() === 'paid')) . ' faktur',
+                'type' => 'green'
+            ],
+            'overdue' => [
+                'label' => 'Po splatnosti',
+                'count' => count(array_filter($invoices, fn($i) => $i->getDueDate() < new \DateTime() && $i->getStatus() !== 'paid')) . ' faktur',
+                'type' => 'red'
+            ],
+            'total_amount' => [
+                'label' => 'Celková částka',
+                'count' => number_format(array_sum(array_map(fn($i) => $i->getTotal(), $invoices)), 0, ',', ' ') . ' Kč',
+                'type' => 'purple'
+            ]
+        ]);
+
+        // Přidání poslední aktualizace
+        $headerUI->setLastUpdate('Poslední aktualizace: ' . date('d.m.Y H:i'));
+
+        // Přidání tlačítek
+        $headerUI->addButton(
+            'create-invoice',
+            '<i class="fas fa-plus mr-2"></i>Nová faktura',
+            function() {
+                return "window.location.href='/invoices/create'";
+            },
+            ['type' => 'primary']
+        );
+
+        // Vytvoření moderní tabulky s TableUI komponentem
+        $tableUI = new TableUI('invoices', [
+            'headers' => ['ID', 'Číslo faktury', 'Zákazník', 'Datum vystavení', 'Splatnost', 'Částka', 'Stav', 'Měna', 'Položky'],
+            'data' => $invoicesData,
+            'searchable' => true,
+            'sortable' => true,
+            'pagination' => true,
+            'perPage' => 15,
+            'title' => 'Seznam faktur',
+            'icon' => 'fas fa-file-invoice',
+            'emptyMessage' => 'Žádné faktury nebyly nalezeny',
+            'search_controller' => 'App\\Controllers\\InvoiceController',
+            'search_method' => 'ajaxSearch'
+        ]);
+
+        // Přidání sloupců
+        $tableUI->addColumn('id', 'ID', ['sortable' => true])
+                ->addColumn('invoice_number', 'Číslo faktury', ['sortable' => true])
+                ->addColumn('customer_name', 'Zákazník', ['sortable' => true])
+                ->addColumn('issue_date', 'Datum vystavení', ['sortable' => true, 'format' => 'date', 'position' => 'center'])
+                ->addColumn('due_date', 'Splatnost', ['sortable' => true, 'format' => 'date', 'position' => 'center'])
+                ->addColumn('total', 'Částka', ['sortable' => true, 'position' => 'right', 'format' => 'currency'])
+                ->addColumn('status', 'Stav', ['sortable' => true, 'position' => 'center'])
+                ->addColumn('currency', 'Měna', ['sortable' => true, 'position' => 'center'])
+                ->addColumn('items_count', 'Položky', ['sortable' => true, 'position' => 'center']);
+
+        // Přidání akcí pro řádky
+        $tableUI->addAction('Zobrazit', function($params) {
+            return "window.location.href='/invoices/' + {$params['row']}.id";
+        }, ['type' => 'primary'])
+        ->addAction('PDF', function($params) {
+            return "window.open('/invoices/' + {$params['row']}.id + '/pdf', '_blank')";
+        }, ['type' => 'success'])
+        ->addAction('Upravit', function($params) {
+            return "window.location.href='/invoices/' + {$params['row']}.id + '/edit'";
+        }, ['type' => 'default'])
+        ->addAction('Smazat', function($params) {
+            return "if(confirm('Opravdu smazat fakturu?')) window.location.href='/invoices/' + {$params['row']}.id + '/delete'";
+        }, ['type' => 'danger']);
+
+        // Přidání vyhledávání
+        $tableUI->addSearchPanel('Vyhledat fakturu...', function() {
+            return "searchInvoices()";
+        });
+
+        // Přidání vlastních tlačítek
+        $tableUI->addButtonToHeader(
+            'export-invoices',
+            '<i class="fas fa-download mr-2"></i>Export CSV',
+            'pointer',
+            function($params) {
+                return "exportInvoices({$params['filteredData']})";
+            },
+            ['type' => 'success']
+        );
+
+        // Přidání hromadných akcí
+        $tableUI->addBulkActions([
+            'delete' => [
+                'label' => 'Smazat vybrané',
+                'icon' => 'fas fa-trash',
+                'type' => 'danger',
+                'callback' => function($params) {
+                    return "if(confirm('Opravdu smazat vybrané faktury?')) deleteSelectedInvoices({$params['filteredData']})";
+                }
+            ],
+            'export' => [
+                'label' => 'Exportovat vybrané',
+                'icon' => 'fas fa-download',
+                'type' => 'primary',
+                'callback' => function($params) {
+                    return "exportSelectedInvoices({$params['filteredData']})";
+                }
+            ],
+            'pdf' => [
+                'label' => 'Stáhnout PDF',
+                'icon' => 'fas fa-file-pdf',
+                'type' => 'warning',
+                'callback' => function($params) {
+                    return "downloadSelectedInvoicesPDF({$params['filteredData']})";
+                }
+            ]
+        ]);
 
         return $this->view('invoices.index', [
             'invoices' => $invoices,
-            'pagination' => $pagination
+            'invoicesData' => $invoicesData,
+            'headerHTML' => $headerUI->render(),
+            'tableHTML' => $tableUI->render(),
+            'pagination' => (object) [
+                'from' => 1,
+                'to' => count($invoices),
+                'total' => count($invoices),
+                'currentPage' => 1,
+                'lastPage' => 1
+            ]
         ]);
     }
 
@@ -358,5 +504,35 @@ class InvoiceController extends BaseController
         </html>';
 
         return $html;
+    }
+
+    /**
+     * AJAX vyhledávání faktur
+     */
+    public function ajaxSearch(string $query): array
+    {
+        $qb = $this->em->createQueryBuilder();
+        $qb->select('i', 'c')
+           ->from(Invoice::class, 'i')
+           ->leftJoin('i.customer', 'c')
+           ->where('i.invoiceNumber LIKE :query OR i.status LIKE :query OR c.name LIKE :query')
+           ->setParameter('query', '%' . $query . '%')
+           ->orderBy('i.issueDate', 'DESC');
+
+        $invoices = $qb->getQuery()->getResult();
+
+        return array_map(function($invoice) {
+            return [
+                'id' => $invoice->getId(),
+                'invoice_number' => $invoice->getInvoiceNumber(),
+                'customer_name' => $invoice->getCustomer() ? $invoice->getCustomer()->getName() : 'N/A',
+                'issue_date' => $invoice->getIssueDate()->format('d.m.Y'),
+                'due_date' => $invoice->getDueDate()->format('d.m.Y'),
+                'total' => number_format($invoice->getTotal(), 0, ',', ' ') . ' ' . $invoice->getCurrency(),
+                'status' => $invoice->getStatus(),
+                'currency' => $invoice->getCurrency(),
+                'items_count' => count($invoice->getItems())
+            ];
+        }, $invoices);
     }
 }
