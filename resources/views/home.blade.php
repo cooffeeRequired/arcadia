@@ -1,157 +1,126 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard - Arcadia CRM')
+@section('title', i18('messages.dashboard') . ' - Arcadia CRM')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-    <!-- Modern Hero Section -->
-    <div class="relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-r from-blue-600/90 to-indigo-700/90"></div>
-        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
-
-        <div class="relative px-6 py-16 sm:px-8 lg:px-12">
-            <div class="mx-auto max-w-7xl">
-                <!-- Welcome Header -->
-                <div class="text-center text-white mb-12">
-                    <div class="inline-flex items-center mb-6">
-                        <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mr-4">
-                            <i class="fas fa-chart-line text-2xl text-white"></i>
+<div class="min-h-screen bg-gray-50">
+    <!-- Header Section - podobný HeaderUI -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mx-6 mt-6 mb-8">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                            <i class="fas fa-chart-line text-white text-lg"></i>
                         </div>
-                        <div class="text-left">
-                            <h1 class="text-4xl lg:text-5xl font-bold tracking-tight">
-                                Vítejte zpět!
-                            </h1>
-                            <p class="text-xl text-blue-100 mt-2">
-                                Váš obchodní přehled na jednom místě
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-3">
+                            <h1 class="text-2xl font-bold text-gray-900">{{ i18('messages.dashboard') }}</h1>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <i class="fas fa-info-circle mr-1"></i>{{ i18('messages.welcome_to_arcadia') }}
+                            </span>
+                        </div>
+                        <div class="flex items-center space-x-4 mt-1">
+                            <p class="text-sm text-gray-600">
+                                <i class="fas fa-info-circle mr-1"></i>{{ i18('messages.intelligent_crm_system') }}
                             </p>
                         </div>
                     </div>
                 </div>
+                <div class="flex items-center space-x-3">
+                    <a href="/customers/create" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-sm cursor-pointer">
+                        <i class="fas fa-user-plus mr-2"></i>{{ i18('messages.create') }} {{ i18('messages.customer') }}
+                    </a>
+                    <a href="/deals/create" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-200 shadow-sm cursor-pointer">
+                        <i class="fas fa-plus mr-2"></i>{{ i18('messages.create') }} {{ i18('messages.deal') }}
+                    </a>
+                    <a href="/contacts/create" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 shadow-sm cursor-pointer">
+                        <i class="fas fa-calendar-plus mr-2"></i>{{ i18('messages.create') }} {{ i18('messages.contact') }}
+                    </a>
+                </div>
+            </div>
+        </div>
 
-                <!-- Enhanced Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="group">
-                        <div class="bg-white/15 backdrop-blur-md border border-white/20 p-6 rounded-2xl hover:bg-white/20 transition-all duration-300 transform hover:-translate-y-1">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="text-3xl font-bold text-white">{{ $customersCount ?? 0 }}</div>
-                                    <div class="text-blue-100 text-sm font-medium mt-1">Zákazníků</div>
-                                    <div class="text-xs text-blue-200 mt-2">
-                                        <i class="fas fa-arrow-up mr-1"></i>+12% tento měsíc
-                                    </div>
-                                </div>
-                                <div class="w-12 h-12 bg-blue-500/30 rounded-xl flex items-center justify-center">
-                                    <i class="fas fa-users text-white text-xl"></i>
-                                </div>
-                            </div>
-                        </div>
+        <!-- Stats Section - podobný HeaderUI stats -->
+        <div class="px-6 py-3 bg-gray-50 rounded-b-lg">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-6">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm font-medium text-gray-700">{{ i18('messages.customers') }}:</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {{ $customersCount ?? 0 }}
+                        </span>
                     </div>
-
-                    <div class="group">
-                        <div class="bg-white/15 backdrop-blur-md border border-white/20 p-6 rounded-2xl hover:bg-white/20 transition-all duration-300 transform hover:-translate-y-1">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="text-3xl font-bold text-white">{{ $contactsCount ?? 0 }}</div>
-                                    <div class="text-blue-100 text-sm font-medium mt-1">Kontaktů</div>
-                                    <div class="text-xs text-blue-200 mt-2">
-                                        <i class="fas fa-arrow-up mr-1"></i>+8% tento týden
-                                    </div>
-                                </div>
-                                <div class="w-12 h-12 bg-emerald-500/30 rounded-xl flex items-center justify-center">
-                                    <i class="fas fa-phone text-white text-xl"></i>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm font-medium text-gray-700">{{ i18('messages.contacts') }}:</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                            {{ $contactsCount ?? 0 }}
+                        </span>
                     </div>
-
-                    <div class="group">
-                        <div class="bg-white/15 backdrop-blur-md border border-white/20 p-6 rounded-2xl hover:bg-white/20 transition-all duration-300 transform hover:-translate-y-1">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="text-3xl font-bold text-white">{{ $dealsCount ?? 0 }}</div>
-                                    <div class="text-blue-100 text-sm font-medium mt-1">Aktivních obchodů</div>
-                                    <div class="text-xs text-blue-200 mt-2">
-                                        <i class="fas fa-arrow-up mr-1"></i>+15% tento měsíc
-                                    </div>
-                                </div>
-                                <div class="w-12 h-12 bg-orange-500/30 rounded-xl flex items-center justify-center">
-                                    <i class="fas fa-handshake text-white text-xl"></i>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm font-medium text-gray-700">{{ i18('messages.deals') }}:</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                            {{ $dealsCount ?? 0 }}
+                        </span>
                     </div>
-
-                    <div class="group">
-                        <div class="bg-white/15 backdrop-blur-md border border-white/20 p-6 rounded-2xl hover:bg-white/20 transition-all duration-300 transform hover:-translate-y-1">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="text-2xl font-bold text-white">{{ number_format($totalValue ?? 0, 0, ',', ' ') }}</div>
-                                    <div class="text-blue-100 text-sm font-medium mt-1">Kč celková hodnota</div>
-                                    <div class="text-xs text-blue-200 mt-2">
-                                        <i class="fas fa-arrow-up mr-1"></i>+22% tento měsíc
-                                    </div>
-                                </div>
-                                <div class="w-12 h-12 bg-purple-500/30 rounded-xl flex items-center justify-center">
-                                    <i class="fas fa-chart-pie text-white text-xl"></i>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm font-medium text-gray-700">{{ i18('messages.total_value') }}:</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            {{ number_format($totalValue ?? 0, 0, ',', ' ') }} {{ i18('messages.currency_czk') }}
+                        </span>
                     </div>
                 </div>
-
-                <!-- Quick Actions -->
-                <div class="flex flex-wrap gap-4 mt-8 justify-center">
-                    <a href="/customers/create" class="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl text-white font-medium hover:bg-white/30 transition-all duration-300 group">
-                        <i class="fas fa-user-plus mr-2 group-hover:scale-110 transition-transform"></i>
-                        Nový zákazník
-                    </a>
-                    <a href="/deals/create" class="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl text-white font-medium hover:bg-white/30 transition-all duration-300 group">
-                        <i class="fas fa-plus mr-2 group-hover:scale-110 transition-transform"></i>
-                        Nový obchod
-                    </a>
-                    <a href="/contacts/create" class="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl text-white font-medium hover:bg-white/30 transition-all duration-300 group">
-                        <i class="fas fa-calendar-plus mr-2 group-hover:scale-110 transition-transform"></i>
-                        Nový kontakt
-                    </a>
+                <div class="flex items-center space-x-2 text-sm text-gray-500">
+                    <i class="fas fa-clock mr-1"></i>
+                    <span>{{ i18('messages.last_update') }}: {{ date('d.m.Y H:i') }}</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Dashboard Content -->
+        <!-- Main Dashboard Content -->
     <div class="px-6 py-8 sm:px-8 lg:px-12">
         <div class="mx-auto max-w-7xl">
 
-            <!-- Charts Section -->
+            <!-- Charts Section - podobný TableUI -->
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
                 <!-- Deals Chart -->
-                <div class="xl:col-span-2 bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-shadow duration-300">
-                    <div class="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 class="text-2xl font-bold text-gray-900">Analytický přehled</h3>
-                            <p class="text-gray-600 mt-1">Přehled výkonnosti vašich obchodů</p>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <select class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option>Posledních 30 dní</option>
-                                <option>Posledních 90 dní</option>
-                                <option>Tento rok</option>
-                            </select>
+                <div class="xl:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">{{ i18('messages.analytical_overview') }}</h3>
+                                <p class="text-sm text-gray-600 mt-1">{{ i18('messages.deal_value_development') }}</p>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <select class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option>{{ i18('messages.last_30_days') }}</option>
+                                    <option>{{ i18('messages.last_90_days') }}</option>
+                                    <option>{{ i18('messages.this_year') }}</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
-                    <div class="h-80">
-                        <canvas id="dealsChart" class="w-full h-full"></canvas>
+                    <div class="p-6">
+                        <div class="h-80">
+                            <canvas id="dealsChart" class="w-full h-full"></canvas>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Contacts Chart -->
-                <div class="bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-shadow duration-300">
-                    <div class="mb-6">
-                        <h3 class="text-xl font-bold text-gray-900">Kontakty</h3>
-                        <p class="text-gray-600 mt-1">Rozložení typů kontaktů</p>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">{{ i18('messages.contacts') }}</h3>
+                            <p class="text-sm text-gray-600 mt-1">{{ i18('messages.contact_type_distribution') }}</p>
+                        </div>
                     </div>
-                    <div class="h-64">
-                        <canvas id="contactsChart" class="w-full h-full"></canvas>
+                    <div class="p-6">
+                        <div class="h-64">
+                            <canvas id="contactsChart" class="w-full h-full"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -159,176 +128,183 @@
             <!-- Activities and Recent Items -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Recent Activities -->
-                <div class="bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-shadow duration-300">
-                    <div class="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-900">Poslední aktivity</h3>
-                            <p class="text-gray-600 mt-1">Nejnovější události ve vašem CRM</p>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">{{ i18('messages.recent_activities') }}</h3>
+                                <p class="text-sm text-gray-600 mt-1">{{ i18('messages.latest_events_in_crm') }}</p>
+                            </div>
+                            <a href="/activities" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                                {{ i18('messages.view_all') }}
+                            </a>
                         </div>
-                        <a href="/activities" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                            Zobrazit vše
-                        </a>
                     </div>
-                    <div class="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar">
-                        @if(isset($recentActivities) && count($recentActivities) > 0)
-                            @foreach($recentActivities as $activity)
-                            <div class="flex items-start space-x-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100/50 hover:from-blue-50 hover:to-indigo-100/50 transition-all duration-300 group cursor-pointer">
-                                <div class="flex-shrink-0 mt-1">
-                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow-md
-                                        @if($activity->getType() === 'contact')
-                                            bg-gradient-to-br from-blue-500 to-blue-600 text-white
-                                        @elseif($activity->getType() === 'deal')
-                                            bg-gradient-to-br from-emerald-500 to-emerald-600 text-white
-                                        @else
-                                            bg-gradient-to-br from-purple-500 to-purple-600 text-white
-                                        @endif">
-                                        <i class="fas text-sm
+                    <div class="p-6">
+                        <div class="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar">
+                            @if(isset($recentActivities) && count($recentActivities) > 0)
+                                @foreach($recentActivities as $activity)
+                                <div class="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group cursor-pointer">
+                                    <div class="flex-shrink-0 mt-1">
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm
                                             @if($activity->getType() === 'contact')
-                                                fa-comment-dots
+                                                bg-blue-100 text-blue-600
                                             @elseif($activity->getType() === 'deal')
-                                                fa-handshake
+                                                bg-green-100 text-green-600
                                             @else
-                                                fa-user-circle
+                                                bg-purple-100 text-purple-600
                                             @endif">
-                                        </i>
+                                            <i class="fas text-sm
+                                                @if($activity->getType() === 'contact')
+                                                    fa-comment
+                                                @elseif($activity->getType() === 'deal')
+                                                    fa-handshake
+                                                @else
+                                                    fa-user
+                                                @endif">
+                                            </i>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center justify-between">
-                                        <p class="text-sm font-semibold text-gray-900 truncate">{{ $activity->getTitle() }}</p>
-                                        <p class="text-xs text-gray-500 whitespace-nowrap ml-2">{{ $activity->getCreatedAt()->diffForHumans() }}</p>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between">
+                                            <p class="text-sm font-semibold text-gray-900 truncate">{{ $activity->getTitle() }}</p>
+                                            <p class="text-xs text-gray-500 whitespace-nowrap ml-2">{{ $activity->getCreatedAt()->diffForHumans() }}</p>
+                                        </div>
+                                        <p class="text-sm text-gray-600 mt-1">
+                                            @if($activity->getCustomer())
+                                                <a href="/customers/{{ $activity->getCustomer()->getId() }}" class="hover:text-blue-600 font-medium">
+                                                    {{ $activity->getCustomer()->getName() }}
+                                                </a>
+                                            @endif
+                                            @if($activity->getDeal())
+                                                @if($activity->getCustomer()) • @endif
+                                                <a href="/deals/{{ $activity->getDeal()->getId() }}" class="hover:text-blue-600 font-medium">
+                                                    {{ $activity->getDeal()->getTitle() }}
+                                                </a>
+                                            @endif
+                                        </p>
+                                        @if($activity->getDescription())
+                                            <p class="text-xs text-gray-500 mt-2 line-clamp-2">{{ $activity->getDescription() }}</p>
+                                        @endif
                                     </div>
-                                    <p class="text-sm text-gray-600 mt-1">
-                                        @if($activity->getCustomer())
-                                            <a href="/customers/{{ $activity->getCustomer()->getId() }}" class="hover:text-blue-600 font-medium">
-                                                {{ $activity->getCustomer()->getName() }}
+                                    <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                        @if($activity->getType() === 'contact' && $activity->getContact())
+                                            <a href="/contacts/{{ $activity->getContact()->getId() }}"
+                                               class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
+                                               title="{{ i18('messages.view') }}">
+                                                <i class="fas fa-arrow-right text-xs"></i>
+                                            </a>
+                                        @elseif($activity->getType() === 'deal' && $activity->getDeal())
+                                            <a href="/deals/{{ $activity->getDeal()->getId() }}"
+                                               class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors"
+                                               title="{{ i18('messages.view') }}">
+                                                <i class="fas fa-arrow-right text-xs"></i>
                                             </a>
                                         @endif
-                                        @if($activity->getDeal())
-                                            @if($activity->getCustomer()) • @endif
-                                            <a href="/deals/{{ $activity->getDeal()->getId() }}" class="hover:text-blue-600 font-medium">
-                                                {{ $activity->getDeal()->getTitle() }}
-                                            </a>
-                                        @endif
-                                    </p>
-                                    @if($activity->getDescription())
-                                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">{{ $activity->getDescription() }}</p>
-                                    @endif
+                                    </div>
                                 </div>
-                                <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                    @if($activity->getType() === 'contact' && $activity->getContact())
-                                        <a href="/contacts/{{ $activity->getContact()->getId() }}"
-                                           class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
-                                           title="Zobrazit detail">
-                                            <i class="fas fa-arrow-right text-xs"></i>
-                                        </a>
-                                    @elseif($activity->getType() === 'deal' && $activity->getDeal())
-                                        <a href="/deals/{{ $activity->getDeal()->getId() }}"
-                                           class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors"
-                                           title="Zobrazit detail">
-                                            <i class="fas fa-arrow-right text-xs"></i>
-                                        </a>
-                                    @endif
+                                @endforeach
+                            @else
+                                <div class="text-center py-12">
+                                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <i class="fas fa-clock text-gray-400 text-xl"></i>
+                                    </div>
+                                    <p class="text-gray-500 font-medium">{{ i18('messages.no_recent_activities') }}</p>
+                                    <p class="text-gray-400 text-sm mt-1">{{ i18('messages.activities_will_appear_here') }}</p>
                                 </div>
-                            </div>
-                            @endforeach
-                        @else
-                            <div class="text-center py-12">
-                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <i class="fas fa-clock text-gray-400 text-xl"></i>
-                                </div>
-                                <p class="text-gray-500 font-medium">Zatím žádné aktivity</p>
-                                <p class="text-gray-400 text-sm mt-1">Aktivity se budou zobrazovat zde</p>
-                            </div>
-                        @endif
+                            @endif
+                        </div>
                     </div>
                 </div>
 
                 <!-- Quick Access Panel -->
-                <div class="bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-shadow duration-300">
-                    <div class="mb-6">
-                        <h3 class="text-xl font-bold text-gray-900">Rychlé akce</h3>
-                        <p class="text-gray-600 mt-1">Nejčastěji používané funkce</p>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">{{ i18('messages.quick_actions') }}</h3>
+                            <p class="text-sm text-gray-600 mt-1">{{ i18('messages.most_used_functions') }}</p>
+                        </div>
                     </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            <!-- Recent Customers -->
+                            <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="font-semibold text-blue-900">{{ i18('messages.recent_customers') }}</h4>
+                                    <a href="/customers" class="text-blue-600 hover:text-blue-700 text-sm">{{ i18('messages.view_all') }}</a>
+                                </div>
+                                <div class="space-y-2 max-h-32 overflow-y-auto">
+                                    @if(isset($customers) && count($customers) > 0)
+                                        @foreach(array_slice($customers, 0, 3) as $customer)
+                                        <div class="flex items-center space-x-3 p-2 bg-white rounded-lg hover:bg-gray-50 transition-colors cursor-pointer" onclick="window.location.href='/customers/{{ $customer->getId() }}'">
+                                            <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                                                {{ substr($customer->getName(), 0, 1) }}
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900 truncate">{{ $customer->getName() }}</p>
+                                                <p class="text-xs text-gray-500 truncate">{{ $customer->getCompany() ?: i18('messages.private_person') }}</p>
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                    @else
+                                        <p class="text-sm text-gray-500">{{ i18('messages.no_customers_found') }}</p>
+                                    @endif
+                                </div>
+                            </div>
 
-                    <div class="space-y-4">
-                        <!-- Recent Customers -->
-                        <div class="p-4 bg-gradient-to-r from-blue-50 to-blue-100/50 rounded-xl border border-blue-200/50">
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="font-semibold text-blue-900">Nedávní zákazníci</h4>
-                                <a href="/customers" class="text-blue-600 hover:text-blue-700 text-sm">Zobrazit vše</a>
-                            </div>
-                            <div class="space-y-2 max-h-32 overflow-y-auto">
-                                @if(isset($customers) && count($customers) > 0)
-                                    @foreach(array_slice($customers, 0, 3) as $customer)
-                                    <div class="flex items-center space-x-3 p-2 bg-white/60 rounded-lg hover:bg-white/80 transition-colors cursor-pointer" onclick="window.location.href='/customers/{{ $customer->getId() }}'">
-                                        <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white text-xs font-bold">
-                                            {{ substr($customer->getName(), 0, 1) }}
+                            <!-- Recent Deals -->
+                            <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="font-semibold text-emerald-900">{{ i18('messages.active_deals') }}</h4>
+                                    <a href="/deals" class="text-emerald-600 hover:text-emerald-700 text-sm">{{ i18('messages.view_all') }}</a>
+                                </div>
+                                <div class="space-y-2 max-h-32 overflow-y-auto">
+                                    @if(isset($deals) && count($deals) > 0)
+                                        @foreach(array_slice($deals, 0, 3) as $deal)
+                                        <div class="flex items-center justify-between p-2 bg-white rounded-lg hover:bg-gray-50 transition-colors cursor-pointer" onclick="window.location.href='/deals/{{ $deal->getId() }}'">
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900 truncate">{{ $deal->getTitle() }}</p>
+                                                <p class="text-xs text-gray-500">{{ number_format($deal->getValue(), 0, ',', ' ') }} {{ i18('messages.currency_czk') }}</p>
+                                            </div>
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                                @if($deal->getStatus() === 'active')
+                                                    bg-emerald-100 text-emerald-800
+                                                @else
+                                                    bg-gray-100 text-gray-800
+                                                @endif">
+                                                {{ $deal->getStatus() === 'active' ? i18('messages.active') : i18('messages.inactive') }}
+                                            </span>
                                         </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-gray-900 truncate">{{ $customer->getName() }}</p>
-                                            <p class="text-xs text-gray-500 truncate">{{ $customer->getCompany() ?: 'Soukromá osoba' }}</p>
-                                        </div>
-                                    </div>
-                                    @endforeach
-                                @else
-                                    <p class="text-sm text-gray-500">Žádní zákazníci</p>
-                                @endif
+                                        @endforeach
+                                    @else
+                                        <p class="text-sm text-gray-500">{{ i18('messages.no_deals_found') }}</p>
+                                    @endif
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Recent Deals -->
-                        <div class="p-4 bg-gradient-to-r from-emerald-50 to-emerald-100/50 rounded-xl border border-emerald-200/50">
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="font-semibold text-emerald-900">Aktivní obchody</h4>
-                                <a href="/deals" class="text-emerald-600 hover:text-emerald-700 text-sm">Zobrazit vše</a>
-                            </div>
-                            <div class="space-y-2 max-h-32 overflow-y-auto">
-                                @if(isset($deals) && count($deals) > 0)
-                                    @foreach(array_slice($deals, 0, 3) as $deal)
-                                    <div class="flex items-center justify-between p-2 bg-white/60 rounded-lg hover:bg-white/80 transition-colors cursor-pointer" onclick="window.location.href='/deals/{{ $deal->getId() }}'">
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-gray-900 truncate">{{ $deal->getTitle() }}</p>
-                                            <p class="text-xs text-gray-500">{{ number_format($deal->getValue(), 0, ',', ' ') }} Kč</p>
+                            <!-- Recent Contacts -->
+                            <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="font-semibold text-purple-900">{{ i18('messages.recent_contacts') }}</h4>
+                                    <a href="/contacts" class="text-purple-600 hover:text-purple-700 text-sm">{{ i18('messages.view_all') }}</a>
+                                </div>
+                                <div class="space-y-2 max-h-32 overflow-y-auto">
+                                    @if(isset($contacts) && count($contacts) > 0)
+                                        @foreach(array_slice($contacts, 0, 3) as $contact)
+                                        <div class="flex items-center space-x-3 p-2 bg-white rounded-lg hover:bg-gray-50 transition-colors cursor-pointer" onclick="window.location.href='/contacts/{{ $contact->getId() }}'">
+                                            <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center text-white">
+                                                <i class="fas fa-phone text-xs"></i>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900 truncate">{{ $contact->getSubject() }}</p>
+                                                <p class="text-xs text-gray-500">{{ $contact->getContactDate()->format('d.m.Y') }}</p>
+                                            </div>
                                         </div>
-                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                                            @if($deal->getStatus() === 'active')
-                                                bg-emerald-100 text-emerald-800
-                                            @else
-                                                bg-gray-100 text-gray-800
-                                            @endif">
-                                            {{ $deal->getStatus() === 'active' ? 'Aktivní' : 'Neaktivní' }}
-                                        </span>
-                                    </div>
-                                    @endforeach
-                                @else
-                                    <p class="text-sm text-gray-500">Žádné obchody</p>
-                                @endif
-                            </div>
-                        </div>
-
-                        <!-- Recent Contacts -->
-                        <div class="p-4 bg-gradient-to-r from-purple-50 to-purple-100/50 rounded-xl border border-purple-200/50">
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="font-semibold text-purple-900">Nedávné kontakty</h4>
-                                <a href="/contacts" class="text-purple-600 hover:text-purple-700 text-sm">Zobrazit vše</a>
-                            </div>
-                            <div class="space-y-2 max-h-32 overflow-y-auto">
-                                @if(isset($contacts) && count($contacts) > 0)
-                                    @foreach(array_slice($contacts, 0, 3) as $contact)
-                                    <div class="flex items-center space-x-3 p-2 bg-white/60 rounded-lg hover:bg-white/80 transition-colors cursor-pointer" onclick="window.location.href='/contacts/{{ $contact->getId() }}'">
-                                        <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center text-white">
-                                            <i class="fas fa-phone text-xs"></i>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-gray-900 truncate">{{ $contact->getSubject() }}</p>
-                                            <p class="text-xs text-gray-500">{{ $contact->getContactDate()->format('d.m.Y') }}</p>
-                                        </div>
-                                    </div>
-                                    @endforeach
-                                @else
-                                    <p class="text-sm text-gray-500">Žádné kontakty</p>
-                                @endif
+                                        @endforeach
+                                    @else
+                                        <p class="text-sm text-gray-500">{{ i18('messages.no_contacts_found') }}</p>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -374,9 +350,9 @@ document.addEventListener('DOMContentLoaded', function() {
     Chart.defaults.font.size = 12;
     Chart.defaults.color = '#64748b';
 
-    // Prepare data from deals
-    const dealsData = @json($activeDeals ?? []);
-    const contactsData = @json($recentContacts ?? []);
+    // Prepare real data from PHP variables
+    const dealsData = {!! json_encode($activeDeals ?? []) !!};
+    const contactsData = {!! json_encode($recentContacts ?? []) !!};
 
     // Process deals data for chart with last 6 months
     const dealsByMonth = {};
@@ -389,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dealsByMonth[monthKey] = 0;
     }
 
-    // Aggregate deals data
+    // Aggregate real deals data
     dealsData.forEach(deal => {
         const date = new Date(deal.created_at || deal.createdAt);
         const month = date.toLocaleString('cs-CZ', { month: 'short' });
@@ -398,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Process contacts data for chart
+    // Process real contacts data for chart
     const contactsByType = contactsData.reduce((acc, contact) => {
         const type = contact.type || 'other';
         acc[type] = (acc[type] || 0) + 1;
@@ -413,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data: {
                 labels: Object.keys(dealsByMonth),
                 datasets: [{
-                    label: 'Hodnota obchodů',
+                    label: '{{ i18("messages.deal_value") }}',
                     data: Object.values(dealsByMonth),
                     borderColor: '#3b82f6',
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -496,10 +472,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const contactsCtx = document.getElementById('contactsChart');
     if (contactsCtx) {
         const contactTypes = {
-            'email': 'E-mail',
-            'phone': 'Telefon',
-            'meeting': 'Schůzka',
-            'other': 'Ostatní'
+            'email': '{{ i18("messages.email") }}',
+            'phone': '{{ i18("messages.phone") }}',
+            'meeting': '{{ i18("messages.meeting") }}',
+            'other': '{{ i18("messages.other") }}'
         };
 
         const chartData = Object.keys(contactsByType).map(type => ({
